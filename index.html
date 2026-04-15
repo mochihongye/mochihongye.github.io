@@ -2,7 +2,8 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>哈基米的诱惑</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>哈基米相册</title>
     <style>
         * {
             margin: 0;
@@ -11,45 +12,63 @@
         }
 
         body {
-            width: 100vw;
-            height: 100vh;
-            overflow: hidden;
-            position: relative;
+            background: #f5f5f5;
+            padding: 20px;
         }
 
-        /* 中间文字 */
-        .center-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 100px;
-            z-index: 10;
-        }
-
-        a {
+        /* 返回首页按钮 */
+        .back-btn {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: #4ecdc4;
+            color: white;
             text-decoration: none;
+            border-radius: 8px;
+            font-size: 18px;
         }
 
-        /* 文字闪烁 */
-        @keyframes blink {
-            0% { opacity: 1; }
-            50% { opacity: 0.3; }
-            100% { opacity: 1; }
+        .back-btn:hover {
+            background: #38b0a9;
         }
 
-        .center-text span {
-            animation: blink 2s infinite;
+        /* 相册标题 */
+        h1 {
+            text-align: center;
+            font-size: 48px;
+            margin-bottom: 30px;
+            background: linear-gradient(45deg, #8585f8, #f86b6b, #f37f92, #6868fa, #4af34a, #67fdf6);
+            -webkit-background-clip: text;
+            color: transparent;
         }
 
-        /* 移动图片 */
-        .move-img {
-            position: absolute;
-            width: 120px;
-            user-select: none;
+        /* 相册网格布局 */
+        .album-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* 相册图片 */
+        .album-item {
+            border-radius: 8px;
+            overflow: hidden;
             cursor: pointer;
-            transition: transform 0.2s;
-            z-index: 5;
+            transition: transform 0.3s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .album-item:hover {
+            transform: scale(1.05);
+        }
+
+        .album-item img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            display: block;
         }
 
         /* 点击放大遮罩 */
@@ -59,84 +78,171 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0,0,0,0.9);
             display: none;
             justify-content: center;
             align-items: center;
             z-index: 999;
-        }
-
-        .overlay img {
-            max-width: 80%;
-            max-height: 80%;
+            cursor: pointer;
         }
 
         .overlay.show {
             display: flex;
         }
+
+        .overlay img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 8px;
+        }
+
+        /* 新增：切换按钮样式 */
+        .nav-btn {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 60px;
+            height: 60px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+            z-index: 1000;
+            display: none;
+            transition: background 0.2s;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255,255,255,0.4);
+        }
+
+        .nav-btn.prev {
+            left: 30px;
+        }
+
+        .nav-btn.next {
+            right: 30px;
+        }
+
+        .overlay.show ~ .nav-btn {
+            display: block;
+        }
     </style>
 </head>
-
 <body>
-    <!-- 中间文字 -->
-    <div class="center-text">
-        <a href="哈基米子网站.html">
-            <span style="color:rgb(133,133,248);">哈</span>
-            <span style="color:rgb(248,107,107);">基</span>
-            <span style="color:rgb(243,127,146);">米</span>
-            <span style="color:rgb(104,104,250);">的</span>
-            <span style="color:rgb(74,243,74);">诱</span>
-            <span style="color:rgb(103,253,246);">惑</span>
-        </a>
-    </div>
+    <!-- 返回首页按钮 -->
+    <a href="index.html" class="back-btn">← 返回首页</a>
 
-    <!-- 屏保反弹图片 -->
-    <img src="52D281F9A22F244BCF02103BC9D2A267.jpg" class="move-img" id="img1">
-    <img src="5C0C46BBCDAEBF5824023585DBAC0C2A.jpg" class="move-img" id="img2">
+    <!-- 相册标题 -->
+    <h1>哈基米相册</h1>
+
+    <!-- 相册网格 -->
+    <div class="album-grid">
+        <div class="album-item">
+            <img src="0F5AB837298A815612BCF406427C2B61.jpg" alt="相册图片1">
+        </div>
+        <div class="album-item">
+            <img src="5F8D44CB468F293156616AFC25B33EB5.jpg" alt="相册图片2">
+        </div>
+        <div class="album-item">
+            <img src="6CA920FB8945D6AB436C130FF4AD7F83.jpg" alt="相册图片3">
+        </div>
+        <div class="album-item">
+            <img src="574E778FA01383BF5E914334E5B77C1D.jpg" alt="相册图片4">
+        </div>
+        <div class="album-item">
+            <img src="C0E59290E5616B653CED90A7E15B6326.jpg" alt="相册图片5">
+        </div>
+        <div class="album-item">
+            <img src="0689B0C939E2E349DF715BC558DE8857.jpg" alt="相册图片">
+        </div>
+        <div class="album-item">
+            <img src="5C0C46BBCDAEBF5824023585DBAC0C2A.jpg" alt="相册图片">
+        </div>
+        <div class="album-item">
+            <img src="20A692CECBE52DC9330E7231A010639A.jpg" alt="相册图片">
+        </div>
+        <div class="album-item">
+            <img src="58A1C6D52664A7F95B7E1F4E8AA5B43A.jpg" alt="相册图片">
+        </div>
+        <div class="album-item">
+            <img src="103C936E825637F021C020B196E5DA35.jpg" alt="相册图片">
+        </div>
+        <div class="album-item">
+            <img src="675DFD53999504D6D2CCD2E289353E77.jpg" alt="相册图片">
+        </div>
+        <div class="album-item">
+            <img src="D03C0471D3C5A79CA023D16F5C59CA12.jpg" alt="相册图片">
+        </div>
+        <div class="album-item">
+            <img src="EF04F04FAB2F8BD52DEF75376B593A72.jpg" alt="相册图片">
+        </div>
+
+        
+    </div>
 
     <!-- 放大查看层 -->
     <div class="overlay" id="overlay">
         <img id="bigImg">
     </div>
 
+    <!-- 新增：切换按钮 -->
+    <button class="nav-btn prev" id="prevBtn">←</button>
+    <button class="nav-btn next" id="nextBtn">→</button>
+
     <script>
-        // 1. 屏保反弹移动
-        function startMove(imgId) {
-            const img = document.getElementById(imgId);
-            let x = Math.random() * (window.innerWidth - 150);
-            let y = Math.random() * (window.innerHeight - 150);
-            let speedX = (Math.random() - 0.5) * 8;
-            let speedY = (Math.random() - 0.5) * 7;
-
-            function move() {
-                x += speedX;
-                y += speedY;
-
-                if (x <= 0 || x >= window.innerWidth - img.width) speedX *= -1;
-                if (y <= 0 || y >= window.innerHeight - img.height) speedY *= -1;
-
-                img.style.left = x + 'px';
-                img.style.top = y + 'px';
-                requestAnimationFrame(move);
-            }
-            move();
-        }
-
-        startMove('img1');
-        startMove('img2');
-
-        // 2. 点击图片放大
+        // 点击图片放大 + 新增切换逻辑
         const overlay = document.getElementById('overlay');
         const bigImg = document.getElementById('bigImg');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const imgList = document.querySelectorAll('.album-item img'); // 相册图片列表
+        let currentIndex = 0; // 当前显示的图片索引
 
-        document.querySelectorAll('.move-img').forEach(img => {
-            img.onclick = () => {
+        // 点击图片放大
+        imgList.forEach((img, index) => {
+            img.onclick = (e) => {
+                e.stopPropagation(); // 阻止事件冒泡到overlay
+                currentIndex = index;
                 bigImg.src = img.src;
                 overlay.classList.add('show');
             };
         });
 
-        // 点击黑色背景关闭放大
+        // 上一张
+        function showPrevImg() {
+            currentIndex = (currentIndex - 1 + imgList.length) % imgList.length;
+            bigImg.src = imgList[currentIndex].src;
+        }
+
+        // 下一张
+        function showNextImg() {
+            currentIndex = (currentIndex + 1) % imgList.length;
+            bigImg.src = imgList[currentIndex].src;
+        }
+
+        // 绑定切换按钮事件
+        prevBtn.onclick = (e) => {
+            e.stopPropagation();
+            showPrevImg();
+        };
+        nextBtn.onclick = (e) => {
+            e.stopPropagation();
+            showNextImg();
+        };
+
+        // 键盘方向键切换 + ESC关闭
+        document.addEventListener('keydown', (e) => {
+            if (overlay.classList.contains('show')) {
+                if (e.key === 'ArrowLeft') showPrevImg();
+                if (e.key === 'ArrowRight') showNextImg();
+                if (e.key === 'Escape') overlay.classList.remove('show');
+            }
+        });
+
+        // 点击遮罩关闭
         overlay.onclick = () => {
             overlay.classList.remove('show');
         };

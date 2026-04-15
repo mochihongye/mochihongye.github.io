@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>哈基米的诱惑</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 中间文字 */
+        .center-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 100px;
+            z-index: 10;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        /* 文字闪烁 */
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+
+        .center-text span {
+            animation: blink 2s infinite;
+        }
+
+        /* 移动图片 */
+        .move-img {
+            position: absolute;
+            width: 120px;
+            user-select: none;
+            cursor: pointer;
+            transition: transform 0.2s;
+            z-index: 5;
+        }
+
+        /* 点击放大遮罩 */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+
+        .overlay img {
+            max-width: 80%;
+            max-height: 80%;
+        }
+
+        .overlay.show {
+            display: flex;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 中间文字 -->
+    <div class="center-text">
+        <a href="哈基米子网站.html">
+            <span style="color:rgb(133,133,248);">哈</span>
+            <span style="color:rgb(248,107,107);">基</span>
+            <span style="color:rgb(243,127,146);">米</span>
+            <span style="color:rgb(104,104,250);">的</span>
+            <span style="color:rgb(74,243,74);">诱</span>
+            <span style="color:rgb(103,253,246);">惑</span>
+        </a>
+    </div>
+
+    <!-- 屏保反弹图片 -->
+    <img src="52D281F9A22F244BCF02103BC9D2A267.jpg" class="move-img" id="img1">
+    <img src="5C0C46BBCDAEBF5824023585DBAC0C2A.jpg" class="move-img" id="img2">
+
+    <!-- 放大查看层 -->
+    <div class="overlay" id="overlay">
+        <img id="bigImg">
+    </div>
+
+    <script>
+        // 1. 屏保反弹移动
+        function startMove(imgId) {
+            const img = document.getElementById(imgId);
+            let x = Math.random() * (window.innerWidth - 150);
+            let y = Math.random() * (window.innerHeight - 150);
+            let speedX = (Math.random() - 0.5) * 8;
+            let speedY = (Math.random() - 0.5) * 7;
+
+            function move() {
+                x += speedX;
+                y += speedY;
+
+                if (x <= 0 || x >= window.innerWidth - img.width) speedX *= -1;
+                if (y <= 0 || y >= window.innerHeight - img.height) speedY *= -1;
+
+                img.style.left = x + 'px';
+                img.style.top = y + 'px';
+                requestAnimationFrame(move);
+            }
+            move();
+        }
+
+        startMove('img1');
+        startMove('img2');
+
+        // 2. 点击图片放大
+        const overlay = document.getElementById('overlay');
+        const bigImg = document.getElementById('bigImg');
+
+        document.querySelectorAll('.move-img').forEach(img => {
+            img.onclick = () => {
+                bigImg.src = img.src;
+                overlay.classList.add('show');
+            };
+        });
+
+        // 点击黑色背景关闭放大
+        overlay.onclick = () => {
+            overlay.classList.remove('show');
+        };
+    </script>
+</body>
+</html>

@@ -14,6 +14,67 @@
         body {
             background: #f5f5f5;
             padding: 20px;
+            padding-bottom: 80px;
+        }
+
+        /* ========== 右下角音乐播放器 ========== */
+        #musicWrap {
+            position: fixed;
+            right: 15px;
+            bottom: 15px;
+            z-index: 9999;
+            background: rgba(0,0,0,0.6);
+            padding: 10px 15px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .music-btn {
+            color: #fff;
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 2px 8px;
+        }
+        .music-btn:hover {
+            color: #4ecdc4;
+        }
+        #bgMusic {
+            width: 120px;
+        }
+
+        /* ========== 底部悬浮歌词 ========== */
+        #lyricsBox {
+            position: fixed;
+            left: 50%;
+            bottom: 80px;
+            transform: translateX(-50%);
+            z-index: 9998;
+            background: rgba(0,0,0,0.5);
+            color: #fff;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 16px;
+            white-space: nowrap;
+            display: none;
+        }
+        #lyricsBox.show {
+            display: block;
+        }
+        /* 歌词开关按钮 */
+        #lyricSwitch {
+            position: fixed;
+            left: 15px;
+            bottom: 15px;
+            z-index: 9999;
+            background: #4ecdc4;
+            color: #fff;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
         }
 
         /* 返回首页按钮 */
@@ -27,9 +88,13 @@
             border-radius: 8px;
             font-size: 18px;
         }
-
         .back-btn:hover {
             background: #38b0a9;
+        }
+        .album-item video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         /* 相册标题 */
@@ -51,7 +116,6 @@
             margin: 0 auto;
         }
 
-        /* 相册图片 */
         .album-item {
             border-radius: 8px;
             overflow: hidden;
@@ -59,11 +123,9 @@
             transition: transform 0.3s;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
-
         .album-item:hover {
             transform: scale(1.05);
         }
-
         .album-item img {
             width: 100%;
             height: 200px;
@@ -71,7 +133,7 @@
             display: block;
         }
 
-        /* 点击放大遮罩 */
+        /* 放大遮罩 */
         .overlay {
             position: fixed;
             top: 0;
@@ -85,18 +147,15 @@
             z-index: 999;
             cursor: pointer;
         }
-
         .overlay.show {
             display: flex;
         }
-
         .overlay img {
             max-width: 90%;
             max-height: 90%;
             border-radius: 8px;
         }
 
-        /* 新增：切换按钮样式 */
         .nav-btn {
             position: fixed;
             top: 50%;
@@ -113,191 +172,152 @@
             display: none;
             transition: background 0.2s;
         }
-
         .nav-btn:hover {
             background: rgba(255,255,255,0.4);
         }
-
-        .nav-btn.prev {
-            left: 30px;
-        }
-
-        .nav-btn.next {
-            right: 30px;
-        }
-
-        .overlay.show ~ .nav-btn {
-            display: block;
-        }
+        .nav-btn.prev {left: 30px;}
+        .nav-btn.next {right: 30px;}
+        .overlay.show ~ .nav-btn {display: block;}
     </style>
 </head>
 <body>
-    <!-- 返回首页按钮 -->
     <a href="index.html" class="back-btn">← 返回首页</a>
 
-    <!-- 相册标题 -->
     <h1>哈基米相册</h1>
 
-    <!-- 相册网格 -->
     <div class="album-grid">
-        <div class="album-item">
-            <img src="0F5AB837298A815612BCF406427C2B61.jpg" alt="相册图片1">
-        </div>
-        <div class="album-item">
-            <img src="5F8D44CB468F293156616AFC25B33EB5.jpg" alt="相册图片2">
-        </div>
-        <div class="album-item">
-            <img src="6CA920FB8945D6AB436C130FF4AD7F83.jpg" alt="相册图片3">
-        </div>
-        <div class="album-item">
-            <img src="574E778FA01383BF5E914334E5B77C1D.jpg" alt="相册图片4">
-        </div>
-        <div class="album-item">
-            <img src="C0E59290E5616B653CED90A7E15B6326.jpg" alt="相册图片5">
-        </div>
-        <div class="album-item">
-            <img src="0689B0C939E2E349DF715BC558DE8857.jpg" alt="相册图片">
-        </div>
-        <div class="album-item">
-            <img src="5C0C46BBCDAEBF5824023585DBAC0C2A.jpg" alt="相册图片">
-        </div>
-        <div class="album-item">
-            <img src="20A692CECBE52DC9330E7231A010639A.jpg" alt="相册图片">
-        </div>
-        <div class="album-item">
-            <img src="58A1C6D52664A7F95B7E1F4E8AA5B43A.jpg" alt="相册图片">
-        </div>
-        <div class="album-item">
-            <img src="103C936E825637F021C020B196E5DA35.jpg" alt="相册图片">
-        </div>
-        <div class="album-item">
-            <img src="675DFD53999504D6D2CCD2E289353E77.jpg" alt="相册图片">
-        </div>
-        <div class="album-item">
-            <img src="D03C0471D3C5A79CA023D16F5C59CA12.jpg" alt="相册图片">
-        </div>
-        <div class="album-item">
-            <img src="EF04F04FAB2F8BD52DEF75376B593A72.jpg" alt="相册图片">
-        </div>
-        <div class="album-item">
-            <img src="a.jpg" alt="相册图片">
-        </div>
-        <div class="album-item">
-            <img src="b.jpg" alt="相册图片">
-        </div>
-        <div class="album-item">
-            <img src="c.jpg" alt="相册图片">
-        </div>
-        <div class="album-item">
-            <img src="d.jpg" alt="相册图片">
-        </div>
-        <div class="album-item">
-            <img src="e.jpg" alt="相册图片">
-        </div>
-        <div class="album-item">
-            <img src="f.jpg" alt="相册图片">
-        </div>
-        <div class="album-item">
-            <img src="g.jpg" alt="相册图片">
-        </div>
-        <div class="album-item">
-            <img src="h.jpg" alt="相册图片">
-        </div>
-        <div class="album-item">
-            <img src="i.jpg" alt="相册图片">
-        </div>
-        <div class="album-item">
-            <img src="j.jpg" alt="相册图片">
-        </div>
-        <div class="album-item">
-            <img src="k.jpg" alt="相册图片">
-        </div>
-        <div class="album-item">
-            <img src="l.jpg" alt="相册图片">
-        </div>
-        <div class="album-item">
-            <img src="m.jpg" alt="相册图片">
-        </div>
-        <div class="album-item">
-            <img src="n.jpg" alt="相册图片">
-        </div>
-        <div class="album-item">
-            <img src="o.jpg" alt="相册图片">
-        </div>
-        <div class="album-item">
-            <img src="p.jpg" alt="相册图片">
-        </div>
-        <div class="album-item">
-            <img src="q.jpg" alt="相册图片">
-        </div>
-      
-        
-        
+        <div class="album-item"><img src="0F5AB837298A815612BCF406427C2B61.jpg" alt="相册图片1"></div>
+        <div class="album-item"><img src="5F8D44CB468F293156616AFC25B33EB5.jpg" alt="相册图片2"></div>
+        <div class="album-item"><img src="6CA920FB8945D6AB436C130FF4AD7F83.jpg" alt="相册图片3"></div>
+        <div class="album-item"><img src="574E778FA01383BF5E914334E5B77C1D.jpg" alt="相册图片4"></div>
+        <div class="album-item"><img src="C0E59290E5616B653CED90A7E15B6326.jpg" alt="相册图片5"></div>
+        <div class="album-item"><img src="0689B0C939E2E349DF715BC558DE8857.jpg" alt="相册图片"></div>
+        <div class="album-item"><img src="5C0C46BBCDAEBF5824023585DBAC0C2A.jpg" alt="相册图片"></div>
+        <div class="album-item"><img src="20A692CECBE52DC9330E7231A010639A.jpg" alt="相册图片"></div>
+        <div class="album-item"><img src="58A1C6D52664A7F95B7E1F4E8AA5B43A.jpg" alt="相册图片"></div>
+        <div class="album-item"><img src="103C936E825637F021C020B196E5DA35.jpg" alt="相册图片"></div>
+        <div class="album-item"><img src="675DFD53999504D6D2CCD2E289353E77.jpg" alt="相册图片"></div>
+        <div class="album-item"><img src="D03C0471D3C5A79CA023D16F5C59CA12.jpg" alt="相册图片"></div>
+        <div class="album-item"><img src="EF04F04FAB2F8BD52DEF75376B593A72.jpg" alt="相册图片"></div>
+        <div class="album-item"><img src="a.jpg" alt="相册图片"></div>
+        <div class="album-item"><img src="b.jpg" alt="相册图片"></div>
+        <div class="album-item"><img src="c.jpg" alt="相册图片"></div>
+        <div class="album-item"><img src="d.jpg" alt="相册图片"></div>
+        <div class="album-item"><img src="e.jpg" alt="相册图片"></div>
+        <div class="album-item"><img src="f.jpg" alt="相册图片"></div>
+        <div class="album-item"><img src="g.jpg" alt="相册图片"></div>
+        <div class="album-item"><img src="h.jpg" alt="相册图片"></div>
+        <div class="album-item"><img src="i.jpg" alt="相册图片"></div>
+        <div class="album-item"><img src="j.jpg" alt="相册图片"></div>
+        <div class="album-item"><img src="k.jpg" alt="相册图片"></div>
+        <div class="album-item"><img src="l.jpg" alt="相册图片"></div>
+        <div class="album-item"><img src="m.jpg" alt="相册图片"></div>
+        <div class="album-item"><img src="n.jpg" alt="相册图片"></div>
+        <div class="album-item"><img src="o.jpg" alt="相册图片"></div>
+        <div class="album-item"><img src="p.jpg" alt="相册图片"></div>
+        <div class="album-item"><img src="q.jpg" alt="相册图片"></div>
+        <div class="album-item"><video src="miao.mp4" controls></video></div>
+        <div class="album-item"><video src="miao2.mp4" controls></video></div>
+        <div class="album-item"><video src="miao3.mp4" controls></video></div>
     </div>
 
-    <!-- 放大查看层 -->
+    <!-- 放大层 -->
     <div class="overlay" id="overlay">
         <img id="bigImg">
     </div>
-
-    <!-- 新增：切换按钮 -->
     <button class="nav-btn prev" id="prevBtn">←</button>
     <button class="nav-btn next" id="nextBtn">→</button>
 
+    <!-- 歌词悬浮框 -->
+    <div id="lyricsBox">正在播放：哈基米～</div>
+    <!-- 歌词开关 -->
+    <button id="lyricSwitch">显示歌词</button>
+
+    <!-- 右下角音乐控件 + 切歌 -->
+    <div id="musicWrap">
+        <button class="music-btn" id="prevMusic">←</button>
+        <audio id="bgMusic" loop muted autoplay>
+        <button class="music-btn" id="nextMusic">→</button>
+    </div>
+
     <script>
-        // 点击图片放大 + 新增切换逻辑
+        // ========== 相册放大代码 ==========
         const overlay = document.getElementById('overlay');
         const bigImg = document.getElementById('bigImg');
         const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
-        const imgList = document.querySelectorAll('.album-item img'); // 相册图片列表
-        let currentIndex = 0; // 当前显示的图片索引
+        const imgList = document.querySelectorAll('.album-item img');
+        let currentIndex = 0;
 
-        // 点击图片放大
         imgList.forEach((img, index) => {
             img.onclick = (e) => {
-                e.stopPropagation(); // 阻止事件冒泡到overlay
+                e.stopPropagation();
                 currentIndex = index;
                 bigImg.src = img.src;
                 overlay.classList.add('show');
             };
         });
-
-        // 上一张
-        function showPrevImg() {
+        function showPrevImg(){
             currentIndex = (currentIndex - 1 + imgList.length) % imgList.length;
             bigImg.src = imgList[currentIndex].src;
         }
-
-        // 下一张
-        function showNextImg() {
+        function showNextImg(){
             currentIndex = (currentIndex + 1) % imgList.length;
             bigImg.src = imgList[currentIndex].src;
         }
-
-        // 绑定切换按钮事件
-        prevBtn.onclick = (e) => {
-            e.stopPropagation();
-            showPrevImg();
-        };
-        nextBtn.onclick = (e) => {
-            e.stopPropagation();
-            showNextImg();
-        };
-
-        // 键盘方向键切换 + ESC关闭
-        document.addEventListener('keydown', (e) => {
-            if (overlay.classList.contains('show')) {
-                if (e.key === 'ArrowLeft') showPrevImg();
-                if (e.key === 'ArrowRight') showNextImg();
-                if (e.key === 'Escape') overlay.classList.remove('show');
+        prevBtn.onclick = e=>{e.stopPropagation();showPrevImg()};
+        nextBtn.onclick = e=>{e.stopPropagation();showNextImg()};
+        document.addEventListener('keydown',e=>{
+            if(overlay.classList.contains('show')){
+                if(e.key==='ArrowLeft')showPrevImg();
+                if(e.key==='ArrowRight')showNextImg();
+                if(e.key==='Escape')overlay.classList.remove('show');
             }
         });
+        overlay.onclick = ()=>overlay.classList.remove('show');
 
-        // 点击遮罩关闭
-        overlay.onclick = () => {
-            overlay.classList.remove('show');
+        // ========== 音乐列表 自己改歌曲名 ==========
+        const musicList = [
+            {src:"song1.mp3", lrc:"哈基米哈基米～"},
+            {src:"song2.mp3", lrc:"哈基米哈基米～"},
+            {src:"song3.mp3", lrc:"哈基米哈基米～"}
+        ];
+        let musicIndex = 0;
+        const audio = document.getElementById('bgMusic');
+        const lyricsBox = document.getElementById('lyricsBox');
+        const lyricSwitch = document.getElementById('lyricSwitch');
+        let lyricShow = false;
+
+        // 加载歌曲
+        function loadMusic(idx){
+            audio.src = musicList[idx].src;
+            lyricsBox.innerText = musicList[idx].lrc;
+            audio.play();
+        }
+        // 上一首
+        document.getElementById('prevMusic').onclick = ()=>{
+            musicIndex = (musicIndex -1 + musicList.length) % musicList.length;
+            loadMusic(musicIndex);
         };
+        // 下一首
+        document.getElementById('nextMusic').onclick = ()=>{
+            musicIndex = (musicIndex +1) % musicList.length;
+            loadMusic(musicIndex);
+        };
+        // 歌词开关
+        lyricSwitch.onclick = ()=>{
+            lyricShow = !lyricShow;
+            if(lyricShow){
+                lyricsBox.classList.add('show');
+                lyricSwitch.innerText = "隐藏歌词";
+            }else{
+                lyricsBox.classList.remove('show');
+                lyricSwitch.innerText = "显示歌词";
+            }
+        };
+
+        // 初始化第一首
+        loadMusic(0);
     </script>
 </body>
 </html>

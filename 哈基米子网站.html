@@ -166,18 +166,17 @@
         document.body.classList.add('dark');
     }
 
-    // 所有资源列表（a.jpg~z.jpg + miao.mp4~miao5.mp4）
+    // 所有资源列表（a.png~z.png + miao1.mp4~miao4.mp4）
     const mediaList = [];
     // 图片 a~z
     for(let c='a'.charCodeAt(0); c<='z'.charCodeAt(0); c++){
-        mediaList.push({type:'img', src:String.fromCharCode(c)+'.jpg'});
+        mediaList.push({type:'img', src:String.fromCharCode(c)+'.png'});
     }
-    // 视频 miao1~5
-    mediaList.push({type:'video', src:'miao.mp4'});
+    // 视频 miao1~4
+    mediaList.push({type:'video', src:'miao1.mp4'});
     mediaList.push({type:'video', src:'miao2.mp4'});
     mediaList.push({type:'video', src:'miao3.mp4'});
     mediaList.push({type:'video', src:'miao4.mp4'});
-    mediaList.push({type:'video', src:'miao5.mp4'});
 
     let currentIndex = 0;
     const albumGrid = document.getElementById('albumGrid');

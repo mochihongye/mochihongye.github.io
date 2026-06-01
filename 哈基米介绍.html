@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>年糕档案｜哈基米介绍</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family:"微软雅黑",sans-serif;
+            background:url("https://pic.17qq.com/uploads/2025-02-01/58f92a1ed25547249c2d7d15e424d655.jpeg") center/cover;
+            height:100vh;
+        }
+        .top-nav {
+            position: fixed; top:20px; right:20px;
+            background:white; padding:10px 15px; border-radius:12px;
+            z-index:9999; box-shadow:0 2px 10px rgba(0,0,0,0.1);
+        }
+        .top-nav a { margin:0 8px; text-decoration:none; color:#333; font-weight:bold; }
+        .top-nav a:hover { color:#6868fa; }
+        .level-box {
+            position: fixed; top:20px; left:20px;
+            background:white; padding:8px 12px; border-radius:10px;
+            font-size:14px; z-index:9999; box-shadow:0 2px 8px rgba(0,0,0,0.1);
+        }
+        .card {
+            position:absolute; top:50%; left:50%;
+            transform:translate(-50%,-50%);
+            background:rgba(255,255,255,0.95);
+            padding:40px; border-radius:24px;
+            width:550px; max-height:90vh;
+            overflow-y:auto;
+            box-shadow:0 10px 30px rgba(0,0,0,0.2);
+        }
+        .card h1 {
+            text-align:center; color:#6868fa;
+            margin-bottom:20px; font-size:32px;
+        }
+        .info-block { margin-bottom:20px; }
+        .info-block h3 {
+            color:#f37f92; margin-bottom:10px;
+            font-size:18px; border-bottom:2px solid #eee;
+            padding-bottom:6px;
+        }
+        .info-item {
+            font-size:16px; line-height:1.8;
+            color:#333;
+        }
+        .info-item strong { color:#6868fa; }
+        .tag-list { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+        .tag {
+            background:#f0f0ff; color:#6868fa;
+            padding:4px 12px; border-radius:20px;
+            font-size:14px;
+        }
+        .quote {
+            background:#fff0f8; color:#994477;
+            padding:15px; border-radius:12px;
+            font-style:italic; text-align:center;
+            margin-top:20px;
+        }
+        .btn-wrap { text-align:center; margin-top:25px; }
+        .big-btn {
+            display:inline-block;
+            padding:14px 35px; background:#6868fa;
+            color:white; border-radius:30px; font-size:18px;
+            font-weight:bold; text-decoration:none;
+            transition:0.3s;
+        }
+        .big-btn:hover { background:#5454e6; transform:translateY(-3px); }
+    </style>
+</head>
+<body>
+
+<div class="top-nav" id="topNav">
+    <a href="index-main.html">首页</a>
+    <a href="哈基米介绍.html">年糕档案</a>
+    <a href="哈基米子网站.html">年糕相册</a>
+    <a href="哈基米互动.html">互动</a>
+    <a href="index.html" id="loginOut">登录</a>
+</div>
+
+<div class="level-box" id="levelBox"></div>
+
+<div class="card">
+    <h1>🐱 年糕档案 · 哈基米本米</h1>
+
+    <!-- 基础档案 -->
+    <div class="info-block">
+        <h3>📋 基础档案</h3>
+        <div class="info-item"><strong>名字：</strong>年糕</div>
+        <div class="info-item"><strong>品种：</strong>布偶猫（Ragdoll）</div>
+        <div class="info-item"><strong>年龄：</strong>1岁多</div>
+        <div class="info-item"><strong>性别：</strong>男孩子（公公猫）</div>
+        <div class="info-item"><strong>绝育时间：</strong>2026年2月7日</div>
+        <div class="info-item"><strong>体重：</strong>约4.5kg，软乎乎抱起来很沉</div>
+    </div>
+
+    <!-- 性格标签 -->
+    <div class="info-block">
+        <h3>💖 性格标签</h3>
+        <div class="tag-list">
+            <span class="tag">温柔黏人</span>
+            <span class="tag">软萌温顺</span>
+            <span class="tag">胆子小小</span>
+            <span class="tag">脾气超好</span>
+            <span class="tag">爱撒娇</span>
+            <span class="tag">随便撸</span>
+        </div>
+    </div>
+
+    <!-- 日常爱好 -->
+    <div class="info-block">
+        <h3>🎀 日常爱好</h3>
+        <div class="info-item">✨ 贴贴抱抱，天天黏人求摸摸</div>
+        <div class="info-item">✨ 晒太阳，一晒一下午</div>
+        <div class="info-item">✨ 睡觉打呼，睡颜超乖</div>
+        <div class="info-item">✨ 追逗猫棒、激光笔</div>
+        <div class="info-item">✨ 踩奶按摩，呼噜呼噜</div>
+    </div>
+
+    <!-- 萌点总结 -->
+    <div class="info-block">
+        <h3>🌟 萌点总结</h3>
+        <div class="info-item">• 颜值天花板，大眼睛布偶脸</div>
+        <div class="info-item">• 毛软软像云朵，手感绝了</div>
+        <div class="info-item">• 不抓人不咬人，脾气无敌好</div>
+        <div class="info-item">• 公公猫超乖，不乱叫不乱跑</div>
+        <div class="info-item">• 治愈小天使，每天被治愈</div>
+    </div>
+
+    <!-- 年糕语录 -->
+    <div class="quote">
+        难道我是一只很坏的小猫咪吗？<br>
+        我只是想被爱、想贴贴、想被摸摸呀～<br>
+        全世界最乖的布偶哈基米，治愈每一天 ❤
+    </div>
+
+    <!-- 跳转按钮 -->
+    <div class="btn-wrap">
+        <a href="哈基米子网站.html" class="big-btn">📸 查看年糕美颜相册</a>
+    </div>
+</div>
+
+<script>
+    function getLevelIcon(lv) {
+        if(lv>=8) return '👑皇冠';
+        if(lv>=4) return '🌙月亮';
+        return '⭐星星';
+    }
+    function updateTopNav() {
+        const user = localStorage.getItem('user') || '';
+        const link = document.getElementById('loginOut');
+        if(user) {
+            link.innerText = '退出';
+            link.onclick = () => {
+                localStorage.removeItem('user');
+                location.reload();
+            };
+        }
+    }
+    const user=localStorage.getItem('user')||'游客';
+    const lv=parseInt(localStorage.getItem('level'))||0;
+    const fish=parseInt(localStorage.getItem('fish'))||0;
+    document.getElementById('levelBox').innerText=`${user} Lv${lv} 🐟${fish}`;
+    updateTopNav();
+</script>
+
+</body>
+</html>

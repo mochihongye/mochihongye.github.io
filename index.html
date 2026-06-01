@@ -2,144 +2,228 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>哈基米的诱惑</title>
+    <title>哈基米的小窝 - 登录注册</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin:0; padding:0; box-sizing:border-box; }
         body {
-            width: 100vw;
-            height: 100vh;
-            overflow: hidden;
-            position: relative;
+            width:100vw; height:100vh;
+            font-family:"微软雅黑",sans-serif;
+            background:url("登录耄耋.png") center/cover no-repeat;
+            position:relative; overflow:hidden;
         }
-
-        /* 中间文字 */
-        .center-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 100px;
-            z-index: 10;
+        body::after {
+            content:""; position:absolute;
+            top:0; left:0; width:100%; height:100%;
+            background:rgba(255,255,255,0.6); z-index:1;
         }
-
-        a {
-            text-decoration: none;
+        .top-nav {
+            position: fixed; top:20px; right:20px;
+            background:white; padding:10px 15px; border-radius:12px;
+            z-index:9999; box-shadow:0 2px 10px rgba(0,0,0,0.1);
         }
-
-        /* 文字闪烁 */
-        @keyframes blink {
-            0% { opacity: 1; }
-            50% { opacity: 0.3; }
-            100% { opacity: 1; }
+        .top-nav a { margin:0 8px; text-decoration:none; color:#333; font-weight:bold; }
+        .top-nav a:hover { color:#6868fa; }
+        .level-box {
+            position: fixed; top:20px; left:20px;
+            background:white; padding:8px 12px; border-radius:10px;
+            font-size:14px; z-index:9999; box-shadow:0 2px 8px rgba(0,0,0,0.1);
         }
-
-        .center-text span {
-            animation: blink 2s infinite;
+        .auth-card {
+            position:absolute; top:50%; right:80px;
+            transform:translateY(-50%);
+            width:420px; background:rgba(255,255,255,0.95);
+            border-radius:24px; padding:40px 35px;
+            box-shadow:0 10px 40px rgba(0,0,0,0.2);
+            z-index:10; backdrop-filter:blur(10px);
         }
-
-        /* 移动图片 */
-        .move-img {
-            position: absolute;
-            width: 120px;
-            user-select: none;
-            cursor: pointer;
-            transition: transform 0.2s;
-            z-index: 5;
+        .auth-title { text-align:center; margin-bottom:30px; }
+        .auth-title span {
+            font-size:40px; font-weight:bold;
+            animation:blink 2s infinite;
         }
-
-        /* 点击放大遮罩 */
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(0, 0, 0, 0.8);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 999;
+        .title-ha { color:rgb(133,133,248); }
+        .title-ji { color:rgb(248,107,107); }
+        .title-mi { color:rgb(243,127,146); }
+        .auth-tabs { display:flex; margin-bottom:25px; border-bottom:1px solid #eee; }
+        .tab {
+            flex:1; text-align:center; padding:12px;
+            cursor:pointer; font-size:18px;
+            border-bottom:2px solid transparent;
         }
-
-        .overlay img {
-            max-width: 80%;
-            max-height: 80%;
+        .tab.active {
+            border-bottom-color:rgb(104,104,250);
+            color:rgb(104,104,250); font-weight:bold;
         }
-
-        .overlay.show {
-            display: flex;
+        .auth-form { display:none; }
+        .auth-form.active { display:block; }
+        .form-group { margin-bottom:24px; }
+        .form-group label { display:block; margin-bottom:8px; color:#555; font-size:14px; }
+        .form-group input {
+            width:100%; padding:14px 18px;
+            border:1px solid #ddd; border-radius:12px;
+            font-size:16px; background:#f9f9f9;
         }
+        .form-group input:focus { outline:none; border-color:rgb(133,133,248); background:#fff; }
+        .btn {
+            width:100%; padding:15px; border:none;
+            border-radius:12px; font-size:16px; font-weight:bold;
+            cursor:pointer; margin-top:10px;
+        }
+        .btn-primary { background:rgb(104,104,250); color:white; }
+        .btn-primary:hover { background:rgb(84,84,230); }
+        .btn-register { background:rgb(74,243,74); color:white; }
+        .btn-register:hover { background:rgb(54,223,54); }
+        .msg { text-align:center; margin-top:18px; font-size:14px; display:none; }
+        .msg.success { color:rgb(74,243,74); display:block; }
+        .msg.error { color:rgb(248,107,107); display:block; }
+        @keyframes blink { 0%{opacity:1;}50%{opacity:0.7;}100%{opacity:1;} }
     </style>
 </head>
-
 <body>
-    <!-- 中间文字 -->
-    <div class="center-text">
-        <a href="哈基米子网站.html">
-            <span style="color:rgb(133,133,248);">哈</span>
-            <span style="color:rgb(248,107,107);">基</span>
-            <span style="color:rgb(243,127,146);">米</span>
-            <span style="color:rgb(104,104,250);">的</span>
-            <span style="color:rgb(74,243,74);">诱</span>
-            <span style="color:rgb(103,253,246);">惑</span>
-        </a>
+
+<div class="top-nav" id="topNav">
+    <a href="index-main.html">首页</a>
+    <a href="哈基米介绍.html">年糕档案</a>
+    <a href="哈基米子网站.html">年糕相册</a>
+    <a href="哈基米互动.html">互动</a>
+    <a href="index.html" id="loginOut">登录</a>
+</div>
+
+<div class="level-box" id="levelBox"></div>
+
+<div class="auth-card">
+    <div class="auth-title">
+        <span class="title-ha">哈</span>
+        <span class="title-ji">基</span>
+        <span class="title-mi">米</span>
+        <span style="font-size:26px;color:#666;">的小窝</span>
     </div>
-
-    <!-- 屏保反弹图片 -->
-    <img src="52D281F9A22F244BCF02103BC9D2A267.jpg" class="move-img" id="img1">
-    <img src="5C0C46BBCDAEBF5824023585DBAC0C2A.jpg" class="move-img" id="img2">
-
-    <!-- 放大查看层 -->
-    <div class="overlay" id="overlay">
-        <img id="bigImg">
+    <div class="auth-tabs">
+        <div class="tab active" id="loginTab">登录</div>
+        <div class="tab" id="registerTab">注册</div>
     </div>
+    <div class="auth-form active" id="loginForm">
+        <div class="form-group">
+            <label>用户名</label>
+            <input type="text" id="loginUsername" placeholder="输入你的哈基昵称">
+        </div>
+        <div class="form-group">
+            <label>密码</label>
+            <input type="password" id="loginPassword" placeholder="输入你的密码">
+        </div>
+        <button class="btn btn-primary" id="loginBtn">登录</button>
+        <div class="msg" id="loginMsg"></div>
+    </div>
+    <div class="auth-form" id="registerForm">
+        <div class="form-group">
+            <label>用户名</label>
+            <input type="text" id="regUsername" placeholder="创建昵称">
+        </div>
+        <div class="form-group">
+            <label>密码</label>
+            <input type="password" id="regPassword" placeholder="至少6位">
+        </div>
+        <div class="form-group">
+            <label>确认密码</label>
+            <input type="password" id="regConfirmPwd" placeholder="再次输入">
+        </div>
+        <button class="btn btn-register" id="registerBtn">注册</button>
+        <div class="msg" id="registerMsg"></div>
+    </div>
+</div>
 
-    <script>
-        // 1. 屏保反弹移动
-        function startMove(imgId) {
-            const img = document.getElementById(imgId);
-            let x = Math.random() * (window.innerWidth - 150);
-            let y = Math.random() * (window.innerHeight - 150);
-            let speedX = (Math.random() - 0.5) * 8;
-            let speedY = (Math.random() - 0.5) * 7;
+<script>
+    function getLevelIcon(lv) {
+        if (lv >=8) return '👑皇冠';
+        if (lv >=4) return '🌙月亮';
+        return '⭐星星';
+    }
 
-            function move() {
-                x += speedX;
-                y += speedY;
+    // 初始化
+    if(!localStorage.getItem('level')) localStorage.setItem('level',0);
+    if(!localStorage.getItem('exp')) localStorage.setItem('exp',0);
+    if(!localStorage.getItem('fish')) localStorage.setItem('fish',0);
 
-                if (x <= 0 || x >= window.innerWidth - img.width) speedX *= -1;
-                if (y <= 0 || y >= window.innerHeight - img.height) speedY *= -1;
-
-                img.style.left = x + 'px';
-                img.style.top = y + 'px';
-                requestAnimationFrame(move);
-            }
-            move();
-        }
-
-        startMove('img1');
-        startMove('img2');
-
-        // 2. 点击图片放大
-        const overlay = document.getElementById('overlay');
-        const bigImg = document.getElementById('bigImg');
-
-        document.querySelectorAll('.move-img').forEach(img => {
-            img.onclick = () => {
-                bigImg.src = img.src;
-                overlay.classList.add('show');
+    function updateTopNav() {
+        const user = localStorage.getItem('user') || '';
+        const link = document.getElementById('loginOut');
+        if(user) {
+            link.innerText = '退出';
+            link.onclick = () => {
+                localStorage.removeItem('user');
+                location.reload();
             };
-        });
+        } else {
+            link.innerText = '登录';
+            link.onclick = null;
+        }
+    }
 
-        // 点击黑色背景关闭放大
-        overlay.onclick = () => {
-            overlay.classList.remove('show');
-        };
-    </script>
+    function updateLevel(){
+        const user = localStorage.getItem('user') || '游客';
+        const lv = parseInt(localStorage.getItem('level'))||0;
+        const fish = parseInt(localStorage.getItem('fish'))||0;
+        document.getElementById('levelBox').innerText = `${user} Lv${lv} ${getLevelIcon(lv)} 🐟${fish}`;
+    }
+
+    updateTopNav();
+    updateLevel();
+
+    // 修复：正确获取两个表单
+    const loginTab=document.getElementById('loginTab');
+    const registerTab=document.getElementById('registerTab');
+    const loginForm=document.getElementById('loginForm');
+    const registerForm=document.getElementById('registerForm');
+
+    // 切换逻辑（秒动无延迟）
+    loginTab.onclick=()=>{
+        loginTab.classList.add('active');
+        registerTab.classList.remove('active');
+        loginForm.classList.add('active');
+        registerForm.classList.remove('active');
+    }
+    registerTab.onclick=()=>{
+        registerTab.classList.add('active');
+        loginTab.classList.remove('active');
+        registerForm.classList.add('active');
+        loginForm.classList.remove('active');
+    }
+
+    // 登录：+10经验、+3小鱼干
+    document.getElementById('loginBtn').onclick=()=>{
+        const u=document.getElementById('loginUsername').value.trim();
+        const p=document.getElementById('loginPassword').value.trim();
+        if(!u||!p){
+            document.getElementById('loginMsg').className='msg error';
+            document.getElementById('loginMsg').textContent='请填写完整！';
+            return;
+        }
+        localStorage.setItem('user',u);
+        let exp = parseInt(localStorage.getItem('exp'))||0;
+        let fish = parseInt(localStorage.getItem('fish'))||0;
+        exp += 10;
+        fish += 3;
+        localStorage.setItem('exp', exp);
+        localStorage.setItem('fish', fish);
+        document.getElementById('loginMsg').className='msg success';
+        document.getElementById('loginMsg').textContent='登录成功！+10经验 +3小鱼干';
+        setTimeout(()=>location.href='index-main.html',1200);
+    };
+
+    // 注册
+    document.getElementById('registerBtn').onclick=()=>{
+        const u=document.getElementById('regUsername').value.trim();
+        const p=document.getElementById('regPassword').value.trim();
+        const c=document.getElementById('regConfirmPwd').value.trim();
+        if(!u||p.length<6||p!==c){
+            document.getElementById('registerMsg').className='msg error';
+            document.getElementById('registerMsg').textContent='信息有误！';
+            return;
+        }
+        document.getElementById('registerMsg').className='msg success';
+        document.getElementById('registerMsg').textContent='注册成功！';
+        setTimeout(()=>loginTab.click(),1000);
+    };
+</script>
 </body>
 </html>

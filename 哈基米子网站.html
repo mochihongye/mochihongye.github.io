@@ -2,298 +2,196 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>哈基米相册</title>
+    <title>年糕相册</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:"微软雅黑",sans-serif; background:#f8f8f8; }
+        .top-nav {
+            position: fixed; top:20px; right:20px;
+            background:white; padding:10px 15px; border-radius:12px;
+            z-index:9999; box-shadow:0 2px 10px rgba(0,0,0,0.1);
         }
-
-        body {
-            background: #f5f5f5;
-            padding: 20px;
-            padding-bottom: 100px;
+        .top-nav a { margin:0 8px; text-decoration:none; color:#333; font-weight:bold; }
+        .top-nav a:hover { color:#6868fa; }
+        .level-box {
+            position: fixed; top:20px; left:20px;
+            background:white; padding:8px 12px; border-radius:10px;
+            font-size:14px; z-index:9999; box-shadow:0 2px 8px rgba(0,0,0,0.1);
         }
-
-        /* 右下角音乐播放器 - 上下垂直布局 */
-        #musicWrap {
-            position: fixed;
-            right: 20px;
-            bottom: 20px;
-            z-index: 9999;
-            background: rgba(0,0,0,0.85);
-            border-radius: 15px;
-            display: flex;
-            flex-direction: column; /* 上下排列 */
-            align-items: center;
-            gap: 8px;
-            padding: 15px 20px;
-            box-shadow: 0 3px 15px rgba(0,0,0,0.3);
-        }
-        /* 顶部醒目标题 */
-        .music-title {
-            font-size: 16px;
-            font-weight: bold;
-            color: #4ecdc4;
-            white-space: nowrap;
-        }
-        /* 底部按钮组 - 横向排列 */
-        .music-btns {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-        }
-        .music-btn {
-            color: #fff;
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .music-btn:hover {
-            color: #4ecdc4;
-            transform: scale(1.1);
-        }
-        /* 隐藏原生音频 */
-        #bgMusic {
-            display: none;
-        }
-
-        .back-btn {
-            display: inline-block;
-            margin-bottom: 20px;
-            padding: 10px 20px;
-            background: #4ecdc4;
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            font-size: 18px;
-        }
-        .back-btn:hover {
-            background: #38b0a9;
-        }
-        .album-item video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
+        .container { max-width:1100px; margin:100px auto; padding:0 20px; }
         h1 {
-            text-align: center;
-            font-size: 48px;
-            margin-bottom: 30px;
-            background: linear-gradient(45deg, #8585f8, #f86b6b, #f37f92, #6868fa, #4af34a, #67fdf6);
-            -webkit-background-clip: text;
-            color: transparent;
+            text-align:center; font-size:40px;
+            background:linear-gradient(45deg,#8585f8,#f86b6b,#f37f92);
+            -webkit-background-clip:text; color:transparent;
+            margin-bottom:30px;
         }
-
         .album-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 15px;
-            max-width: 1200px;
-            margin: 0 auto;
+            display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
+            gap:15px;
         }
-
         .album-item {
-            border-radius: 8px;
-            overflow: hidden;
-            cursor: pointer;
-            transition: transform 0.3s;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-radius:10px; overflow:hidden; cursor:pointer;
+            box-shadow:0 2px 8px rgba(0,0,0,0.1);
+            background:#fff;
         }
-        .album-item:hover {
-            transform: scale(1.05);
-        }
-        .album-item img {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            display: block;
+        .album-item img, .album-item video {
+            width:100%; height:200px; object-fit:cover; display:block;
         }
 
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(0,0,0,0.9);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 999;
-            cursor: pointer;
+        /* 放大层 */
+        .lightbox {
+            position:fixed; top:0; left:0; width:100vw; height:100vh;
+            background:rgba(0,0,0,0.9);
+            display:flex; align-items:center; justify:center;
+            z-index:99999; display:none;
         }
-        .overlay.show {
-            display: flex;
+        .lightbox.show { display:flex; }
+        .lightbox-content {
+            max-width:90%; max-height:90%;
+            position:relative;
         }
-        .overlay img {
-            max-width: 90%;
-            max-height: 90%;
-            border-radius: 8px;
+        .lightbox-content img, .lightbox-content video {
+            max-width:100%; max-height:80vh; border-radius:8px;
         }
-
-        .nav-btn {
-            position: fixed;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 60px;
-            height: 60px;
-            background: rgba(255,255,255,0.2);
-            border: none;
-            border-radius: 50%;
-            color: white;
-            font-size: 28px;
-            cursor: pointer;
-            z-index: 1000;
-            display: none;
+        .arrow {
+            position:absolute; top:50%; transform:translateY(-50%);
+            font-size:40px; color:white; background:rgba(0,0,0,0.4);
+            width:50px; height:50px; border-radius:50%;
+            display:flex; align-items:center; justify:center;
+            cursor:pointer; user-select:none;
         }
-        .nav-btn.prev {left: 30px;}
-        .nav-btn.next {right: 30px;}
-        .overlay.show ~ .nav-btn {display: block;}
+        .prev { left:-60px; }
+        .next { right:-60px; }
+        .close {
+            position:absolute; top:-20px; right:-20px;
+            width:40px; height:40px; border-radius:50%;
+            background:rgba(255,255,255,0.9);
+            color:#333; font-size:24px; display:flex;
+            align-items:center; justify:center; cursor:pointer;
+        }
     </style>
 </head>
 <body>
-    <a href="index.html" class="back-btn">← 返回首页</a>
 
-    <h1>哈基米相册</h1>
+<div class="top-nav" id="topNav">
+    <a href="index-main.html">首页</a>
+    <a href="哈基米介绍.html">年糕档案</a>
+    <a href="哈基米子网站.html">年糕相册</a>
+    <a href="哈基米互动.html">互动</a>
+    <a href="index.html" id="loginOut">登录</a>
+</div>
 
-    <div class="album-grid">
-        <div class="album-item"><img src="0F5AB837298A815612BCF406427C2B61.jpg" alt="相册图片1"></div>
-        <div class="album-item"><img src="5F8D44CB468F293156616AFC25B33EB5.jpg" alt="相册图片2"></div>
-        <div class="album-item"><img src="6CA920FB8945D6AB436C130FF4AD7F83.jpg" alt="相册图片3"></div>
-        <div class="album-item"><img src="574E778FA01383BF5E914334E5B77C1D.jpg" alt="相册图片4"></div>
-        <div class="album-item"><img src="C0E59290E5616B653CED90A7E15B6326.jpg" alt="相册图片5"></div>
-        <div class="album-item"><img src="0689B0C939E2E349DF715BC558DE8857.jpg" alt="相册图片"></div>
-        <div class="album-item"><img src="5C0C46BBCDAEBF5824023585DBAC0C2A.jpg" alt="相册图片"></div>
-        <div class="album-item"><img src="20A692CECBE52DC9330E7231A010639A.jpg" alt="相册图片"></div>
-        <div class="album-item"><img src="58A1C6D52664A7F95B7E1F4E8AA5B43A.jpg" alt="相册图片"></div>
-        <div class="album-item"><img src="103C936E825637F021C020B196E5DA35.jpg" alt="相册图片"></div>
-        <div class="album-item"><img src="675DFD53999504D6D2CCD2E289353E77.jpg" alt="相册图片"></div>
-        <div class="album-item"><img src="D03C0471D3C5A79CA023D16F5C59CA12.jpg" alt="相册图片"></div>
-        <div class="album-item"><img src="EF04F04FAB2F8BD52DEF75376B593A72.jpg" alt="相册图片"></div>
-        <div class="album-item"><img src="a.jpg" alt="相册图片"></div>
-        <div class="album-item"><img src="b.jpg" alt="相册图片"></div>
-        <div class="album-item"><img src="c.jpg" alt="相册图片"></div>
-        <div class="album-item"><img src="d.jpg" alt="相册图片"></div>
-        <div class="album-item"><img src="e.jpg" alt="相册图片"></div>
-        <div class="album-item"><img src="f.jpg" alt="相册图片"></div>
-        <div class="album-item"><img src="g.jpg" alt="相册图片"></div>
-        <div class="album-item"><img src="h.jpg" alt="相册图片"></div>
-        <div class="album-item"><img src="i.jpg" alt="相册图片"></div>
-        <div class="album-item"><img src="j.jpg" alt="相册图片"></div>
-        <div class="album-item"><img src="k.jpg" alt="相册图片"></div>
-        <div class="album-item"><img src="l.jpg" alt="相册图片"></div>
-        <div class="album-item"><img src="m.jpg" alt="相册图片"></div>
-        <div class="album-item"><img src="n.jpg" alt="相册图片"></div>
-        <div class="album-item"><img src="o.jpg" alt="相册图片"></div>
-        <div class="album-item"><img src="p.jpg" alt="相册图片"></div>
-        <div class="album-item"><img src="q.jpg" alt="相册图片"></div>
-        <div class="album-item"><video src="miao.mp4" controls></video></div>
-        <div class="album-item"><video src="miao2.mp4" controls></video></div>
-        <div class="album-item"><video src="miao3.mp4" controls></video></div>
+<div class="level-box" id="levelBox"></div>
+
+<div class="container">
+    <h1>年糕美颜相册 📸</h1>
+    <div class="album-grid" id="albumGrid"></div>
+</div>
+
+<!-- 放大层 -->
+<div class="lightbox" id="lightbox">
+    <div class="lightbox-content">
+        <div class="arrow prev" id="prev">←</div>
+        <div id="lightboxMedia"></div>
+        <div class="arrow next" id="next">→</div>
+        <div class="close" id="close">×</div>
     </div>
+</div>
 
-    <div class="overlay" id="overlay">
-        <img id="bigImg">
-    </div>
-    <button class="nav-btn prev" id="prevBtn">←</button>
-    <button class="nav-btn next" id="nextBtn">→</button>
+<script>
+    // 所有资源列表（a.jpg~z.jpg + miao.mp4~miao5.mp4）
+    const mediaList = [];
+    // 图片 a~z
+    for(let c='a'.charCodeAt(0); c<='z'.charCodeAt(0); c++){
+        mediaList.push({type:'img', src:String.fromCharCode(c)+'.jpg'});
+    }
+    // 视频 miao1~5
+    mediaList.push({type:'video', src:'miao.mp4'});
+    mediaList.push({type:'video', src:'miao2.mp4'});
+    mediaList.push({type:'video', src:'miao3.mp4'});
+    mediaList.push({type:'video', src:'miao4.mp4'});
+    mediaList.push({type:'video', src:'miao5.mp4'});
 
-    <!-- 核心修改：上方文字 + 下方按钮 -->
-    <div id="musicWrap">
-        <span class="music-title">哈基米音乐播放器</span>
-        <div class="music-btns">
-            <button class="music-btn" id="prevMusic">⏮️</button>
-            <button class="music-btn" id="playPause">▶️</button>
-            <button class="music-btn" id="nextMusic">⏭️</button>
-        </div>
-    </div>
+    let currentIndex = 0;
+    const albumGrid = document.getElementById('albumGrid');
+    const lightbox = document.getElementById('lightbox');
+    const lightboxMedia = document.getElementById('lightboxMedia');
 
-    <audio id="bgMusic" loop></audio>
+    // 生成相册缩略图
+    mediaList.forEach((item, i) => {
+        const div = document.createElement('div');
+        div.className = 'album-item';
+        div.onclick = () => openLightbox(i);
+        if(item.type === 'img'){
+            div.innerHTML = `<img src="${item.src}" alt="年糕">`;
+        }else{
+            div.innerHTML = `<video src="${item.src}" muted></video>`;
+        }
+        albumGrid.appendChild(div);
+    });
 
-    <script>
-        // 相册放大功能
-        const overlay = document.getElementById('overlay');
-        const bigImg = document.getElementById('bigImg');
-        const prevBtn = document.getElementById('prevBtn');
-        const nextBtn = document.getElementById('nextBtn');
-        const imgList = document.querySelectorAll('.album-item img');
-        let currentIndex = 0;
+    // 打开放大
+    function openLightbox(index){
+        currentIndex = index;
+        renderMedia();
+        lightbox.classList.add('show');
+    }
 
-        imgList.forEach((img, index) => {
-            img.onclick = (e) => {
-                e.stopPropagation();
-                currentIndex = index;
-                bigImg.src = img.src;
-                overlay.classList.add('show');
+    // 关闭放大
+    document.getElementById('close').onclick = ()=>{
+        lightbox.classList.remove('show');
+        lightboxMedia.innerHTML = '';
+    };
+    lightbox.onclick = (e)=>{
+        if(e.target === lightbox) lightbox.classList.remove('show');
+    };
+
+    // 上一张
+    document.getElementById('prev').onclick = ()=>{
+        currentIndex = (currentIndex - 1 + mediaList.length) % mediaList.length;
+        renderMedia();
+    };
+
+    // 下一张
+    document.getElementById('next').onclick = ()=>{
+        currentIndex = (currentIndex + 1) % mediaList.length;
+        renderMedia();
+    };
+
+    // 渲染当前媒体
+    function renderMedia(){
+        const item = mediaList[currentIndex];
+        lightboxMedia.innerHTML = '';
+        if(item.type === 'img'){
+            lightboxMedia.innerHTML = `<img src="${item.src}" alt="年糕大图">`;
+        }else{
+            lightboxMedia.innerHTML = `<video src="${item.src}" controls autoplay></video>`;
+        }
+    }
+
+    // 等级显示
+    function getLevelIcon(lv) {
+        if(lv>=8) return '👑皇冠';
+        if(lv>=4) return '🌙月亮';
+        return '⭐星星';
+    }
+    function updateTopNav() {
+        const user = localStorage.getItem('user') || '';
+        const link = document.getElementById('loginOut');
+        if(user) {
+            link.innerText = '退出';
+            link.onclick = () => {
+                localStorage.removeItem('user');
+                location.reload();
             };
-        });
-        function showPrevImg(){
-            currentIndex = (currentIndex - 1 + imgList.length) % imgList.length;
-            bigImg.src = imgList[currentIndex].src;
         }
-        function showNextImg(){
-            currentIndex = (currentIndex + 1) % imgList.length;
-            bigImg.src = imgList[currentIndex].src;
-        }
-        prevBtn.onclick = e=>{e.stopPropagation();showPrevImg()};
-        nextBtn.onclick = e=>{e.stopPropagation();showNextImg()};
-        document.addEventListener('keydown',e=>{
-            if(overlay.classList.contains('show')){
-                if(e.key==='ArrowLeft')showPrevImg();
-                if(e.key==='ArrowRight')showNextImg();
-                if(e.key==='Escape')overlay.classList.remove('show');
-            }
-        });
-        overlay.onclick = ()=>overlay.classList.remove('show');
+    }
+    const user=localStorage.getItem('user')||'游客';
+    const lv=parseInt(localStorage.getItem('level'))||0;
+    const fish=parseInt(localStorage.getItem('fish'))||0;
+    document.getElementById('levelBox').innerText=`${user} Lv${lv} ${getLevelIcon(lv)} 🐟${fish}`;
+    updateTopNav();
+</script>
 
-        // 音乐播放/暂停/切歌功能
-        const musicList = ["song1.mp3","song2.mp3","song3.mp3"];
-        let musicIndex = 0;
-        const audio = document.getElementById('bgMusic');
-        const playPauseBtn = document.getElementById('playPause');
-        let isPlaying = false;
-
-        // 播放音乐
-        function playMusic(){
-            audio.src = musicList[musicIndex];
-            audio.play().then(()=>{
-                isPlaying = true;
-                playPauseBtn.innerText = "⏸️";
-            }).catch(err => {});
-        }
-
-        // 暂停音乐
-        function pauseMusic(){
-            audio.pause();
-            isPlaying = false;
-            playPauseBtn.innerText = "▶️";
-        }
-
-        // 播放/暂停切换
-        playPauseBtn.onclick = () => {
-            isPlaying ? pauseMusic() : playMusic();
-        };
-
-        // 上一首
-        document.getElementById('prevMusic').onclick = () => {
-            musicIndex = (musicIndex - 1 + musicList.length) % musicList.length;
-            playMusic();
-        };
-
-        // 下一首
-        document.getElementById('nextMusic').onclick = () => {
-            musicIndex = (musicIndex + 1) % musicList.length;
-            playMusic();
-        };
-
-        // 页面加载自动播放
-        playMusic();
-    </script>
 </body>
 </html>

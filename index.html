@@ -139,17 +139,43 @@
         return '⭐星星';
     }
 
-    // 初始化
-    if(!localStorage.getItem('level')) localStorage.setItem('level',0);
-    if(!localStorage.getItem('exp')) localStorage.setItem('exp',0);
-    if(!localStorage.getItem('fish')) localStorage.setItem('fish',0);
+    // -------- 游客固定初始值 --------
+    const guest = {
+        level: 0,
+        exp: 0,
+        fish: 0
+    };
+
+    // -------- 读取用户数据（按用户名隔离） --------
+    function getUserData(username) {
+        const key = 'userData_' + username;
+        const data = localStorage.getItem(key);
+        if (!data) return null;
+        try {
+            return JSON.parse(data);
+        } catch (e) {
+            return null;
+        }
+    }
+
+    // -------- 保存用户数据 --------
+    function saveUserData(username, obj) {
+        const key = 'userData_' + username;
+        localStorage.setItem(key, JSON.stringify(obj));
+    }
+
+    // -------- 初始化：不创建全局 level/exp/fish，只留登录标记 --------
+    if (!localStorage.getItem('user')) {
+        // 游客：什么都不写，读取时用 guest
+    }
 
     function updateTopNav() {
         const user = localStorage.getItem('user') || '';
         const link = document.getElementById('loginOut');
-        if(user) {
+        if (user) {
             link.innerText = '退出';
             link.onclick = () => {
+                // 退出：只删登录标记，**不删用户数据**
                 localStorage.removeItem('user');
                 location.reload();
             };
@@ -159,23 +185,34 @@
         }
     }
 
-    function updateLevel(){
-        const user = localStorage.getItem('user') || '游客';
-        const lv = parseInt(localStorage.getItem('level'))||0;
-        const fish = parseInt(localStorage.getItem('fish'))||0;
-        document.getElementById('levelBox').innerText = `${user} Lv${lv} ${getLevelIcon(lv)} 🐟${fish}`;
+    function updateLevel() {
+        const user = localStorage.getItem('user');
+        let obj;
+        if (user) {
+            // 已登录：读自己的用户数据
+            obj = getUserData(user);
+            if (!obj) {
+                // 第一次登录，创建空数据
+                obj = { level: 0, exp: 0, fish: 0 };
+                saveUserData(user, obj);
+            }
+        } else {
+            // 游客：永远用固定初始值
+            obj = guest;
+        }
+        document.getElementById('levelBox').innerText =
+            `${user || '游客'} Lv${obj.level} ${getLevelIcon(obj.level)} 🐟${obj.fish}`;
     }
 
     updateTopNav();
     updateLevel();
 
-    // 修复：正确获取两个表单
+    // 切换表单
     const loginTab=document.getElementById('loginTab');
     const registerTab=document.getElementById('registerTab');
     const loginForm=document.getElementById('loginForm');
     const registerForm=document.getElementById('registerForm');
 
-    // 切换逻辑（秒动无延迟）
     loginTab.onclick=()=>{
         loginTab.classList.add('active');
         registerTab.classList.remove('active');
@@ -189,7 +226,7 @@
         loginForm.classList.remove('active');
     }
 
-    // 登录：已删除 经验+小鱼干 奖励
+    // -------- 登录：不送经验鱼干，只保存登录状态 --------
     document.getElementById('loginBtn').onclick=()=>{
         const u=document.getElementById('loginUsername').value.trim();
         const p=document.getElementById('loginPassword').value.trim();
@@ -198,9 +235,16 @@
             document.getElementById('loginMsg').textContent='请填写完整！';
             return;
         }
-        localStorage.setItem('user',u);
-        
-        // 已删除：登录送经验、小鱼干逻辑
+        // 只记当前登录用户
+        localStorage.setItem('user', u);
+
+        // 若该用户无数据，初始化一套
+        let obj=getUserData(u);
+        if(!obj){
+            obj={level:0,exp:0,fish:0};
+            saveUserData(u, obj);
+        }
+
         document.getElementById('loginMsg').className='msg success';
         document.getElementById('loginMsg').textContent='登录成功！';
         setTimeout(()=>location.href='index-main.html',1200);

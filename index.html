@@ -189,26 +189,7 @@
         loginForm.classList.remove('active');
     }
 
-    // 登录：+10经验、+3小鱼干
-    document.getElementById('loginBtn').onclick=()=>{
-        const u=document.getElementById('loginUsername').value.trim();
-        const p=document.getElementById('loginPassword').value.trim();
-        if(!u||!p){
-            document.getElementById('loginMsg').className='msg error';
-            document.getElementById('loginMsg').textContent='请填写完整！';
-            return;
-        }
-        localStorage.setItem('user',u);
-        let exp = parseInt(localStorage.getItem('exp'))||0;
-        let fish = parseInt(localStorage.getItem('fish'))||0;
-        exp += 10;
-        fish += 3;
-        localStorage.setItem('exp', exp);
-        localStorage.setItem('fish', fish);
-        document.getElementById('loginMsg').className='msg success';
-        document.getElementById('loginMsg').textContent='登录成功！+10经验 +3小鱼干';
-        setTimeout(()=>location.href='index-main.html',1200);
-    };
+  
 
     // 注册
     document.getElementById('registerBtn').onclick=()=>{

@@ -142,6 +142,108 @@
             border-radius:8px;
             cursor:pointer;
         }
+
+        /* 主题切换 + 音乐播放器 */
+        .control-bar {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 12px 15px;
+            border-radius: 25px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            cursor: pointer;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* 全局日夜切换样式 */
+        body.dark {
+            background: #1a1a2e;
+            color: white;
+        }
+        body.dark .card {
+            background: #2d2d44;
+        }
+        body.dark .top-nav {
+            background: #2d2d44;
+        }
+        body.dark .top-nav a {
+            color: #ddd;
+        }
+        body.dark .level-box {
+            background: #2d2d44;
+            color: #ddd;
+        }
+        body.dark .control-bar {
+            background: #2d2d44;
+            color: #ddd;
+        }
+        body.dark .form-group input,
+        body.dark .form-group textarea {
+            background: #3d3d54;
+            border-color: #555;
+            color: white;
+        }
+        body.dark .quote-box {
+            background: #3d2d3d;
+            color: #cc99cc;
+        }
+        body.dark .cat-table th {
+            background: #4a4a7a;
+        }
+        body.dark .cat-table td {
+            border-color: #555;
+        }
+
+        .control-bar .theme-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 20px;
+            transition: background 0.2s;
+        }
+        .control-bar .theme-btn:hover {
+            background: rgba(0,0,0,0.1);
+        }
+        body.dark .control-bar .theme-btn:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .control-bar .divider {
+            width: 1px;
+            height: 25px;
+            background: #ddd;
+        }
+        body.dark .control-bar .divider {
+            background: #555;
+        }
+        .control-bar .music-info {
+            font-size: 14px;
+            max-width: 80px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .control-bar .music-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 50%;
+            background: #6868fa;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .control-bar .music-btn:hover {
+            background: #5454e6;
+        }
     </style>
 </head>
 <body>
@@ -218,46 +320,181 @@
         <h2>💌 给年糕留言</h2>
         <form class="message-form">
             <div class="form-group">
-                <label>你的昵称</label>
-                <input type="text" id="msgName" placeholder="输入昵称">
-            </div>
-            <div class="form-group">
                 <label>想对年糕说</label>
                 <textarea id="msgText" rows="5" placeholder="想说的话"></textarea>
             </div>
-            <button type="button" class="submit-btn" onclick="alert('留言成功～年糕收到啦！')">提交留言</button>
+            <button type="button" class="submit-btn" onclick="submitMessage()">提交留言</button>
         </form>
     </div>
 
 </div>
 
+<!-- 主题切换 + 音乐播放器 -->
+<div class="control-bar" id="controlBar">
+    <button class="theme-btn" id="themeToggle">🌙</button>
+    <div class="divider"></div>
+    <button class="music-btn" id="prevMusic">⏮</button>
+    <button class="music-btn" id="toggleMusic">▶️</button>
+    <button class="music-btn" id="nextMusic">⏭</button>
+    <div class="music-info" id="musicInfo">歌曲 1</div>
+    <audio id="bgmAudio" preload="auto"></audio>
+</div>
+
 <script>
     // ======================
-    // 修复：游客与账号数据完全隔离
+    // 主题切换
+    // ======================
+    const isDark = localStorage.getItem('darkTheme') === 'true';
+    if (isDark) {
+        document.body.classList.add('dark');
+        document.getElementById('themeToggle').innerText = '☀️';
+    }
+
+    document.getElementById('themeToggle').onclick = () => {
+        document.body.classList.toggle('dark');
+        const isDarkNow = document.body.classList.contains('dark');
+        localStorage.setItem('darkTheme', isDarkNow);
+        document.getElementById('themeToggle').innerText = isDarkNow ? '☀️' : '🌙';
+    };
+
+    // ======================
+    // API配置 - 预留MySQL接口
+    // ======================
+    const API_BASE = 'https://cursor-supermom-stress.ngrok-free.dev/api';
+
+    async function fetchUserDataFromAPI(user) {
+        try {
+            const res = await fetch(`${API_BASE}/user/${user}`);
+            if (res.ok) {
+                const data = await res.json();
+                localStorage.setItem('level', data.level);
+                localStorage.setItem('exp', data.exp);
+                localStorage.setItem('fish', data.fish);
+                return data;
+            }
+        } catch (e) {}
+        return null;
+    }
+
+    async function saveUserDataToAPI(user, data) {
+        localStorage.setItem('level', data.level);
+        localStorage.setItem('exp', data.exp);
+        localStorage.setItem('fish', data.fish);
+        try {
+            await fetch(`${API_BASE}/user/${user}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+        } catch (e) {}
+    }
+
+    // ======================
+    // 留言提交
+    // ======================
+    async function submitMessage() {
+        const user = localStorage.getItem('user');
+        const msgText = document.getElementById('msgText').value.trim();
+
+        if (!user) {
+            alert('请先登录后再留言！');
+            return;
+        }
+
+        if (!msgText) {
+            alert('留言内容不能为空！');
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_BASE}/message`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: user, message: msgText })
+            });
+            if (res.ok) {
+                document.getElementById('msgText').value = '';
+                alert('留言成功～年糕收到啦！');
+            } else {
+                alert('留言失败，请重试！');
+            }
+        } catch (e) {
+            alert('留言失败，请重试！');
+        }
+    }
+
+    // ======================
+    // 音乐播放器
+    // ======================
+    const musicList = [
+        { name: '歌曲 1', src: 'song1.mp3' },
+        { name: '歌曲 2', src: 'song2.mp3' },
+        { name: '歌曲 3', src: 'song3.mp3' }
+    ];
+    
+    let currentMusicIndex = 0;
+    let isPlaying = false;
+    const bgmAudio = document.getElementById('bgmAudio');
+
+    function loadMusic(index) {
+        bgmAudio.src = musicList[index].src;
+        document.getElementById('musicInfo').innerText = musicList[index].name;
+    }
+
+    loadMusic(0);
+
+    document.getElementById('toggleMusic').onclick = () => {
+        const btn = document.getElementById('toggleMusic');
+        if (isPlaying) {
+            btn.innerText = '▶️';
+            isPlaying = false;
+            bgmAudio.pause();
+        } else {
+            btn.innerText = '⏸️';
+            isPlaying = true;
+            bgmAudio.play().catch(e => {
+                isPlaying = false;
+                btn.innerText = '▶️';
+            });
+        }
+    };
+
+    bgmAudio.onended = () => {
+        currentMusicIndex = (currentMusicIndex + 1) % musicList.length;
+        loadMusic(currentMusicIndex);
+        if (isPlaying) {
+            bgmAudio.play().catch(e => {});
+        }
+    };
+
+    document.getElementById('prevMusic').onclick = () => {
+        currentMusicIndex = (currentMusicIndex - 1 + musicList.length) % musicList.length;
+        loadMusic(currentMusicIndex);
+        if (isPlaying) bgmAudio.play().catch(e => {});
+    };
+
+    document.getElementById('nextMusic').onclick = () => {
+        currentMusicIndex = (currentMusicIndex + 1) % musicList.length;
+        loadMusic(currentMusicIndex);
+        if (isPlaying) bgmAudio.play().catch(e => {});
+    };
+
+    // ======================
+    // 用户数据显示（与其他页面保持一致）
     // ======================
     function getLevelIcon(lv) {
         if(lv>=8) return '👑皇冠';
         if(lv>=4) return '🌙月亮';
         return '⭐星星';
     }
-
-    // 游客固定数据
-    const GUEST_DATA = { level: 0, exp: 0, fish: 0 };
-
-    // 读取当前用户数据
-    function getCurrentData() {
-        const user = localStorage.getItem('user');
-        if (!user) return { user: '游客', ...GUEST_DATA };
-
-        try {
-            const data = JSON.parse(localStorage.getItem('userData_' + user));
-            if (data) return { user, ...data };
-        } catch (e) {}
-
-        return { user, ...GUEST_DATA };
+    function getLevelName(lv) {
+        if(lv>=8) return '铲屎官之神';
+        if(lv>=6) return '资深铲屎官';
+        if(lv>=4) return '资深铲屎官';
+        if(lv>=2) return '新手铲屎官';
+        return '见习铲屎官';
     }
 
-    // 更新导航
     function updateTopNav() {
         const user = localStorage.getItem('user');
         const link = document.getElementById('loginOut');
@@ -273,11 +510,27 @@
         }
     }
 
-    // 显示等级
-    const { user, level, fish } = getCurrentData();
-    document.getElementById('levelBox').innerText =
-        `${user} Lv${level} ${getLevelIcon(level)} 🐟${fish}`;
+    async function updateLevelDisplay() {
+        const user = localStorage.getItem('user') || '';
+        let level = parseInt(localStorage.getItem('level')) || 0;
+        let fish = parseInt(localStorage.getItem('fish')) || 0;
 
+        if (user) {
+            const apiData = await fetchUserDataFromAPI(user);
+            if (apiData) {
+                level = apiData.level;
+                fish = apiData.fish;
+            }
+            const levelIcon = getLevelIcon(level);
+            const levelName = getLevelName(level);
+            document.getElementById('levelBox').innerText =
+                `${user} ${levelIcon}${levelName} Lv${level} 🐟${fish}`;
+        } else {
+            document.getElementById('levelBox').innerText = '游客';
+        }
+    }
+
+    updateLevelDisplay();
     updateTopNav();
 </script>
 

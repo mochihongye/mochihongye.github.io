@@ -66,6 +66,107 @@
         }
         .mine-cell.open { background:#fff; border:1px solid #ddd; cursor:default; }
         .mine-cell.boom { background:#ff4444; color:#fff; }
+
+        /* 猜谜游戏 */
+        .game-guess { display:none; margin-top:20px; }
+        .guess-area { text-align:center; }
+        .guess-word { font-size:32px; letter-spacing:10px; margin:20px 0; }
+        .guess-input { padding:12px 20px; font-size:18px; margin:10px; }
+
+        /* 记忆翻牌 */
+        .game-memory { display:none; margin-top:20px; }
+        .memory-grid {
+            display:grid; grid-template-columns:repeat(4,70px); gap:10px;
+            margin:20px auto; width:320px;
+        }
+        .memory-card {
+            width:70px; height:70px; background:#6868fa;
+            border-radius:10px; cursor:pointer;
+            display:flex; align-items:center; justify-content:center;
+            font-size:32px;
+            transform-style:preserve-3d;
+            transition:transform 0.3s;
+        }
+        .memory-card.flipped { transform:rotateY(180deg); }
+        .memory-card.matched { background:#4af34a; }
+
+        /* 拼图游戏 */
+        .game-puzzle { display:none; margin-top:20px; }
+        .puzzle-grid {
+            display:grid; grid-template-columns:repeat(3,80px); gap:5px;
+            margin:20px auto; width:250px;
+        }
+        .puzzle-piece {
+            width:80px; height:80px; background:#f0f0ff;
+            border-radius:8px; display:flex;
+            align-items:center; justify-content:center;
+            font-size:36px; cursor:pointer;
+            border:2px solid #6868fa;
+        }
+        .puzzle-piece.empty { background:#eee; border-color:#ddd; }
+
+        /* 主题切换 */
+        body.dark {
+            background: #1a1a2e;
+        }
+        body.dark .game-card {
+            background: #2d2d44;
+            color: white;
+        }
+        body.dark .top-nav {
+            background: #2d2d44;
+        }
+        body.dark .top-nav a {
+            color: #ddd;
+        }
+        body.dark .level-box {
+            background: #2d2d44;
+            color: #ddd;
+        }
+        body.dark .tip {
+            color: #aaa;
+        }
+
+        /* 固定音乐播放器 */
+        .music-player {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 12px 15px;
+            border-radius: 25px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            z-index: 9998;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        body.dark .music-player {
+            background: #2d2d44;
+        }
+        .music-info {
+            font-size: 14px;
+            max-width: 80px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .music-btn {
+            width: 35px;
+            height: 35px;
+            border: none;
+            border-radius: 50%;
+            background: #6868fa;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .music-btn:hover {
+            background: #5454e6;
+        }
     </style>
 </head>
 
@@ -89,6 +190,9 @@
         <h2 class="game-title">🎮 哈基米小游戏合集</h2>
         <button class="btn btn-2048" onclick="start2048()">🧩 2048 游戏</button>
         <button class="btn btn-mine" onclick="startMine()">💣 扫雷游戏</button>
+        <button class="btn" style="background:#4af34a;" onclick="startGuess()">🔮 猜谜游戏</button>
+        <button class="btn" style="background:#ffaa00;" onclick="startMemory()">🃏 记忆翻牌</button>
+        <button class="btn" style="background:#ff7b9c;" onclick="startPuzzle()">🧩 猫咪拼图</button>
         <div class="tip" id="tip">消耗 1 小鱼干玩一次，胜利获得 5~25 经验</div>
     </div>
 
@@ -102,18 +206,83 @@
     <div class="game-mine" id="gameMine">
         <div class="board" id="boardMine"></div>
     </div>
+
+    <!-- 猜谜游戏 -->
+    <div class="game-guess" id="gameGuess">
+        <div class="guess-area">
+            <div id="guessHint"></div>
+            <div class="guess-word" id="guessWord"></div>
+            <input type="text" class="guess-input" id="guessInput" placeholder="输入答案">
+            <button class="btn btn-primary" onclick="checkGuess()">确定</button>
+            <div class="tip" id="guessTip"></div>
+        </div>
+    </div>
+
+    <!-- 记忆翻牌 -->
+    <div class="game-memory" id="gameMemory">
+        <div class="memory-grid" id="memoryGrid"></div>
+        <div class="tip" id="memoryTip">找出所有相同的猫咪表情！</div>
+    </div>
+
+    <!-- 拼图游戏 -->
+    <div class="game-puzzle" id="gamePuzzle">
+        <div class="puzzle-grid" id="puzzleGrid"></div>
+        <div class="tip" id="puzzleTip">点击数字移动，按顺序排列1-8</div>
+    </div>
 </div>
 
 <script>
+    // ======================
+    // 主题初始化
+    // ======================
+    const isDark = localStorage.getItem('darkTheme') === 'true';
+    if (isDark) {
+        document.body.classList.add('dark');
+    }
+
+    // ======================
+    // API配置 - 预留MySQL接口
+    // ======================
+    const API_BASE = 'https://cursor-supermom-stress.ngrok-free.dev/api';
+
+    async function syncUserDataToAPI() {
+        try {
+            await fetch(`${API_BASE}/user/${user}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ level: lv, exp: exp, fish: fish })
+            });
+        } catch (e) {}
+    }
+
     // 全局数据
     let fish = parseInt(localStorage.getItem('fish')) || 0;
     let exp = parseInt(localStorage.getItem('exp')) || 0;
     let lv = parseInt(localStorage.getItem('level')) || 0;
-    const user = localStorage.getItem('user') || '游客';
+    const user = localStorage.getItem('user') || '';
+
+    function getLevelIcon(lv) {
+        if(lv>=8) return '👑皇冠';
+        if(lv>=4) return '🌙月亮';
+        return '⭐星星';
+    }
+    function getLevelName(lv) {
+        if(lv>=8) return '铲屎官之神';
+        if(lv>=6) return '资深铲屎官';
+        if(lv>=4) return '资深铲屎官';
+        if(lv>=2) return '新手铲屎官';
+        return '见习铲屎官';
+    }
 
     // 更新等级面板
     function updateLevel() {
-        document.getElementById('levelBox').innerText = `${user} Lv${lv} 🐟${fish}`;
+        if(user) {
+            const levelIcon = getLevelIcon(lv);
+            const levelName = getLevelName(lv);
+            document.getElementById('levelBox').innerText = `${user} ${levelIcon}${levelName} Lv${lv} 🐟${fish}`;
+        } else {
+            document.getElementById('levelBox').innerText = '游客';
+        }
     }
     updateLevel();
 
@@ -234,8 +403,10 @@
                 exp += add;
                 localStorage.setItem('exp', exp);
                 updateLevel();
+                syncUserDataToAPI();
                 alert('恭喜合成2048！获得 ' + add + ' 经验！');
                 gameOver2048 = true;
+                localStorage.setItem('win2048_' + user, 'true');
             }
         }
     }
@@ -352,10 +523,292 @@
             exp += add;
             localStorage.setItem('exp', exp);
             updateLevel();
+            syncUserDataToAPI();
             alert('扫雷胜利！获得 ' + add + ' 经验！');
+            localStorage.setItem('winMine_' + user, 'true');
         }
     }
+
+    // ======================
+    // 猜谜游戏
+    // ======================
+    const guessPuzzles = [
+        { hint: '它是猫咪最喜欢的食物，通常是鱼做的零食', answer: '小鱼干' },
+        { hint: '猫咪发出的满足声音，通常在被抚摸时发出', answer: '呼噜' },
+        { hint: '猫咪用来磨爪子的东西', answer: '猫抓板' },
+        { hint: '猫咪睡觉的地方', answer: '猫窝' },
+        { hint: '猫咪玩耍用的长绳玩具', answer: '逗猫棒' },
+        { hint: '布偶猫的另一个名字', answer: '布拉多尔' },
+        { hint: '猫咪用来清洁自己的行为', answer: '舔毛' },
+        { hint: '年糕最喜欢做的事情', answer: '贴贴' }
+    ];
+
+    let currentPuzzle;
+    function startGuess() {
+        if (fish < 1) { alert('小鱼干不足！'); return; }
+        fish--;
+        localStorage.setItem('fish', fish);
+        updateLevel();
+
+        document.getElementById('game2048').style.display = 'none';
+        document.getElementById('gameMine').style.display = 'none';
+        document.getElementById('gameMemory').style.display = 'none';
+        document.getElementById('gamePuzzle').style.display = 'none';
+        document.getElementById('gameGuess').style.display = 'block';
+
+        currentPuzzle = guessPuzzles[Math.floor(Math.random() * guessPuzzles.length)];
+        document.getElementById('guessHint').innerText = '💡 提示：' + currentPuzzle.hint;
+        document.getElementById('guessWord').innerText = '???';
+        document.getElementById('guessInput').value = '';
+        document.getElementById('guessTip').innerText = '';
+    }
+
+    function checkGuess() {
+        const input = document.getElementById('guessInput').value.trim();
+        if (input === currentPuzzle.answer) {
+            let add = Math.floor(Math.random()*21)+5;
+            exp += add;
+            localStorage.setItem('exp', exp);
+            updateLevel();
+            syncUserDataToAPI();
+            document.getElementById('guessTip').innerText = '🎉 答对了！获得 ' + add + ' 经验！';
+            document.getElementById('guessTip').style.color = '#4af34a';
+            setTimeout(startGuess, 2000);
+        } else {
+            document.getElementById('guessTip').innerText = '❌ 答错了，再试试！';
+            document.getElementById('guessTip').style.color = '#f86b6b';
+        }
+    }
+
+    // ======================
+    // 记忆翻牌游戏
+    // ======================
+    const catEmojis = ['🐱', '😺', '😸', '😻', '😽', '😹', '🙀', '😿'];
+    let memoryCards = [];
+    let flippedCards = [];
+    let matchedPairs = 0;
+
+    function startMemory() {
+        if (fish < 1) { alert('小鱼干不足！'); return; }
+        fish--;
+        localStorage.setItem('fish', fish);
+        updateLevel();
+
+        document.getElementById('game2048').style.display = 'none';
+        document.getElementById('gameMine').style.display = 'none';
+        document.getElementById('gameGuess').style.display = 'none';
+        document.getElementById('gamePuzzle').style.display = 'none';
+        document.getElementById('gameMemory').style.display = 'block';
+
+        // 创建配对卡片
+        memoryCards = [...catEmojis, ...catEmojis];
+        memoryCards.sort(() => Math.random() - 0.5);
+        flippedCards = [];
+        matchedPairs = 0;
+
+        renderMemory();
+    }
+
+    function renderMemory() {
+        const grid = document.getElementById('memoryGrid');
+        grid.innerHTML = '';
+        memoryCards.forEach((emoji, i) => {
+            const card = document.createElement('div');
+            card.className = 'memory-card';
+            card.dataset.index = i;
+            card.onclick = () => flipCard(i);
+            card.innerText = '?';
+            grid.appendChild(card);
+        });
+    }
+
+    function flipCard(index) {
+        const cards = document.querySelectorAll('.memory-card');
+        if (flippedCards.length >= 2) return;
+        if (cards[index].classList.contains('flipped') || cards[index].classList.contains('matched')) return;
+
+        cards[index].classList.add('flipped');
+        cards[index].innerText = memoryCards[index];
+        flippedCards.push(index);
+
+        if (flippedCards.length === 2) {
+            setTimeout(checkMatch, 500);
+        }
+    }
+
+    function checkMatch() {
+        const cards = document.querySelectorAll('.memory-card');
+        const [first, second] = flippedCards;
+
+        if (memoryCards[first] === memoryCards[second]) {
+            cards[first].classList.add('matched');
+            cards[second].classList.add('matched');
+            matchedPairs++;
+
+            if (matchedPairs === catEmojis.length) {
+                let add = Math.floor(Math.random()*21)+5;
+                exp += add;
+                localStorage.setItem('exp', exp);
+                updateLevel();
+                syncUserDataToAPI();
+                setTimeout(() => alert('🎉 全部配对成功！获得 ' + add + ' 经验！'), 300);
+            }
+        } else {
+            cards[first].classList.remove('flipped');
+            cards[second].classList.remove('flipped');
+            cards[first].innerText = '?';
+            cards[second].innerText = '?';
+        }
+        flippedCards = [];
+    }
+
+    // ======================
+    // 拼图游戏（数字华容道）
+    // ======================
+    let puzzleBoard = [];
+    let puzzleMoves = 0;
+
+    function startPuzzle() {
+        if (fish < 1) { alert('小鱼干不足！'); return; }
+        fish--;
+        localStorage.setItem('fish', fish);
+        updateLevel();
+
+        document.getElementById('game2048').style.display = 'none';
+        document.getElementById('gameMine').style.display = 'none';
+        document.getElementById('gameGuess').style.display = 'none';
+        document.getElementById('gameMemory').style.display = 'none';
+        document.getElementById('gamePuzzle').style.display = 'block';
+
+        // 生成可解的拼图
+        do {
+            puzzleBoard = [1,2,3,4,5,6,7,8,0];
+            puzzleBoard.sort(() => Math.random() - 0.5);
+        } while (!isSolvable(puzzleBoard));
+        
+        puzzleMoves = 0;
+        renderPuzzle();
+    }
+
+    function isSolvable(arr) {
+        let inversions = 0;
+        const filtered = arr.filter(n => n !== 0);
+        for (let i=0; i<filtered.length; i++) {
+            for (let j=i+1; j<filtered.length; j++) {
+                if (filtered[i] > filtered[j]) inversions++;
+            }
+        }
+        return inversions % 2 === 0;
+    }
+
+    function renderPuzzle() {
+        const grid = document.getElementById('puzzleGrid');
+        grid.innerHTML = '';
+        puzzleBoard.forEach((num, i) => {
+            const piece = document.createElement('div');
+            piece.className = 'puzzle-piece' + (num === 0 ? ' empty' : '');
+            piece.dataset.index = i;
+            piece.onclick = () => movePiece(i);
+            piece.innerText = num || '';
+            grid.appendChild(piece);
+        });
+    }
+
+    function movePiece(index) {
+        const emptyIndex = puzzleBoard.indexOf(0);
+        const row = Math.floor(index / 3);
+        const col = index % 3;
+        const emptyRow = Math.floor(emptyIndex / 3);
+        const emptyCol = emptyIndex % 3;
+
+        // 检查是否相邻
+        if ((Math.abs(row - emptyRow) === 1 && col === emptyCol) ||
+            (Math.abs(col - emptyCol) === 1 && row === emptyRow)) {
+            
+            // 交换
+            puzzleBoard[emptyIndex] = puzzleBoard[index];
+            puzzleBoard[index] = 0;
+            puzzleMoves++;
+            renderPuzzle();
+            checkPuzzleWin();
+        }
+    }
+
+    function checkPuzzleWin() {
+        const winState = [1,2,3,4,5,6,7,8,0];
+        if (JSON.stringify(puzzleBoard) === JSON.stringify(winState)) {
+            let add = Math.floor(Math.random()*21)+5;
+            exp += add;
+            localStorage.setItem('exp', exp);
+            updateLevel();
+            syncUserDataToAPI();
+            alert(`🎉 拼图完成！用了 ${puzzleMoves} 步，获得 ${add} 经验！`);
+        }
+    }
+
+    // ======================
+    // 音乐播放器
+    // ======================
+    const musicList = [
+        { name: '歌曲 1', src: 'song1.mp3' },
+        { name: '歌曲 2', src: 'song2.mp3' },
+        { name: '歌曲 3', src: 'song3.mp3' }
+    ];
+    
+    let currentMusicIndex = 0;
+    let isPlaying = false;
+    const bgmAudio = document.getElementById('bgmAudio');
+
+    function loadMusic(index) {
+        bgmAudio.src = musicList[index].src;
+        document.getElementById('musicInfo').innerText = musicList[index].name;
+    }
+
+    loadMusic(0);
+
+    document.getElementById('toggleMusic').onclick = () => {
+        const btn = document.getElementById('toggleMusic');
+        if (isPlaying) {
+            btn.innerText = '▶️';
+            isPlaying = false;
+            bgmAudio.pause();
+        } else {
+            btn.innerText = '⏸️';
+            isPlaying = true;
+            bgmAudio.play().catch(e => {
+                isPlaying = false;
+                btn.innerText = '▶️';
+            });
+        }
+    };
+
+    document.getElementById('prevMusic').onclick = () => {
+        currentMusicIndex = (currentMusicIndex - 1 + musicList.length) % musicList.length;
+        loadMusic(currentMusicIndex);
+        if (isPlaying) bgmAudio.play().catch(e => {});
+    };
+
+    document.getElementById('nextMusic').onclick = () => {
+        currentMusicIndex = (currentMusicIndex + 1) % musicList.length;
+        loadMusic(currentMusicIndex);
+        if (isPlaying) bgmAudio.play().catch(e => {});
+    };
+
+    bgmAudio.onended = () => {
+        currentMusicIndex = (currentMusicIndex + 1) % musicList.length;
+        loadMusic(currentMusicIndex);
+        if (isPlaying) bgmAudio.play().catch(e => {});
+    };
 </script>
+
+<!-- 固定音乐播放器 -->
+<div class="music-player">
+    <button class="music-btn" id="prevMusic">⏮</button>
+    <button class="music-btn" id="toggleMusic">▶️</button>
+    <button class="music-btn" id="nextMusic">⏭</button>
+    <div class="music-info" id="musicInfo">歌曲 1</div>
+    <audio id="bgmAudio" preload="auto"></audio>
+</div>
 
 </body>
 </html>

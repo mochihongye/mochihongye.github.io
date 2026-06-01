@@ -67,6 +67,76 @@
             transition:0.3s;
         }
         .big-btn:hover { background:#5454e6; transform:translateY(-3px); }
+
+        /* 主题切换 */
+        body.dark {
+            background: #1a1a2e;
+        }
+        body.dark .card {
+            background: rgba(45, 45, 68, 0.95);
+            color: white;
+        }
+        body.dark .top-nav {
+            background: #2d2d44;
+        }
+        body.dark .top-nav a {
+            color: #ddd;
+        }
+        body.dark .level-box {
+            background: #2d2d44;
+            color: #ddd;
+        }
+        body.dark .info-item {
+            color: #ddd;
+        }
+        body.dark .tag {
+            background: #3d3d54;
+        }
+        body.dark .quote {
+            background: #3d2d3d;
+            color: #cc99cc;
+        }
+
+        /* 固定音乐播放器 */
+        .music-player {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 12px 15px;
+            border-radius: 25px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            z-index: 9998;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        body.dark .music-player {
+            background: #2d2d44;
+        }
+        .music-info {
+            font-size: 14px;
+            max-width: 80px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .music-btn {
+            width: 35px;
+            height: 35px;
+            border: none;
+            border-radius: 50%;
+            background: #6868fa;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .music-btn:hover {
+            background: #5454e6;
+        }
     </style>
 </head>
 <body>
@@ -142,10 +212,25 @@
 </div>
 
 <script>
+    // ======================
+    // 主题初始化
+    // ======================
+    const isDark = localStorage.getItem('darkTheme') === 'true';
+    if (isDark) {
+        document.body.classList.add('dark');
+    }
+
     function getLevelIcon(lv) {
         if(lv>=8) return '👑皇冠';
         if(lv>=4) return '🌙月亮';
         return '⭐星星';
+    }
+    function getLevelName(lv) {
+        if(lv>=8) return '铲屎官之神';
+        if(lv>=6) return '资深铲屎官';
+        if(lv>=4) return '资深铲屎官';
+        if(lv>=2) return '新手铲屎官';
+        return '见习铲屎官';
     }
     function updateTopNav() {
         const user = localStorage.getItem('user') || '';
@@ -158,12 +243,81 @@
             };
         }
     }
-    const user=localStorage.getItem('user')||'游客';
-    const lv=parseInt(localStorage.getItem('level'))||0;
-    const fish=parseInt(localStorage.getItem('fish'))||0;
-    document.getElementById('levelBox').innerText=`${user} Lv${lv} 🐟${fish}`;
+    const user=localStorage.getItem('user')||'';
+    if(user) {
+        const lv=parseInt(localStorage.getItem('level'))||0;
+        const fish=parseInt(localStorage.getItem('fish'))||0;
+        const levelIcon = getLevelIcon(lv);
+        const levelName = getLevelName(lv);
+        document.getElementById('levelBox').innerText=`${user} ${levelIcon}${levelName} Lv${lv} 🐟${fish}`;
+    } else {
+        document.getElementById('levelBox').innerText='游客';
+    }
     updateTopNav();
+
+    // ======================
+    // 音乐播放器
+    // ======================
+    const musicList = [
+        { name: '歌曲 1', src: 'song1.mp3' },
+        { name: '歌曲 2', src: 'song2.mp3' },
+        { name: '歌曲 3', src: 'song3.mp3' }
+    ];
+    
+    let currentMusicIndex = 0;
+    let isPlaying = false;
+    const bgmAudio = document.getElementById('bgmAudio');
+
+    function loadMusic(index) {
+        bgmAudio.src = musicList[index].src;
+        document.getElementById('musicInfo').innerText = musicList[index].name;
+    }
+
+    loadMusic(0);
+
+    document.getElementById('toggleMusic').onclick = () => {
+        const btn = document.getElementById('toggleMusic');
+        if (isPlaying) {
+            btn.innerText = '▶️';
+            isPlaying = false;
+            bgmAudio.pause();
+        } else {
+            btn.innerText = '⏸️';
+            isPlaying = true;
+            bgmAudio.play().catch(e => {
+                isPlaying = false;
+                btn.innerText = '▶️';
+            });
+        }
+    };
+
+    document.getElementById('prevMusic').onclick = () => {
+        currentMusicIndex = (currentMusicIndex - 1 + musicList.length) % musicList.length;
+        loadMusic(currentMusicIndex);
+        if (isPlaying) bgmAudio.play().catch(e => {});
+    };
+
+    document.getElementById('nextMusic').onclick = () => {
+        currentMusicIndex = (currentMusicIndex + 1) % musicList.length;
+        loadMusic(currentMusicIndex);
+        if (isPlaying) bgmAudio.play().catch(e => {});
+    };
+
+    bgmAudio.onended = () => {
+        currentMusicIndex = (currentMusicIndex + 1) % musicList.length;
+        loadMusic(currentMusicIndex);
+        if (isPlaying) bgmAudio.play().catch(e => {});
+    };
 </script>
+
+<!-- 固定音乐播放器 -->
+<div class="music-player">
+    <button class="music-btn" id="prevMusic">⏮</button>
+    <button class="music-btn" id="toggleMusic">▶️</button>
+    <button class="music-btn" id="nextMusic">⏭</button>
+    <div class="music-info" id="musicInfo">歌曲 1</div>
+    <audio id="bgmAudio" preload="auto"></audio>
+</div>
 
 </body>
 </html>

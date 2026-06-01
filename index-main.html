@@ -232,26 +232,52 @@
 </div>
 
 <script>
+    // ======================
+    // 修复：游客与账号数据完全隔离
+    // ======================
     function getLevelIcon(lv) {
         if(lv>=8) return '👑皇冠';
         if(lv>=4) return '🌙月亮';
         return '⭐星星';
     }
+
+    // 游客固定数据
+    const GUEST_DATA = { level: 0, exp: 0, fish: 0 };
+
+    // 读取当前用户数据
+    function getCurrentData() {
+        const user = localStorage.getItem('user');
+        if (!user) return { user: '游客', ...GUEST_DATA };
+
+        try {
+            const data = JSON.parse(localStorage.getItem('userData_' + user));
+            if (data) return { user, ...data };
+        } catch (e) {}
+
+        return { user, ...GUEST_DATA };
+    }
+
+    // 更新导航
     function updateTopNav() {
-        const user = localStorage.getItem('user') || '';
+        const user = localStorage.getItem('user');
         const link = document.getElementById('loginOut');
-        if(user) {
+        if (user) {
             link.innerText = '退出';
             link.onclick = () => {
                 localStorage.removeItem('user');
                 location.reload();
             };
+        } else {
+            link.innerText = '登录';
+            link.onclick = null;
         }
     }
-    const user=localStorage.getItem('user')||'游客';
-    const lv=parseInt(localStorage.getItem('level'))||0;
-    const fish=parseInt(localStorage.getItem('fish'))||0;
-    document.getElementById('levelBox').innerText=`${user} Lv${lv} ${getLevelIcon(lv)} 🐟${fish}`;
+
+    // 显示等级
+    const { user, level, fish } = getCurrentData();
+    document.getElementById('levelBox').innerText =
+        `${user} Lv${level} ${getLevelIcon(level)} 🐟${fish}`;
+
     updateTopNav();
 </script>
 

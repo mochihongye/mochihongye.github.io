@@ -57,7 +57,7 @@
         /* 扫雷样式 */
         .game-mine { display:none; margin-top:20px; }
         .board {
-            display:grid; grid-template-columns:repeat(9,30px); gap:2px;
+            display:grid; gap:2px;
             margin:20px auto;
         }
         .mine-cell {
@@ -66,6 +66,40 @@
         }
         .mine-cell.open { background:#fff; border:1px solid #ddd; cursor:default; }
         .mine-cell.boom { background:#ff4444; color:#fff; }
+        .mine-cell.flagged { background:#ffd700; }
+        
+        /* 扫雷信息栏 */
+        .mine-info {
+            display:flex; justify-content:space-between;
+            padding:10px; margin-bottom:10px;
+            background:#f5f5f5; border-radius:8px;
+        }
+        #mineCount { font-weight:bold; color:#333; }
+        .mine-tip { color:#666; font-size:14px; }
+
+        /* 难度选择弹窗 */
+        .modal {
+            position:fixed; top:0; left:0; width:100%; height:100%;
+            background:rgba(0,0,0,0.7); display:flex; justify-content:center; align-items:center;
+            z-index:1000;
+        }
+        .modal-content {
+            background:#fff; padding:30px; border-radius:15px; text-align:center;
+            box-shadow:0 10px 30px rgba(0,0,0,0.3);
+        }
+        .modal-content h3 { margin:0 0 20px; color:#333; }
+        .difficulty-buttons {
+            display:flex; gap:15px; justify-content:center;
+        }
+        .difficulty-buttons button {
+            padding:15px 20px; border:none; border-radius:10px;
+            cursor:pointer; font-size:16px; transition:all 0.3s;
+            min-width:120px;
+        }
+        .difficulty-buttons button:nth-child(1) { background:#90EE90; color:#333; }
+        .difficulty-buttons button:nth-child(2) { background:#FFD700; color:#333; }
+        .difficulty-buttons button:nth-child(3) { background:#FF6347; color:#fff; }
+        .difficulty-buttons button:hover { transform:scale(1.05); box-shadow:0 5px 15px rgba(0,0,0,0.2); }
 
         /* 猜谜游戏 */
         .game-guess { display:none; margin-top:20px; }
@@ -204,6 +238,10 @@
 
     <!-- 扫雷 -->
     <div class="game-mine" id="gameMine">
+        <div class="mine-info">
+            <span id="mineCount">剩余雷数: --</span>
+            <span class="mine-tip">右键/长按插旗</span>
+        </div>
         <div class="board" id="boardMine"></div>
     </div>
 
@@ -240,12 +278,16 @@
         document.body.classList.add('dark');
     }
 
+    // 获取用户数据
+    const user = localStorage.getItem('user') || '';
+
     // ======================
     // API配置 - 预留MySQL接口
     // ======================
     const API_BASE = 'https://cursor-supermom-stress.ngrok-free.dev/api';
 
     async function syncUserDataToAPI() {
+        if (!user) return;
         try {
             await fetch(`${API_BASE}/user/${user}`, {
                 method: 'POST',
@@ -254,9 +296,6 @@
             });
         } catch (e) {}
     }
-
-    // 获取用户数据
-    const user = localStorage.getItem('user') || '';
     
     // 从用户数据中读取属性
     function getUserData(username) {
@@ -273,7 +312,7 @@
     // 获取当前用户数据
     function getCurrentUserData() {
         if (!user) {
-            return { level: 0, exp: 0, fish: 1000 };
+            return { level: 0, exp: 0, fish: 10000 };
         }
         return getUserData(user) || { level: 0, exp: 0, fish: 10 };
     }
@@ -434,6 +473,7 @@
             }
         }
 
+        // 检查是否有移动（包括方块移动但未合并的情况）
         if (JSON.stringify(grid) !== old) {
             addNumHard();
             render2048();
@@ -529,11 +569,60 @@
     // 扫雷游戏（踩雷全局结束、封锁所有格子）
     // ======================
     let mineMap;
+    let flagMap;
     let gameOverMine = false;
     let firstClickMine = true;
+    let mineRows = 9;
+    let mineCols = 9;
+    let mineCount = 10;
+    let longPressTimer = null;
+
+    // 难度配置
+    const mineDifficulties = {
+        easy: { rows: 9, cols: 9, mines: 10, name: '简单' },
+        medium: { rows: 16, cols: 16, mines: 40, name: '中等' },
+        hard: { rows: 16, cols: 30, mines: 99, name: '困难' }
+    };
 
     function startMine() {
         if (fish < 1) { alert('小鱼干不足！'); return; }
+        
+        // 显示难度选择弹窗
+        showDifficultySelect();
+    }
+
+    function showDifficultySelect() {
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <h3>💣 选择难度</h3>
+                <div class="difficulty-buttons">
+                    <button onclick="selectDifficulty('easy')">🌱 ${mineDifficulties.easy.name}<br>(${mineDifficulties.easy.rows}×${mineDifficulties.easy.cols} · ${mineDifficulties.easy.mines}雷)</button>
+                    <button onclick="selectDifficulty('medium')">🌿 ${mineDifficulties.medium.name}<br>(${mineDifficulties.medium.rows}×${mineDifficulties.medium.cols} · ${mineDifficulties.medium.mines}雷)</button>
+                    <button onclick="selectDifficulty('hard')">🌳 ${mineDifficulties.hard.name}<br>(${mineDifficulties.hard.rows}×${mineDifficulties.hard.cols} · ${mineDifficulties.hard.mines}雷)</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        modal.onclick = (e) => {
+            if (e.target === modal) {
+                document.body.removeChild(modal);
+            }
+        };
+    }
+
+    function selectDifficulty(difficulty) {
+        // 移除弹窗
+        document.querySelectorAll('.modal').forEach(m => document.body.removeChild(m));
+        
+        // 设置难度
+        const config = mineDifficulties[difficulty];
+        mineRows = config.rows;
+        mineCols = config.cols;
+        mineCount = config.mines;
+
+        // 扣除小鱼干
         fish--;
         saveCurrentUserData();
         updateLevel();
@@ -545,65 +634,119 @@
         gameOverMine = false;
         // 延迟到第一次点击才生成雷
         mineMap = [];
-        for (let i=0;i<9;i++) mineMap.push(Array(9).fill(false));
+        flagMap = [];
+        for (let i=0;i<mineRows;i++) {
+            mineMap.push(Array(mineCols).fill(false));
+            flagMap.push(Array(mineCols).fill(false));
+        }
         renderMine();
     }
 
-    // 生成雷图（排除点击位置周围）
+    // 生成雷图（排除点击位置周围，优化雷的分布）
     function generateMines(firstX, firstY) {
-        let arr = Array(81).fill(false);
-        for (let i=0;i<10;i++) arr[i] = true;
-        arr.sort(() => Math.random()-0.5);
+        const totalCells = mineRows * mineCols;
+        let arr = Array(totalCells).fill(false);
         
-        // 确保点击位置和周围不是雷
-        for (let dx=-1;dx<=1;dx++) {
-            for (let dy=-1;dy<=1;dy++) {
-                let nx = firstX+dx, ny = firstY+dy;
-                if (nx>=0 && nx<9 && ny>=0 && ny<9) {
-                    let pos = nx*9+ny;
-                    if (arr[pos]) {
-                        arr[pos] = false;
-                        // 找一个安全的位置放雷
-                        for (let k=0;k<81;k++) {
-                            let kx = Math.floor(k/9), ky = k%9;
-                            let isSafe = true;
-                            for (let ddx=-1;ddx<=1;ddx++) {
-                                for (let ddy=-1;ddy<=1;ddy++) {
-                                    if (kx+ddx===firstX && ky+ddy===firstY) isSafe = false;
-                                }
-                            }
-                            if (isSafe && !arr[k]) {
-                                arr[k] = true;
-                                break;
-                            }
+        // 使用更均匀的雷分布算法
+        let placedMines = 0;
+        while (placedMines < mineCount) {
+            const pos = Math.floor(Math.random() * totalCells);
+            const kx = Math.floor(pos / mineCols);
+            const ky = pos % mineCols;
+            
+            // 检查是否在安全区域内
+            let isInSafeZone = false;
+            for (let ddx = -2; ddx <= 2; ddx++) {
+                for (let ddy = -2; ddy <= 2; ddy++) {
+                    if (kx + ddx === firstX && ky + ddy === firstY) {
+                        isInSafeZone = true;
+                        break;
+                    }
+                }
+                if (isInSafeZone) break;
+            }
+            
+            // 检查周围是否已有太多雷（避免集中）
+            let nearbyMines = 0;
+            if (!isInSafeZone) {
+                for (let ddx = -2; ddx <= 2; ddx++) {
+                    for (let ddy = -2; ddy <= 2; ddy++) {
+                        const nx = kx + ddx;
+                        const ny = ky + ddy;
+                        if (nx >= 0 && nx < mineRows && ny >= 0 && ny < mineCols) {
+                            const npos = nx * mineCols + ny;
+                            if (arr[npos]) nearbyMines++;
                         }
                     }
                 }
             }
+            
+            // 如果位置安全且周围雷不多，放置雷
+            if (!isInSafeZone && !arr[pos] && nearbyMines < 2) {
+                arr[pos] = true;
+                placedMines++;
+            }
         }
         
-        for (let i=0;i<9;i++) mineMap[i] = arr.splice(0,9);
+        for (let i=0;i<mineRows;i++) mineMap[i] = arr.splice(0,mineCols);
     }
 
     function renderMine() {
         let dom = document.getElementById('boardMine');
         dom.innerHTML = '';
-        for (let i=0;i<9;i++) {
-            for (let j=0;j<9;j++) {
+        // 动态设置网格列数
+        dom.style.gridTemplateColumns = `repeat(${mineCols}, 30px)`;
+        for (let i=0;i<mineRows;i++) {
+            for (let j=0;j<mineCols;j++) {
                 let c = document.createElement('div');
                 c.className = 'mine-cell';
+                c.dataset.row = i;
+                c.dataset.col = j;
+                
+                // 左键点击
                 c.onclick = () => openMine(i,j);
+                
+                // 右键插旗
+                c.oncontextmenu = (e) => {
+                    e.preventDefault();
+                    toggleFlag(i, j);
+                };
+                
+                // 移动端长按插旗
+                c.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    longPressTimer = setTimeout(() => {
+                        toggleFlag(i, j);
+                    }, 500);
+                });
+                
+                c.addEventListener('touchend', () => {
+                    if (longPressTimer) {
+                        clearTimeout(longPressTimer);
+                        longPressTimer = null;
+                    }
+                });
+                
+                c.addEventListener('touchcancel', () => {
+                    if (longPressTimer) {
+                        clearTimeout(longPressTimer);
+                        longPressTimer = null;
+                    }
+                });
+                
                 dom.appendChild(c);
             }
         }
     }
 
-    // 递归展开空白区域
-    function expandEmpty(x, y, cells, visited) {
-        let idx = x * 9 + y;
+    // 递归展开空白区域（限制展开深度）
+    function expandEmpty(x, y, cells, visited, depth = 0) {
+        const maxDepth = 3; // 限制最大展开深度，增加游戏趣味
+        let idx = x * mineCols + y;
         if (visited[idx]) return;
-        if (x < 0 || x >= 9 || y < 0 || y >= 9) return;
+        if (x < 0 || x >= mineRows || y < 0 || y >= mineCols) return;
         if (cells[idx].classList.contains('open')) return;
+        if (cells[idx].classList.contains('flagged')) return;
         
         visited[idx] = true;
         
@@ -612,7 +755,7 @@
         for (let dx=-1;dx<=1;dx++) {
             for (let dy=-1;dy<=1;dy++) {
                 let nx = x+dx, ny = y+dy;
-                if (nx>=0 && nx<9 && ny>=0 && ny<9 && mineMap[nx][ny]) cnt++;
+                if (nx>=0 && nx<mineRows && ny>=0 && ny<mineCols && mineMap[nx][ny]) cnt++;
             }
         }
         
@@ -620,38 +763,80 @@
         cells[idx].innerText = cnt || '';
         cells[idx].onclick = null;
         
-        // 如果周围没有雷，继续递归展开
-        if (cnt === 0) {
+        // 如果周围没有雷且深度未超过限制，继续递归展开
+        if (cnt === 0 && depth < maxDepth) {
             for (let dx=-1;dx<=1;dx++) {
                 for (let dy=-1;dy<=1;dy++) {
                     if (dx !== 0 || dy !== 0) {
-                        expandEmpty(x+dx, y+dy, cells, visited);
+                        expandEmpty(x+dx, y+dy, cells, visited, depth + 1);
                     }
                 }
             }
+        }
+    }
+    
+    // 插旗/取消插旗
+    function toggleFlag(x, y) {
+        if (gameOverMine) return;
+        const cells = document.querySelectorAll('.mine-cell');
+        const idx = x * mineCols + y;
+        const cell = cells[idx];
+        
+        if (cell.classList.contains('open')) return;
+        
+        if (flagMap[x][y]) {
+            // 取消插旗
+            flagMap[x][y] = false;
+            cell.classList.remove('flagged');
+            cell.innerText = '';
+        } else {
+            // 插旗
+            flagMap[x][y] = true;
+            cell.classList.add('flagged');
+            cell.innerText = '🚩';
+        }
+        
+        // 更新剩余雷数显示
+        updateRemainingMines();
+    }
+    
+    // 更新剩余雷数显示
+    function updateRemainingMines() {
+        let flaggedCount = 0;
+        for (let i=0; i<mineRows; i++) {
+            for (let j=0; j<mineCols; j++) {
+                if (flagMap[i][j]) flaggedCount++;
+            }
+        }
+        const remaining = mineCount - flaggedCount;
+        const mineCountElement = document.getElementById('mineCount');
+        if (mineCountElement) {
+            mineCountElement.innerText = `剩余雷数: ${remaining}`;
         }
     }
 
     function openMine(x,y) {
         if(gameOverMine) return;
         const cells = document.querySelectorAll('.mine-cell');
-        const idx = x * 9 + y;
+        const idx = x * mineCols + y;
         
         if (cells[idx].classList.contains('open')) return;
+        if (cells[idx].classList.contains('flagged')) return; // 不能点击插旗的格子
         
         // 第一次点击：生成雷并确保不踩雷
         if (firstClickMine) {
             firstClickMine = false;
             generateMines(x, y);
+            updateRemainingMines(); // 第一次点击后显示剩余雷数
         }
 
         // 踩到地雷：游戏结束，全开所有雷，锁定棋盘
         if (mineMap[x][y]) {
             gameOverMine = true;
             // 显示全部地雷
-            for(let i=0;i<9;i++){
-                for(let j=0;j<9;j++){
-                    let pos = i*9+j;
+            for(let i=0;i<mineRows;i++){
+                for(let j=0;j<mineCols;j++){
+                    let pos = i*mineCols+j;
                     if(mineMap[i][j]){
                         cells[pos].classList.add('boom');
                         cells[pos].innerText = '💣';
@@ -664,21 +849,25 @@
         }
 
         // 展开区域
-        let visited = Array(81).fill(false);
+        let visited = Array(mineRows * mineCols).fill(false);
         expandEmpty(x, y, cells, visited);
         checkWinMine();
     }
 
     // 扫雷胜利判定
     function checkWinMine() {
-        let total = 81 - 10;
+        let total = mineRows * mineCols - mineCount;
         let open = document.querySelectorAll('.mine-cell.open').length;
         if (open >= total) {
             gameOverMine = true;
             const cells = document.querySelectorAll('.mine-cell');
             cells.forEach(c=>c.onclick = null);
 
+            // 根据难度调整奖励
             let add = Math.floor(Math.random()*21)+5;
+            if (mineCount >= 40) add *= 2; // 中等难度双倍奖励
+            if (mineCount >= 99) add *= 3; // 困难难度三倍奖励
+            
             exp += add;
             saveCurrentUserData();
             updateLevel();

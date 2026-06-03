@@ -270,21 +270,6 @@
         document.body.classList.add('dark');
     }
 
-    // ======================
-    // API配置 - 预留MySQL接口
-    // ======================
-    const API_BASE = 'https://cursor-supermom-stress.ngrok-free.dev/api';
-
-    async function syncUserDataToAPI() {
-        try {
-            await fetch(`${API_BASE}/user/${user}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ level: lv, exp: exp, fish: fish })
-            });
-        } catch (e) {}
-    }
-
     // 等级图标
     function getLevelIcon(lv) {
         if (lv >=8) return '👑皇冠';
@@ -336,6 +321,25 @@
             exp = userData.exp || 0;
             fish = userData.fish || 0;
         }
+    } else {
+        // 游客默认有10000条小鱼干
+        fish = 10000;
+    }
+
+    // ======================
+    // API配置 - 预留MySQL接口
+    // ======================
+    const API_BASE = 'https://cursor-supermom-stress.ngrok-free.dev/api';
+
+    async function syncUserDataToAPI() {
+        if (!user) return;
+        try {
+            await fetch(`${API_BASE}/user/${user}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ level: lv, exp: exp, fish: fish })
+            });
+        } catch (e) {}
     }
 
     // 更新导航
@@ -393,12 +397,13 @@
         }
     }
 
-    updateTopNav();
-    updateAll();
+    // 等待DOM加载完成后执行
+    document.addEventListener('DOMContentLoaded', () => {
+        updateTopNav();
+        updateAll();
+    });
 
     // 每日签到：+10经验 +3小鱼干
-    const API_BASE = 'http://localhost:5000/api';
-    
     document.getElementById('signBtn').onclick = async () => {
         if(lastSign === today){
             document.getElementById('signTip').innerText = '今日已签到';

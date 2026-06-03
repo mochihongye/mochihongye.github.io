@@ -538,11 +538,15 @@
                 fish = userData.fish || 0;
             }
             
-            // 尝试从API获取最新数据
+            // 尝试从API获取最新数据（仅当API返回有效数据时更新）
             const apiData = await fetchUserDataFromAPI(user);
-            if (apiData) {
-                level = apiData.level;
-                fish = apiData.fish;
+            if (apiData && apiData.level !== undefined && apiData.fish !== undefined) {
+                // 只有当API数据与本地数据有差异时才更新
+                if (apiData.level !== level || apiData.fish !== fish) {
+                    level = apiData.level;
+                    fish = apiData.fish;
+                    saveUserData(user, { level, exp: apiData.exp || 0, fish });
+                }
             }
             
             const levelIcon = getLevelIcon(level);
@@ -550,12 +554,16 @@
             document.getElementById('levelBox').innerText =
                 `${user} ${levelIcon}${levelName} Lv${level} 🐟${fish}`;
         } else {
-            document.getElementById('levelBox').innerText = '游客';
+            // 游客显示10000条小鱼干
+            document.getElementById('levelBox').innerText = `游客 🐟10000`;
         }
     }
 
-    updateLevelDisplay();
-    updateTopNav();
+    // 等待DOM加载完成后执行
+    document.addEventListener('DOMContentLoaded', async () => {
+        await updateLevelDisplay();
+        updateTopNav();
+    });
 </script>
 
 </body>

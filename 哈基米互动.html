@@ -234,22 +234,6 @@
         </div>
     </div>
 
-    <!-- 成就系统 -->
-    <div class="card">
-        <h2 class="card-title">🏆 成就系统</h2>
-        <div id="achievements">加载成就中...</div>
-    </div>
-
-    <!-- 猫咪知识问答 -->
-    <div class="card">
-        <h2 class="card-title">📚 猫咪知识问答（答对+5经验）</h2>
-        <div id="quizArea">
-            <div id="quizQuestion"></div>
-            <div id="quizOptions"></div>
-            <div class="tip" id="quizTip"></div>
-        </div>
-    </div>
-
     </div>
 
 <!-- 固定音乐播放器 -->
@@ -546,34 +530,7 @@
         }
     };
 
-    // ======================
-    // 成就系统
-    // ======================
-    const achievements = [
-        { id: 'pet_100', name: '撸猫达人', icon: '🏅', unlocked: false },
-        { id: 'sign_7', name: '签到连续7天', icon: '📅', unlocked: false },
-        { id: 'level_5', name: '铲屎官Lv.5', icon: '🎊', unlocked: false },
-        { id: 'fish_100', name: '小鱼干收藏家', icon: '🐟', unlocked: false },
-        { id: 'win_2048', name: '2048大师', icon: '🧩', unlocked: false },
-        { id: 'win_mine', name: '扫雷专家', icon: '💣', unlocked: false },
-        { id: 'quiz_master', name: '猫咪博士', icon: '📚', unlocked: false }
-    ];
-
-    // 解锁成就
-    function unlockAchievement(achievementId) {
-        const userAchievements = JSON.parse(localStorage.getItem('achievements_' + user) || '{}');
-        if (!userAchievements[achievementId]) {
-            userAchievements[achievementId] = true;
-            localStorage.setItem('achievements_' + user, JSON.stringify(userAchievements));
-            const ach = achievements.find(a => a.id === achievementId);
-            if (ach) {
-                loadAchievements();
-                alert(`🎉 成就解锁：${ach.name}！`);
-            }
-        }
-    }
-
-    // 检查并解锁成就
+    // 检查成就（保留用于撸猫和签到）
     function checkAchievements() {
         const userAchievements = JSON.parse(localStorage.getItem('achievements_' + user) || '{}');
         const today = new Date().toLocaleDateString('zh-CN');
@@ -581,177 +538,48 @@
         // 撸猫达人：撸猫100次
         const petCount = parseInt(localStorage.getItem('petCount_' + today)) || 0;
         if (petCount >= 100 && !userAchievements['pet_100']) {
-            unlockAchievement('pet_100');
+            userAchievements['pet_100'] = true;
+            localStorage.setItem('achievements_' + user, JSON.stringify(userAchievements));
+            alert('🎉 成就解锁：撸猫达人！');
         }
 
-        // 签到连续7天（简化版：累计签到达到7次）
+        // 签到达人：累计签到7天
         const totalSignDays = parseInt(localStorage.getItem('totalSignDays_' + user) || '0');
         if (totalSignDays >= 7 && !userAchievements['sign_7']) {
-            unlockAchievement('sign_7');
+            userAchievements['sign_7'] = true;
+            localStorage.setItem('achievements_' + user, JSON.stringify(userAchievements));
+            alert('🎉 成就解锁：签到达人！');
+        }
+
+        // 月签达人：累计签到30天
+        if (totalSignDays >= 30 && !userAchievements['sign_30']) {
+            userAchievements['sign_30'] = true;
+            localStorage.setItem('achievements_' + user, JSON.stringify(userAchievements));
+            alert('🎉 成就解锁：月签达人！');
         }
 
         // 铲屎官Lv.5：等级达到5
         if (lv >= 5 && !userAchievements['level_5']) {
-            unlockAchievement('level_5');
+            userAchievements['level_5'] = true;
+            localStorage.setItem('achievements_' + user, JSON.stringify(userAchievements));
+            alert('🎉 成就解锁：资深铲屎官！');
         }
 
         // 小鱼干收藏家：累计获得100小鱼干
         const totalFish = parseInt(localStorage.getItem('totalFish_' + user) || '0');
         if (totalFish >= 100 && !userAchievements['fish_100']) {
-            unlockAchievement('fish_100');
+            userAchievements['fish_100'] = true;
+            localStorage.setItem('achievements_' + user, JSON.stringify(userAchievements));
+            alert('🎉 成就解锁：小鱼干收藏家！');
         }
 
-        // 2048大师
-        const win2048 = localStorage.getItem('win2048_' + user);
-        if (win2048 === 'true' && !userAchievements['win_2048']) {
-            unlockAchievement('win_2048');
-        }
-
-        // 扫雷专家
-        const winMine = localStorage.getItem('winMine_' + user);
-        if (winMine === 'true' && !userAchievements['win_mine']) {
-            unlockAchievement('win_mine');
-        }
-
-        // 猫咪博士：答对10道题
-        if (quizCorrectCount >= 10 && !userAchievements['quiz_master']) {
-            unlockAchievement('quiz_master');
+        // 小鱼干大亨：累计获得500小鱼干
+        if (totalFish >= 500 && !userAchievements['fish_500']) {
+            userAchievements['fish_500'] = true;
+            localStorage.setItem('achievements_' + user, JSON.stringify(userAchievements));
+            alert('🎉 成就解锁：小鱼干大亨！');
         }
     }
-
-    function loadAchievements() {
-        const userAchievements = JSON.parse(localStorage.getItem('achievements_' + user) || '{}');
-        const achievementsDiv = document.getElementById('achievements');
-        
-        let html = '';
-        achievements.forEach(ach => {
-            const isUnlocked = userAchievements[ach.id] || false;
-            html += `<div style="display:flex;align-items:center;margin:10px 0;padding:10px;border-radius:10px;background:${isUnlocked ? '#f0f8ff' : '#f5f5f5'};">
-                <span style="font-size:24px;margin-right:10px;">${isUnlocked ? ach.icon : '🔒'}</span>
-                <div>
-                    <div style="font-weight:bold;color:${isUnlocked ? '#6868fa' : '#999'};">${isUnlocked ? ach.name : '???'}</div>
-                </div>
-            </div>`;
-        });
-        achievementsDiv.innerHTML = html;
-    }
-    loadAchievements();
-
-    // ======================
-    // 猫咪知识问答
-    // ======================
-    const quizQuestions = [
-        { q: '布偶猫为什么叫"布偶"？', a: 2, options: ['因为喜欢玩布偶玩具', '抱起来像布偶一样柔软', '毛色像布偶', '喜欢睡在布偶上'] },
-        { q: '布偶猫的原产地是哪里？', a: 1, options: ['英国', '美国', '日本', '中国'] },
-        { q: '布偶猫的性格特点是什么？', a: 0, options: ['温柔黏人', '活泼好动', '高冷傲娇', '胆小怕人'] },
-        { q: '以下哪种不是布偶猫的毛色？', a: 3, options: ['海豹色', '蓝色', '巧克力色', '绿色'] },
-        { q: '布偶猫一般体重是多少？', a: 2, options: ['2-3kg', '3-4kg', '4-6kg', '6-8kg'] },
-        { q: '猫咪为什么会发出呼噜声？', a: 0, options: ['表达满足和放松', '肚子饿了', '生气了', '想出去玩'] },
-        { q: '猫咪的胡须有什么作用？', a: 1, options: ['装饰', '感知周围环境', '散热', '吓唬敌人'] },
-        { q: '猫咪一天睡多久？', a: 3, options: ['6-8小时', '8-10小时', '10-12小时', '12-16小时'] },
-        { q: '布偶猫最常见的眼睛颜色是？', a: 1, options: ['绿色', '蓝色', '黄色', '棕色'] },
-        { q: '布偶猫属于哪个猫咪品种分类？', a: 2, options: ['短毛猫', '无毛猫', '长毛猫', '卷毛猫'] },
-        { q: '布偶猫的寿命一般是多久？', a: 1, options: ['5-8年', '12-15年', '20-25年', '3-5年'] },
-        { q: '布偶猫最容易患上的遗传疾病是？', a: 0, options: ['心肌肥大', '皮肤病', '糖尿病', '骨折'] },
-        { q: '猫咪的瞳孔在强光下会怎样？', a: 1, options: ['变大', '变小', '不变', '变成圆形'] },
-        { q: '布偶猫小时候的毛色和长大后？', a: 2, options: ['完全不变', '越来越浅', '越来越深', '变成其他颜色'] },
-        { q: '猫咪为什么喜欢高处？', a: 0, options: ['感到安全', '视野好', '温度高', '方便睡觉'] },
-        { q: '布偶猫是否适合户外饲养？', a: 1, options: ['非常适合', '不建议', '无所谓', '必须户外'] },
-        { q: '猫咪用爪子蹭你是为了？', a: 2, options: ['磨爪子', '玩耍', '标记气味', '表示不满'] },
-        { q: '布偶猫的"手套"特征指的是？', a: 1, options: ['戴帽子', '爪子是白色', '穿衣服', '戴围巾'] },
-        { q: '猫咪为什么喜欢钻纸盒？', a: 0, options: ['寻求安全感', '好玩', '取暖', '抓老鼠'] },
-        { q: '布偶猫打架时通常会怎样？', a: 2, options: ['非常凶猛', '必死无疑', '很少真的打', '大声吼叫'] },
-        { q: '猫咪磨爪子是为了？', a: 1, options: ['弄坏家具', '伸展肌肉和标记领地', '玩耍', '吸引注意'] },
-        { q: '布偶猫最喜欢的温度是？', a: 0, options: ['20-25度', '5-10度', '35-40度', '0度以下'] },
-        { q: '猫咪不能吃以下哪种食物？', a: 3, options: ['鸡肉', '鱼肉', '猫粮', '巧克力'] },
-        { q: '布偶猫的尾巴特点是？', a: 1, options: ['很短', '长而蓬松', '没有尾巴', '像兔子'] }
-    ];
-
-    let quizCorrectCount = parseInt(localStorage.getItem('quizCorrect_' + user)) || 0;
-    let quizTriedToday = parseInt(localStorage.getItem('quizTried_' + today)) || 0;
-    const MAX_QUIZ_PER_DAY = 2;
-
-    // 洗牌算法：打乱问题顺序，确保每次不重复
-    let quizOrder = [];
-    function shuffleQuestions() {
-        quizOrder = [...Array(quizQuestions.length).keys()];
-        for (let i = quizOrder.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [quizOrder[i], quizOrder[j]] = [quizOrder[j], quizOrder[i]];
-        }
-    }
-    let quizIndex = 0;
-    shuffleQuestions();
-
-    function getNextQuestion() {
-        if (quizIndex >= quizOrder.length) {
-            shuffleQuestions();
-            quizIndex = 0;
-        }
-        return quizOrder[quizIndex++];
-    }
-
-    function renderQuiz() {
-        const quizIdx = getNextQuestion();
-        const q = quizQuestions[quizIdx];
-        window.currentQuizIdx = quizIdx;
-        const quizArea = document.getElementById('quizArea');
-        
-        if (quizTriedToday >= MAX_QUIZ_PER_DAY) {
-            quizArea.innerHTML = `<div class="tip" style="font-size:18px;text-align:center;">今日问答次数已用完（${MAX_QUIZ_PER_DAY}次），明天再来吧！</div>`;
-            return;
-        }
-        
-        let html = `<div class="tip" style="margin-bottom:15px;">今日剩余：${MAX_QUIZ_PER_DAY - quizTriedToday} 次</div>`;
-        q.options.forEach((opt, i) => {
-            html += `<button onclick="checkQuiz(${i})" style="display:block;width:100%;padding:12px;margin:8px 0;text-align:left;">${i+1}. ${opt}</button>`;
-        });
-        document.getElementById('quizQuestion').innerHTML = q.q;
-        document.getElementById('quizOptions').innerHTML = html;
-    }
-
-    function checkQuiz(answer) {
-        if (quizTriedToday >= MAX_QUIZ_PER_DAY) {
-            return;
-        }
-        
-        const q = quizQuestions[window.currentQuizIdx];
-        const tip = document.getElementById('quizTip');
-        
-        quizTriedToday++;
-        localStorage.setItem('quizTried_' + today, quizTriedToday);
-        
-        if (answer === q.a) {
-            exp += 5;
-            quizCorrectCount++;
-            saveCurrentUserData();
-            localStorage.setItem('quizCorrect_' + user, quizCorrectCount);
-            doLevelUp();
-            updateAll();
-            syncUserDataToAPI();
-            tip.innerText = '✓ 回答正确！+5经验';
-            tip.className = 'tip success';
-
-            // 检查问答成就
-            checkAchievements();
-        } else {
-            tip.innerText = '✗ 回答错误，正确答案是：' + q.options[q.a];
-            tip.className = 'tip error';
-        }
-        
-        // 下一题或结束
-        setTimeout(() => {
-            if (quizTriedToday >= MAX_QUIZ_PER_DAY) {
-                renderQuiz();
-                tip.innerText = '';
-            } else {
-                currentQuizIndex = Math.floor(Math.random() * quizQuestions.length);
-                renderQuiz();
-                tip.innerText = '';
-            }
-        }, 1500);
-    }
-    renderQuiz();
 
     // ======================
     // 音乐播放器（固定右下角，播放真实音频文件）

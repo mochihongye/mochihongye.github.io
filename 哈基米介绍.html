@@ -5,11 +5,9 @@
     <title>年糕档案｜哈基米介绍</title>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
-        body {
-            font-family:"微软雅黑",sans-serif;
-            background:url("https://pic.17qq.com/uploads/2025-02-01/58f92a1ed25547249c2d7d15e424d655.jpeg") center/cover;
-            height:100vh;
-        }
+        body { font-family:"微软雅黑",sans-serif; background:#f8f8f8; padding-bottom:50px; }
+
+        /* 导航 */
         .top-nav {
             position: fixed; top:20px; right:20px;
             background:white; padding:10px 15px; border-radius:12px;
@@ -17,24 +15,50 @@
         }
         .top-nav a { margin:0 8px; text-decoration:none; color:#333; font-weight:bold; }
         .top-nav a:hover { color:#6868fa; }
+
+        /* 等级面板 */
         .level-box {
             position: fixed; top:20px; left:20px;
             background:white; padding:8px 12px; border-radius:10px;
             font-size:14px; z-index:9999; box-shadow:0 2px 8px rgba(0,0,0,0.1);
         }
+
+        /* 横幅 */
+        .banner {
+            width:100%;
+            height:400px;
+            background:url("https://pic.17qq.com/uploads/2025-02-01/58f92a1ed25547249c2d7d15e424d655.jpeg") center/cover;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            color:white;
+            font-size:42px;
+            font-weight:bold;
+            text-shadow:0 2px 10px rgba(0,0,0,0.5);
+        }
+
+        /* 容器 */
+        .container {
+            max-width:1100px;
+            margin:50px auto;
+            padding:0 20px;
+        }
+
+        /* 卡片 */
         .card {
-            position:absolute; top:50%; left:50%;
-            transform:translate(-50%,-50%);
-            background:rgba(255,255,255,0.95);
-            padding:40px; border-radius:24px;
-            width:550px; max-height:90vh;
-            overflow-y:auto;
-            box-shadow:0 10px 30px rgba(0,0,0,0.2);
+            background:white;
+            border-radius:15px;
+            padding:30px;
+            margin-bottom:30px;
+            box-shadow:0 2px 10px rgba(0,0,0,0.05);
         }
-        .card h1 {
-            text-align:center; color:#6868fa;
-            margin-bottom:20px; font-size:32px;
+        .card h2 {
+            color:#6868fa;
+            margin-bottom:15px;
+            border-bottom:2px solid #eee;
+            padding-bottom:10px;
         }
+
         .info-block { margin-bottom:20px; }
         .info-block h3 {
             color:#f37f92; margin-bottom:10px;
@@ -137,6 +161,133 @@
         .music-btn:hover {
             background: #5454e6;
         }
+        
+        /* 成就系统样式 */
+        .achievements-section {
+            margin-top: 30px;
+        }
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 12px;
+            margin-top: 15px;
+        }
+        .achievement-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .achievement-card.unlocked {
+            background: linear-gradient(135deg, #fff0f8 0%, #f0f0ff 100%);
+            border-color: #ffb6c1;
+        }
+        .achievement-card.locked {
+            opacity: 0.6;
+        }
+        .achievement-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+        .achievement-name {
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+        }
+        body.dark .achievement-card {
+            background: #3d3d54;
+        }
+        body.dark .achievement-card.unlocked {
+            background: linear-gradient(135deg, #3d2d3d 0%, #2d2d4d 100%);
+        }
+        body.dark .achievement-name {
+            color: #ddd;
+        }
+        
+        /* 问答系统样式 */
+        .quiz-section {
+            margin-top: 30px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+        }
+        body.dark .quiz-section {
+            background: #3d3d54;
+        }
+        .quiz-question {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        body.dark .quiz-question {
+            color: #ddd;
+        }
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .quiz-option {
+            padding: 14px 18px;
+            border: none;
+            border-radius: 10px;
+            background: white;
+            text-align: left;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .quiz-option:hover {
+            background: #f0f0ff;
+            transform: translateX(5px);
+        }
+        body.dark .quiz-option {
+            background: #2d2d44;
+            color: #ddd;
+        }
+        body.dark .quiz-option:hover {
+            background: #4d4d64;
+        }
+        .quiz-tip {
+            margin-top: 15px;
+            font-size: 14px;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .quiz-tip.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        .quiz-tip.error {
+            background: #ffebee;
+            color: #c62828;
+        }
+        body.dark .quiz-tip.success {
+            background: #1b5e20;
+            color: #81c784;
+        }
+        body.dark .quiz-tip.error {
+            background: #c62828;
+            color: #ffcdd2;
+        }
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .quiz-stats {
+            font-size: 14px;
+            color: #666;
+        }
+        body.dark .quiz-stats {
+            color: #aaa;
+        }
     </style>
 </head>
 <body>
@@ -151,64 +302,90 @@
 
 <div class="level-box" id="levelBox"></div>
 
-<div class="card">
-    <h1>🐱 年糕档案 · 哈基米本米</h1>
+<!-- 横幅 -->
+<div class="banner">🐱 年糕档案</div>
 
-    <!-- 基础档案 -->
-    <div class="info-block">
-        <h3>📋 基础档案</h3>
-        <div class="info-item"><strong>名字：</strong>年糕</div>
-        <div class="info-item"><strong>品种：</strong>布偶猫（Ragdoll）</div>
-        <div class="info-item"><strong>年龄：</strong>1岁多</div>
-        <div class="info-item"><strong>性别：</strong>男孩子（公公猫）</div>
-        <div class="info-item"><strong>绝育时间：</strong>2026年2月7日</div>
-        <div class="info-item"><strong>体重：</strong>约4.5kg，软乎乎抱起来很沉</div>
-    </div>
+<!-- 容器 -->
+<div class="container">
 
-    <!-- 性格标签 -->
-    <div class="info-block">
-        <h3>💖 性格标签</h3>
-        <div class="tag-list">
-            <span class="tag">温柔黏人</span>
-            <span class="tag">软萌温顺</span>
-            <span class="tag">胆子小小</span>
-            <span class="tag">脾气超好</span>
-            <span class="tag">爱撒娇</span>
-            <span class="tag">随便撸</span>
+    <!-- 年糕档案卡片 -->
+    <div class="card">
+        <h2>🐱 年糕档案 · 哈基米本米</h2>
+
+        <!-- 基础档案 -->
+        <div class="info-block">
+            <h3>📋 基础档案</h3>
+            <div class="info-item"><strong>名字：</strong>年糕</div>
+            <div class="info-item"><strong>品种：</strong>布偶猫（Ragdoll）</div>
+            <div class="info-item"><strong>年龄：</strong>1岁多</div>
+            <div class="info-item"><strong>性别：</strong>男孩子（公公猫）</div>
+            <div class="info-item"><strong>绝育时间：</strong>2026年2月7日</div>
+            <div class="info-item"><strong>体重：</strong>约4.5kg，软乎乎抱起来很沉</div>
+        </div>
+
+        <!-- 性格标签 -->
+        <div class="info-block">
+            <h3>💖 性格标签</h3>
+            <div class="tag-list">
+                <span class="tag">温柔黏人</span>
+                <span class="tag">软萌温顺</span>
+                <span class="tag">胆子小小</span>
+                <span class="tag">脾气超好</span>
+                <span class="tag">爱撒娇</span>
+                <span class="tag">随便撸</span>
+            </div>
+        </div>
+
+        <!-- 日常爱好 -->
+        <div class="info-block">
+            <h3>🎀 日常爱好</h3>
+            <div class="info-item">✨ 贴贴抱抱，天天黏人求摸摸</div>
+            <div class="info-item">✨ 晒太阳，一晒一下午</div>
+            <div class="info-item">✨ 睡觉打呼，睡颜超乖</div>
+            <div class="info-item">✨ 追逗猫棒、激光笔</div>
+            <div class="info-item">✨ 踩奶按摩，呼噜呼噜</div>
+        </div>
+
+        <!-- 萌点总结 -->
+        <div class="info-block">
+            <h3>🌟 萌点总结</h3>
+            <div class="info-item">• 颜值天花板，大眼睛布偶脸</div>
+            <div class="info-item">• 毛软软像云朵，手感绝了</div>
+            <div class="info-item">• 不抓人不咬人，脾气无敌好</div>
+            <div class="info-item">• 公公猫超乖，不乱叫不乱跑</div>
+            <div class="info-item">• 治愈小天使，每天被治愈</div>
+        </div>
+
+        <!-- 年糕语录 -->
+        <div class="quote">
+            难道我是一只很坏的小猫咪吗？<br>
+            我只是想被爱、想贴贴、想被摸摸呀～<br>
+            全世界最乖的布偶哈基米，治愈每一天 ❤
         </div>
     </div>
 
-    <!-- 日常爱好 -->
-    <div class="info-block">
-        <h3>🎀 日常爱好</h3>
-        <div class="info-item">✨ 贴贴抱抱，天天黏人求摸摸</div>
-        <div class="info-item">✨ 晒太阳，一晒一下午</div>
-        <div class="info-item">✨ 睡觉打呼，睡颜超乖</div>
-        <div class="info-item">✨ 追逗猫棒、激光笔</div>
-        <div class="info-item">✨ 踩奶按摩，呼噜呼噜</div>
+    <!-- 成就系统卡片 -->
+    <div class="card">
+        <h2>🏆 成就系统</h2>
+        <div class="achievements-grid" id="achievementsGrid">加载成就中...</div>
     </div>
 
-    <!-- 萌点总结 -->
-    <div class="info-block">
-        <h3>🌟 萌点总结</h3>
-        <div class="info-item">• 颜值天花板，大眼睛布偶脸</div>
-        <div class="info-item">• 毛软软像云朵，手感绝了</div>
-        <div class="info-item">• 不抓人不咬人，脾气无敌好</div>
-        <div class="info-item">• 公公猫超乖，不乱叫不乱跑</div>
-        <div class="info-item">• 治愈小天使，每天被治愈</div>
+    <!-- 猫咪知识问答卡片 -->
+    <div class="card">
+        <div class="quiz-header">
+            <h2>📚 猫咪知识问答</h2>
+            <span class="quiz-stats" id="quizStats">每日首次答对奖励 3 小鱼干</span>
+        </div>
+        <div class="quiz-question" id="quizQuestion"></div>
+        <div class="quiz-options" id="quizOptions"></div>
+        <div class="quiz-tip" id="quizTip"></div>
     </div>
 
-    <!-- 年糕语录 -->
-    <div class="quote">
-        难道我是一只很坏的小猫咪吗？<br>
-        我只是想被爱、想贴贴、想被摸摸呀～<br>
-        全世界最乖的布偶哈基米，治愈每一天 ❤
-    </div>
-
-    <!-- 跳转按钮 -->
-    <div class="btn-wrap">
+    <!-- 跳转按钮卡片 -->
+    <div class="card" style="text-align:center;">
         <a href="哈基米子网站.html" class="big-btn">📸 查看年糕美颜相册</a>
     </div>
+
 </div>
 
 <script>
@@ -308,6 +485,328 @@
         loadMusic(currentMusicIndex);
         if (isPlaying) bgmAudio.play().catch(e => {});
     };
+
+    // ======================
+    // 用户数据辅助函数
+    // ======================
+    function getUserData(username) {
+        const key = 'userData_' + username;
+        const data = localStorage.getItem(key);
+        if (!data) return null;
+        try {
+            return JSON.parse(data);
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function saveUserData(username, obj) {
+        const key = 'userData_' + username;
+        localStorage.setItem(key, JSON.stringify(obj));
+    }
+
+    // ======================
+    // 成就系统
+    // ======================
+    const achievements = [
+        { id: 'pet_100', name: '撸猫达人', icon: '🏅', desc: '撸猫100次' },
+        { id: 'sign_7', name: '签到达人', icon: '📅', desc: '累计签到7天' },
+        { id: 'level_5', name: '资深铲屎官', icon: '🎊', desc: '等级达到5级' },
+        { id: 'fish_100', name: '小鱼干收藏家', icon: '🐟', desc: '累计获得100小鱼干' },
+        { id: 'win_2048', name: '2048大师', icon: '🧩', desc: '完成2048游戏' },
+        { id: 'win_mine', name: '扫雷专家', icon: '💣', desc: '完成扫雷游戏' },
+        { id: 'quiz_master', name: '猫咪博士', icon: '📚', desc: '答对10道题' },
+        { id: 'memory_master', name: '记忆大师', icon: '🃏', desc: '完成记忆翻牌' },
+        { id: 'puzzle_master', name: '拼图高手', icon: '🧩', desc: '完成拼图游戏' },
+        { id: 'guess_master', name: '猜谜王者', icon: '🔮', desc: '猜谜连胜5次' },
+        { id: 'sign_30', name: '月签达人', icon: '🌟', desc: '累计签到30天' },
+        { id: 'fish_500', name: '小鱼干大亨', icon: '👑', desc: '累计获得500小鱼干' }
+    ];
+
+    // 解锁成就
+    function unlockAchievement(achievementId) {
+        const user = localStorage.getItem('user') || '';
+        if (!user) return;
+        
+        const userAchievements = JSON.parse(localStorage.getItem('achievements_' + user) || '{}');
+        if (!userAchievements[achievementId]) {
+            userAchievements[achievementId] = true;
+            localStorage.setItem('achievements_' + user, JSON.stringify(userAchievements));
+            const ach = achievements.find(a => a.id === achievementId);
+            if (ach) {
+                loadAchievements();
+                alert(`🎉 成就解锁：${ach.icon} ${ach.name}！`);
+            }
+        }
+    }
+
+    // 检查并解锁成就
+    function checkAchievements() {
+        const user = localStorage.getItem('user') || '';
+        if (!user) return;
+        
+        const userAchievements = JSON.parse(localStorage.getItem('achievements_' + user) || '{}');
+        const today = new Date().toLocaleDateString('zh-CN');
+        const userData = getUserData(user);
+        
+        const lv = userData ? userData.level || 0 : 0;
+        const totalSignDays = parseInt(localStorage.getItem('totalSignDays_' + user) || '0');
+        const totalFish = parseInt(localStorage.getItem('totalFish_' + user) || '0');
+        const petCount = parseInt(localStorage.getItem('petCount_' + today)) || 0;
+        const quizCorrectCount = parseInt(localStorage.getItem('quizCorrect_' + user) || '0');
+        
+        // 撸猫达人：撸猫100次
+        if (petCount >= 100 && !userAchievements['pet_100']) {
+            unlockAchievement('pet_100');
+        }
+
+        // 签到达人：累计签到7天
+        if (totalSignDays >= 7 && !userAchievements['sign_7']) {
+            unlockAchievement('sign_7');
+        }
+
+        // 月签达人：累计签到30天
+        if (totalSignDays >= 30 && !userAchievements['sign_30']) {
+            unlockAchievement('sign_30');
+        }
+
+        // 资深铲屎官：等级达到5
+        if (lv >= 5 && !userAchievements['level_5']) {
+            unlockAchievement('level_5');
+        }
+
+        // 小鱼干收藏家：累计获得100小鱼干
+        if (totalFish >= 100 && !userAchievements['fish_100']) {
+            unlockAchievement('fish_100');
+        }
+
+        // 小鱼干大亨：累计获得500小鱼干
+        if (totalFish >= 500 && !userAchievements['fish_500']) {
+            unlockAchievement('fish_500');
+        }
+
+        // 2048大师
+        const win2048 = localStorage.getItem('win2048_' + user);
+        if (win2048 === 'true' && !userAchievements['win_2048']) {
+            unlockAchievement('win_2048');
+        }
+
+        // 扫雷专家
+        const winMine = localStorage.getItem('winMine_' + user);
+        if (winMine === 'true' && !userAchievements['win_mine']) {
+            unlockAchievement('win_mine');
+        }
+
+        // 猫咪博士：答对10道题
+        if (quizCorrectCount >= 10 && !userAchievements['quiz_master']) {
+            unlockAchievement('quiz_master');
+        }
+
+        // 记忆大师
+        const winMemory = localStorage.getItem('winMemory_' + user);
+        if (winMemory === 'true' && !userAchievements['memory_master']) {
+            unlockAchievement('memory_master');
+        }
+
+        // 拼图高手
+        const winPuzzle = localStorage.getItem('winPuzzle_' + user);
+        if (winPuzzle === 'true' && !userAchievements['puzzle_master']) {
+            unlockAchievement('puzzle_master');
+        }
+
+        // 猜谜王者：连胜5次
+        const guessStreak = parseInt(localStorage.getItem('guessStreak_' + user) || '0');
+        if (guessStreak >= 5 && !userAchievements['guess_master']) {
+            unlockAchievement('guess_master');
+        }
+    }
+
+    function loadAchievements() {
+        const user = localStorage.getItem('user') || '';
+        const userAchievements = JSON.parse(localStorage.getItem('achievements_' + user) || '{}');
+        const achievementsGrid = document.getElementById('achievementsGrid');
+        
+        let unlockedCount = 0;
+        let html = '';
+        achievements.forEach(ach => {
+            const isUnlocked = userAchievements[ach.id] || false;
+            if (isUnlocked) unlockedCount++;
+            html += `<div class="achievement-card ${isUnlocked ? 'unlocked' : 'locked'}">
+                <div class="achievement-icon">${isUnlocked ? ach.icon : '🔒'}</div>
+                <div class="achievement-name">${isUnlocked ? ach.name : '???'}</div>
+            </div>`;
+        });
+        achievementsGrid.innerHTML = html;
+        
+        // 更新标题显示已解锁数量
+        const achievementSection = document.querySelector('.achievements-section h3');
+        if (achievementSection) {
+            achievementSection.innerText = `🏆 成就系统 (${unlockedCount}/${achievements.length})`;
+        }
+    }
+
+    // ======================
+    // 猫咪知识问答（无次数限制，每日首次答对奖励3小鱼干）
+    // ======================
+    const quizQuestions = [
+        { q: '布偶猫为什么叫"布偶"？', a: 2, options: ['因为喜欢玩布偶玩具', '抱起来像布偶一样柔软', '毛色像布偶', '喜欢睡在布偶上'] },
+        { q: '布偶猫的原产地是哪里？', a: 1, options: ['英国', '美国', '日本', '中国'] },
+        { q: '布偶猫的性格特点是什么？', a: 0, options: ['温柔黏人', '活泼好动', '高冷傲娇', '胆小怕人'] },
+        { q: '以下哪种不是布偶猫的毛色？', a: 3, options: ['海豹色', '蓝色', '巧克力色', '绿色'] },
+        { q: '布偶猫一般体重是多少？', a: 2, options: ['2-3kg', '3-4kg', '4-6kg', '6-8kg'] },
+        { q: '猫咪为什么会发出呼噜声？', a: 0, options: ['表达满足和放松', '肚子饿了', '生气了', '想出去玩'] },
+        { q: '猫咪的胡须有什么作用？', a: 1, options: ['装饰', '感知周围环境', '散热', '吓唬敌人'] },
+        { q: '猫咪一天睡多久？', a: 3, options: ['6-8小时', '8-10小时', '10-12小时', '12-16小时'] },
+        { q: '布偶猫最常见的眼睛颜色是？', a: 1, options: ['绿色', '蓝色', '黄色', '棕色'] },
+        { q: '布偶猫属于哪个猫咪品种分类？', a: 2, options: ['短毛猫', '无毛猫', '长毛猫', '卷毛猫'] },
+        { q: '布偶猫的寿命一般是多久？', a: 1, options: ['5-8年', '12-15年', '20-25年', '3-5年'] },
+        { q: '布偶猫最容易患上的遗传疾病是？', a: 0, options: ['心肌肥大', '皮肤病', '糖尿病', '骨折'] },
+        { q: '猫咪的瞳孔在强光下会怎样？', a: 1, options: ['变大', '变小', '不变', '变成圆形'] },
+        { q: '布偶猫小时候的毛色和长大后？', a: 2, options: ['完全不变', '越来越浅', '越来越深', '变成其他颜色'] },
+        { q: '猫咪为什么喜欢高处？', a: 0, options: ['感到安全', '视野好', '温度高', '方便睡觉'] },
+        { q: '布偶猫是否适合户外饲养？', a: 1, options: ['非常适合', '不建议', '无所谓', '必须户外'] },
+        { q: '猫咪用爪子蹭你是为了？', a: 2, options: ['磨爪子', '玩耍', '标记气味', '表示不满'] },
+        { q: '布偶猫的"手套"特征指的是？', a: 1, options: ['戴帽子', '爪子是白色', '穿衣服', '戴围巾'] },
+        { q: '猫咪为什么喜欢钻纸盒？', a: 0, options: ['寻求安全感', '好玩', '取暖', '抓老鼠'] },
+        { q: '布偶猫打架时通常会怎样？', a: 2, options: ['非常凶猛', '必死无疑', '很少真的打', '大声吼叫'] },
+        { q: '猫咪磨爪子是为了？', a: 1, options: ['弄坏家具', '伸展肌肉和标记领地', '玩耍', '吸引注意'] },
+        { q: '布偶猫最喜欢的温度是？', a: 0, options: ['20-25度', '5-10度', '35-40度', '0度以下'] },
+        { q: '猫咪不能吃以下哪种食物？', a: 3, options: ['鸡肉', '鱼肉', '猫粮', '巧克力'] },
+        { q: '布偶猫的尾巴特点是？', a: 1, options: ['很短', '长而蓬松', '没有尾巴', '像兔子'] },
+        { q: '猫咪为什么会踩奶？', a: 2, options: ['饿了', '想喝水', '表达舒适和安全感', '无聊'] },
+        { q: '布偶猫的毛发护理需要注意什么？', a: 0, options: ['定期梳毛防止打结', '每天洗澡', '不需要护理', '剪掉长毛'] },
+        { q: '猫咪的第三眼睑在哪里？', a: 1, options: ['耳朵里', '眼角内侧', '鼻子下面', '爪子上'] },
+        { q: '布偶猫的叫声通常是怎样的？', a: 2, options: ['大声洪亮', '尖锐刺耳', '轻柔甜美', '沙哑低沉'] },
+        { q: '猫咪为什么会把屁股对着你？', a: 0, options: ['表示信任和友好', '挑衅你', '要吃饭', '想出门'] },
+        { q: '布偶猫适合有小孩的家庭吗？', a: 0, options: ['非常适合，性格温顺', '不适合，会抓伤小孩', '要看小孩年龄', '不确定'] },
+        { q: '猫咪为什么会追激光笔？', a: 1, options: ['喜欢灯光', '捕猎本能', '无聊', '想玩球'] },
+        { q: '布偶猫的"蓝眼睛"是天生的吗？', a: 0, options: ['是的，所有布偶都有蓝眼睛', '只有部分布偶有', '后天形成的', '生病时才会变蓝'] },
+        { q: '猫咪为什么会打喷嚏？', a: 2, options: ['感冒了', '过敏了', '可能是正常反应', '一定是生病了'] },
+        { q: '布偶猫需要多少运动量？', a: 1, options: ['大量运动', '适量运动即可', '不需要运动', '必须每天出门'] },
+        { q: '猫咪的尾巴可以表达什么情绪？', a: 3, options: ['只能表达开心', '只能表达生气', '什么都表达不了', '各种情绪都能表达'] },
+        { q: '布偶猫是大型猫还是小型猫？', a: 0, options: ['大型猫', '小型猫', '中型猫', '迷你猫'] },
+        { q: '猫咪为什么会发出咕噜咕噜的声音？', a: 0, options: ['表达满足', '身体不舒服', '饿了', '想打架'] },
+        { q: '布偶猫的耳朵为什么是三角形的？', a: 2, options: ['好看', '方便散热', '帮助收集声音', '天生如此'] },
+        { q: '猫咪为什么喜欢睡在高处？', a: 1, options: ['凉快', '有安全感', '看得远', '好玩'] },
+        { q: '布偶猫的性格和其他猫有什么不同？', a: 0, options: ['更温顺黏人', '更活泼好动', '更高冷', '更胆小'] },
+        { q: '猫咪的舌头为什么有倒刺？', a: 2, options: ['好看', '用来梳毛', '帮助舔食和梳理毛发', '用来攻击'] },
+        { q: '布偶猫洗澡需要注意什么？', a: 1, options: ['用冷水洗', '用温水和专用香波', '可以用人的洗发水', '不需要洗澡'] }
+    ];
+
+    let quizCorrectCount = 0;
+    let quizOrder = [];
+    let quizIndex = 0;
+
+    function shuffleQuestions() {
+        quizOrder = [...Array(quizQuestions.length).keys()];
+        for (let i = quizOrder.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [quizOrder[i], quizOrder[j]] = [quizOrder[j], quizOrder[i]];
+        }
+    }
+
+    function getNextQuestion() {
+        if (quizIndex >= quizOrder.length) {
+            shuffleQuestions();
+            quizIndex = 0;
+        }
+        return quizOrder[quizIndex++];
+    }
+
+    function renderQuiz() {
+        const user = localStorage.getItem('user') || '';
+        quizCorrectCount = parseInt(localStorage.getItem('quizCorrect_' + user) || '0');
+        
+        const quizIdx = getNextQuestion();
+        const q = quizQuestions[quizIdx];
+        window.currentQuizIdx = quizIdx;
+        
+        document.getElementById('quizQuestion').innerHTML = q.q;
+        
+        let html = '';
+        q.options.forEach((opt, i) => {
+            html += `<button class="quiz-option" onclick="checkQuiz(${i})">${i+1}. ${opt}</button>`;
+        });
+        document.getElementById('quizOptions').innerHTML = html;
+        
+        // 更新统计
+        document.getElementById('quizStats').innerText = `累计答对：${quizCorrectCount} 题`;
+    }
+
+    function checkQuiz(answer) {
+        const user = localStorage.getItem('user') || '';
+        if (!user) {
+            document.getElementById('quizTip').innerText = '请先登录才能获得奖励！';
+            document.getElementById('quizTip').className = 'quiz-tip error';
+            setTimeout(() => {
+                document.getElementById('quizTip').innerText = '';
+                renderQuiz();
+            }, 2000);
+            return;
+        }
+
+        const q = quizQuestions[window.currentQuizIdx];
+        const tip = document.getElementById('quizTip');
+        const today = new Date().toLocaleDateString('zh-CN');
+        const hasAnsweredToday = localStorage.getItem('quizAnsweredToday_' + user) === today;
+        const userData = getUserData(user) || {};
+        let fish = userData.fish || 0;
+
+        if (answer === q.a) {
+            quizCorrectCount++;
+            localStorage.setItem('quizCorrect_' + user, quizCorrectCount);
+            
+            // 每日首次答对奖励3小鱼干
+            if (!hasAnsweredToday) {
+                fish += 3;
+                saveUserData(user, { ...userData, fish });
+                localStorage.setItem('quizAnsweredToday_' + user, today);
+                
+                // 累计小鱼干计数
+                let totalFish = parseInt(localStorage.getItem('totalFish_' + user) || '0');
+                totalFish += 3;
+                localStorage.setItem('totalFish_' + user, totalFish);
+                
+                tip.innerText = `🎉 回答正确！今日首次答对获得 3 小鱼干！`;
+                updateLevelBox(user, fish);
+            } else {
+                tip.innerText = `✓ 回答正确！累计答对 ${quizCorrectCount} 题`;
+            }
+            tip.className = 'quiz-tip success';
+            
+            // 检查成就
+            checkAchievements();
+        } else {
+            tip.innerText = `✗ 回答错误，正确答案是：${q.options[q.a]}`;
+            tip.className = 'quiz-tip error';
+        }
+        
+        // 下一题
+        setTimeout(() => {
+            tip.innerText = '';
+            renderQuiz();
+        }, 2000);
+    }
+
+    function updateLevelBox(user, newFish) {
+        const levelBox = document.getElementById('levelBox');
+        if (levelBox && user) {
+            const userData = getUserData(user);
+            const lv = userData ? userData.level || 0 : 0;
+            const fish = newFish || (userData ? userData.fish || 0 : 0);
+            const levelIcon = getLevelIcon(lv);
+            const levelName = getLevelName(lv);
+            levelBox.innerText = `${user} ${levelIcon}${levelName} Lv${lv} 🐟${fish}`;
+        }
+    }
+
+    // 页面加载完成后初始化
+    document.addEventListener('DOMContentLoaded', () => {
+        loadAchievements();
+        shuffleQuestions();
+        renderQuiz();
+        checkAchievements();
+    });
 </script>
 
 <!-- 固定音乐播放器 -->

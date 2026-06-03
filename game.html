@@ -26,19 +26,70 @@
         }
 
         /* 游戏容器 */
-        .container { max-width:700px; margin:120px auto 0; padding:0 20px; }
+        .container { max-width:800px; margin:120px auto 0; padding:0 20px; }
         .game-card {
             background:white; border-radius:20px; padding:30px;
-            margin-bottom:30px; text-align:center; box-shadow:0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom:30px; box-shadow:0 5px 15px rgba(0,0,0,0.1);
         }
-        .game-title { font-size:24px; color:#ff7b9c; margin-bottom:20px; }
-        .btn {
-            padding:14px 30px; margin:0 10px; border:none; border-radius:12px;
-            font-size:18px; color:white; cursor:pointer; font-weight:bold;
+        .game-title { font-size:24px; color:#ff7b9c; margin-bottom:20px; text-align:center; }
+        
+        /* 游戏列表 */
+        .game-list {
+            display:flex;
+            flex-direction:column;
+            gap:12px;
         }
-        .btn-2048 { background:#ff7b9c; }
-        .btn-mine { background:#6868fa; }
-        .tip { margin-top:20px; font-size:16px; color:#666; }
+        .game-item {
+            display:flex;
+            align-items:center;
+            gap:15px;
+            padding:15px 20px;
+            background:#f8f9fa;
+            border-radius:12px;
+            cursor:pointer;
+            transition:all 0.2s ease;
+        }
+        .game-item:hover {
+            background:#e9ecef;
+            transform:translateX(5px);
+        }
+        .game-item img {
+            width:50px;
+            height:50px;
+            border-radius:10px;
+            object-fit:cover;
+        }
+        .game-item .game-name {
+            flex:1;
+            font-size:18px;
+            font-weight:bold;
+            color:#333;
+        }
+        .game-item .game-score {
+            font-size:16px;
+            color:#666;
+            background:#fff;
+            padding:6px 12px;
+            border-radius:20px;
+            border:1px solid #ddd;
+        }
+        
+        body.dark .game-item {
+            background:#3d3d54;
+        }
+        body.dark .game-item:hover {
+            background:#4d4d64;
+        }
+        body.dark .game-item .game-name {
+            color:#fff;
+        }
+        body.dark .game-item .game-score {
+            color:#ccc;
+            background:#2d2d44;
+            border-color:#555;
+        }
+        
+        .tip { margin-top:20px; font-size:16px; color:#666; text-align:center; }
 
         /* 2048 样式 */
         .game-2048 { display:none; margin-top:20px; }
@@ -59,22 +110,77 @@
         .board {
             display:grid; gap:2px;
             margin:20px auto;
+            background:#8b8b8b;
+            padding:5px;
+            border-radius:8px;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);
         }
         .mine-cell {
-            width:30px; height:30px; background:#ccc;
-            border:2px outset #fff; font-weight:bold; cursor:pointer;
+            width:28px; height:28px; 
+            background: linear-gradient(145deg, #e8e8e8, #c0c0c0);
+            border:3px outset;
+            border-color: #fff #8b8b8b #8b8b8b #fff;
+            font-weight:bold; 
+            font-size:14px;
+            cursor:pointer;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            transition:all 0.1s ease;
+            user-select:none;
         }
-        .mine-cell.open { background:#fff; border:1px solid #ddd; cursor:default; }
-        .mine-cell.boom { background:#ff4444; color:#fff; }
-        .mine-cell.flagged { background:#ffd700; }
+        .mine-cell:hover:not(.open):not(.flagged) {
+            background: linear-gradient(145deg, #f5f5f5, #d0d0d0);
+        }
+        .mine-cell.open { 
+            background:#d0d0d0; 
+            border:1px solid #999; 
+            cursor:default;
+            box-shadow: inset 1px 1px 2px rgba(0,0,0,0.2);
+        }
+        .mine-cell.boom { 
+            background:#ff4444; 
+            color:#fff; 
+            border-color:#ff6b6b;
+        }
+        .mine-cell.flagged { 
+            background: linear-gradient(145deg, #ffeb3b, #ffc107);
+            border-color: #fff #b79000 #b79000 #fff;
+        }
         
         /* 扫雷信息栏 */
         .mine-info {
             display:flex; justify-content:space-between;
-            padding:10px; margin-bottom:10px;
-            background:#f5f5f5; border-radius:8px;
+            padding:12px 15px; margin-bottom:10px;
+            background:#f5f5f5; border-radius:10px;
+            align-items:center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
         }
-        #mineCount { font-weight:bold; color:#333; }
+        .mine-info-left {
+            display:flex;
+            gap:15px;
+            align-items:center;
+        }
+        #mineCount { 
+            font-weight:bold; 
+            color:#333; 
+            font-size:16px;
+            padding:5px 12px;
+            background:#fff;
+            border-radius:6px;
+            border:1px solid #ddd;
+        }
+        #gameStatus {
+            font-weight:bold;
+            font-size:16px;
+            padding:5px 12px;
+            border-radius:6px;
+            background:#4af34a;
+            color:#fff;
+        }
+        #gameStatus.playing { background:#4af34a; }
+        #gameStatus.won { background:#ffd700; color:#333; }
+        #gameStatus.lost { background:#ff4444; }
         .mine-tip { color:#666; font-size:14px; }
 
         /* 难度选择弹窗 */
@@ -161,8 +267,8 @@
             color: #aaa;
         }
 
-        /* 固定音乐播放器 */
-        .music-player {
+        /* 主题切换 + 音乐播放器 */
+        .control-bar {
             position: fixed;
             bottom: 20px;
             right: 20px;
@@ -170,13 +276,36 @@
             padding: 12px 15px;
             border-radius: 25px;
             box-shadow: 0 2px 15px rgba(0,0,0,0.1);
-            z-index: 9998;
+            z-index: 9999;
             display: flex;
             align-items: center;
             gap: 10px;
         }
-        body.dark .music-player {
+        body.dark .control-bar {
             background: #2d2d44;
+        }
+        .control-bar .theme-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 20px;
+            transition: background 0.2s;
+        }
+        .control-bar .theme-btn:hover {
+            background: rgba(0,0,0,0.1);
+        }
+        body.dark .control-bar .theme-btn:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .control-bar .divider {
+            width: 1px;
+            height: 25px;
+            background: #ddd;
+        }
+        body.dark .control-bar .divider {
+            background: #555;
         }
         .music-info {
             font-size: 14px;
@@ -207,10 +336,10 @@
 <body>
 
 <!-- 导航 -->
-<div class="top-nav">
+<div class="top-nav" id="topNav">
     <a href="index-main.html">首页</a>
-    <a href="哈基米介绍.html">介绍</a>
-    <a href="哈基米子网站.html">相册</a>
+    <a href="哈基米介绍.html">年糕档案</a>
+    <a href="哈基米子网站.html">年糕相册</a>
     <a href="哈基米互动.html">互动</a>
     <a href="index.html" id="loginOut">登录</a>
 </div>
@@ -222,12 +351,34 @@
 <div class="container">
     <div class="game-card">
         <h2 class="game-title">🎮 哈基米小游戏合集</h2>
-        <button class="btn btn-2048" id="btn-2048" onclick="Game2048.start()">🧩 2048 游戏</button>
-        <button class="btn btn-mine" onclick="GameMine.start()">💣 扫雷游戏</button>
-        <button class="btn" style="background:#4af34a;" onclick="GameGuess.start()">🔮 猜谜游戏</button>
-        <button class="btn" style="background:#ffaa00;" onclick="GameMemory.start()">🃏 记忆翻牌</button>
-        <button class="btn" style="background:#ff7b9c;" onclick="GamePuzzle.start()">🧩 猫咪拼图</button>
-        <div class="tip" id="tip">消耗 1 小鱼干玩一次，胜利获得 5~25 经验</div>
+        <div class="game-list">
+            <div class="game-item" onclick="Game2048.start()">
+                <img src="https://neeko-copilot.bytedance.net/api/text_to_image?prompt=colorful%202048%20game%20tiles%20with%20numbers%202%204%208%2016%20on%20gradient%20background&image_size=square" alt="2048游戏">
+                <span class="game-name">🧩 2048 游戏</span>
+                <span class="game-score" id="score2048Best">最高分: --</span>
+            </div>
+            <div class="game-item" onclick="GameMine.start()">
+                <img src="https://neeko-copilot.bytedance.net/api/text_to_image?prompt=minesweeper%20game%20board%20with%20flags%20and%20bombs%20pixel%20art%20style&image_size=square" alt="扫雷游戏">
+                <span class="game-name">💣 扫雷游戏</span>
+                <span class="game-score" id="scoreMineBest">最佳: --</span>
+            </div>
+            <div class="game-item" onclick="GameGuess.start()">
+                <img src="https://neeko-copilot.bytedance.net/api/text_to_image?prompt=mystery%20riddle%20question%20mark%20magic%20sparkles%20purple%20background&image_size=square" alt="猜谜游戏">
+                <span class="game-name">🔮 猜谜游戏</span>
+                <span class="game-score" id="scoreGuessBest">连胜: --</span>
+            </div>
+            <div class="game-item" onclick="GameMemory.start()">
+                <img src="https://neeko-copilot.bytedance.net/api/text_to_image?prompt=cute%20cat%20emoji%20memory%20card%20game%20colorful%20pastel&image_size=square" alt="记忆翻牌">
+                <span class="game-name">🃏 记忆翻牌</span>
+                <span class="game-score" id="scoreMemoryBest">最佳: --</span>
+            </div>
+            <div class="game-item" onclick="GamePuzzle.start()">
+                <img src="https://neeko-copilot.bytedance.net/api/text_to_image?prompt=number%20puzzle%20game%20sliding%20tiles%201%202%203%204%20colorful&image_size=square" alt="猫咪拼图">
+                <span class="game-name">🧩 猫咪拼图</span>
+                <span class="game-score" id="scorePuzzleBest">最佳步数: --</span>
+            </div>
+        </div>
+        <div class="tip" id="tip">消耗 1 小鱼干玩一次，胜利获得 1~10 小鱼干</div>
     </div>
 
     <!-- 2048 -->
@@ -239,7 +390,10 @@
     <!-- 扫雷 -->
     <div class="game-mine" id="gameMine">
         <div class="mine-info">
-            <span id="mineCount">剩余雷数: --</span>
+            <div class="mine-info-left">
+                <span id="mineCount">剩余雷数: --</span>
+                <span id="gameStatus" class="playing">🎮 游戏中</span>
+            </div>
             <span class="mine-tip">右键/长按插旗</span>
         </div>
         <div class="board" id="boardMine"></div>
@@ -440,6 +594,15 @@
     // 初始化用户数据
     UserManager.init();
     UserManager.updateDisplay();
+    
+    // 加载最佳成绩
+    document.addEventListener('DOMContentLoaded', () => {
+        GameManager.loadBestScore('2048', '最高分: --', '最高分');
+        GameManager.loadBestScore('Mine', '最佳: --', '难度');
+        GameManager.loadBestScore('Guess', '连胜: --', '连胜');
+        GameManager.loadBestScore('Memory', '最佳: --', '翻牌数');
+        GameManager.loadBestScore('Puzzle', '最佳步数: --', '步数');
+    });
 
     // ======================
     // 游戏管理器模块
@@ -472,14 +635,43 @@
                 return true;
             },
             
-            // 发放奖励
-            giveReward: function(minExp, maxExp) {
-                const exp = Utils.randomInt(minExp, maxExp);
-                UserManager.addExp(exp);
+            // 发放小鱼干奖励（最多10条）
+            giveFishReward: function(minFish, maxFish) {
+                const fish = Math.min(10, Utils.randomInt(minFish, maxFish));
+                UserManager.addFish(fish);
                 UserManager.save();
                 UserManager.updateDisplay();
                 UserManager.sync();
-                return exp;
+                return fish;
+            },
+            
+            // 更新最佳成绩
+            updateBestScore: function(gameName, score, scoreType) {
+                const user = UserManager.getUser() || 'visitor';
+                const key = `best_${gameName}_${user}`;
+                const current = localStorage.getItem(key);
+                if (!current || score > parseInt(current)) {
+                    localStorage.setItem(key, score.toString());
+                    
+                    // 更新UI显示
+                    const scoreElement = document.getElementById(`score${gameName}Best`);
+                    if (scoreElement) {
+                        scoreElement.innerText = `${scoreType}: ${score}`;
+                    }
+                    return true;
+                }
+                return false;
+            },
+            
+            // 加载最佳成绩
+            loadBestScore: function(gameName, defaultText, scoreType) {
+                const user = UserManager.getUser() || 'visitor';
+                const key = `best_${gameName}_${user}`;
+                const score = localStorage.getItem(key);
+                const scoreElement = document.getElementById(`score${gameName}Best`);
+                if (scoreElement) {
+                    scoreElement.innerText = score ? `${scoreType}: ${score}` : defaultText;
+                }
             }
         };
     })();
@@ -656,8 +848,11 @@
                 
                 if (checkWin()) {
                     gameOver = true;
-                    const reward = GameManager.giveReward(5, 25);
-                    alert(`🎉 恭喜达到2048！获得 ${reward} 经验！`);
+                    // 根据分数计算奖励（分数越高奖励越多）
+                    const reward = Math.min(10, Math.floor(score / 500) + 1);
+                    const fishReward = GameManager.giveFishReward(reward, reward + 2);
+                    GameManager.updateBestScore('2048', score, '最高分');
+                    alert(`🎉 恭喜达到2048！获得 ${fishReward} 小鱼干！\n当前分数: ${score}`);
                     localStorage.setItem('win2048_' + UserManager.getUser(), 'true');
                     return;
                 }
@@ -765,10 +960,10 @@
                 const x = Math.floor(k / cols);
                 const y = k % cols;
                 
-                // 检查是否在安全区域内（点击位置周围2格）
+                // 检查是否在安全区域内（点击位置周围1格，即3x3区域）
                 let isSafeZone = false;
-                for (let dx = -2; dx <= 2; dx++) {
-                    for (let dy = -2; dy <= 2; dy++) {
+                for (let dx = -1; dx <= 1; dx++) {
+                    for (let dy = -1; dy <= 1; dy++) {
                         if (x + dx === firstX && y + dy === firstY) {
                             isSafeZone = true;
                             break;
@@ -845,9 +1040,8 @@
             }
         }
         
-        // 递归展开空白区域（限制展开深度）
-        function expandEmpty(x, y, cells, visited, depth = 0) {
-            const maxDepth = 3;
+        // 递归展开空白区域
+        function expandEmpty(x, y, cells, visited) {
             const idx = x * cols + y;
             
             if (visited[idx]) return;
@@ -873,12 +1067,18 @@
             cells[idx].innerText = cnt || '';
             cells[idx].onclick = null;
             
-            // 如果周围没有雷且深度未超过限制，继续递归展开
-            if (cnt === 0 && depth < maxDepth) {
+            // 设置数字颜色
+            if (cnt > 0) {
+                const colors = ['', '#1e90ff', '#32cd32', '#ff6347', '#8b008b', '#ff8c00', '#00ced1', '#dc143c', '#000080'];
+                cells[idx].style.color = colors[cnt] || '#000';
+            }
+            
+            // 如果周围没有雷，继续递归展开
+            if (cnt === 0) {
                 for (let dx = -1; dx <= 1; dx++) {
                     for (let dy = -1; dy <= 1; dy++) {
                         if (dx !== 0 || dy !== 0) {
-                            expandEmpty(x + dx, y + dy, cells, visited, depth + 1);
+                            expandEmpty(x + dx, y + dy, cells, visited);
                         }
                     }
                 }
@@ -941,6 +1141,12 @@
             // 踩到地雷
             if (mineMap[x][y]) {
                 gameOver = true;
+                const statusElement = document.getElementById('gameStatus');
+                if (statusElement) {
+                    statusElement.innerText = '💥 失败';
+                    statusElement.className = 'lost';
+                }
+                
                 for (let i = 0; i < rows; i++) {
                     for (let j = 0; j < cols; j++) {
                         const pos = i * cols + j;
@@ -968,16 +1174,26 @@
             
             if (open >= total) {
                 gameOver = true;
+                
+                // 更新游戏状态
+                const statusElement = document.getElementById('gameStatus');
+                if (statusElement) {
+                    statusElement.innerText = '🎉 胜利';
+                    statusElement.className = 'won';
+                }
+                
                 const cells = document.querySelectorAll('.mine-cell');
                 cells.forEach(c => c.onclick = null);
                 
-                // 根据难度调整奖励
-                let reward = Utils.randomInt(5, 25);
-                if (mineCount >= 40) reward *= 2;   // 中等难度双倍
-                if (mineCount >= 99) reward *= 3;   // 困难难度三倍
+                // 根据难度调整小鱼干奖励（最多10条）
+                let reward = Utils.randomInt(2, 5);
+                if (mineCount >= 40) reward *= 1.5;   // 中等难度1.5倍
+                if (mineCount >= 99) reward *= 2;     // 困难难度2倍
+                reward = Math.min(10, Math.floor(reward));
                 
-                GameManager.giveReward(reward, reward); // 使用固定奖励值
-                alert(`扫雷胜利！获得 ${reward} 经验！`);
+                const fishReward = GameManager.giveFishReward(reward, reward + 2);
+                GameManager.updateBestScore('Mine', mineCount, '难度');
+                alert(`扫雷胜利！获得 ${fishReward} 小鱼干！\n难度: ${mineCount}雷`);
                 localStorage.setItem('winMine_' + UserManager.getUser(), 'true');
             }
         }
@@ -1033,6 +1249,19 @@
                 }
                 
                 render();
+                
+                // 初始显示剩余雷数
+                const mineCountElement = document.getElementById('mineCount');
+                if (mineCountElement) {
+                    mineCountElement.innerText = `剩余雷数: ${mineCount}`;
+                }
+                
+                // 重置游戏状态显示
+                const statusElement = document.getElementById('gameStatus');
+                if (statusElement) {
+                    statusElement.innerText = '🎮 游戏中';
+                    statusElement.className = 'playing';
+                }
             }
         };
     })();
@@ -1062,14 +1291,21 @@
             document.getElementById('guessTip').innerText = '';
         }
         
+        let streak = 0;
+        
         function checkAnswer() {
             const input = document.getElementById('guessInput').value.trim();
             if (input === currentPuzzle.answer) {
-                const reward = GameManager.giveReward(5, 25);
-                document.getElementById('guessTip').innerText = '🎉 答对了！获得 ' + reward + ' 经验！';
+                streak++;
+                // 根据连胜次数计算奖励（最多10条）
+                const reward = Math.min(10, Math.floor(streak * 1.5) + 1);
+                const fishReward = GameManager.giveFishReward(reward, reward + 2);
+                GameManager.updateBestScore('Guess', streak, '连胜');
+                document.getElementById('guessTip').innerText = `🎉 答对了！获得 ${fishReward} 小鱼干！\n连胜: ${streak}`;
                 document.getElementById('guessTip').style.color = '#4af34a';
                 setTimeout(showPuzzle, 2000);
             } else {
+                streak = 0;
                 document.getElementById('guessTip').innerText = '❌ 答错了，再试试！';
                 document.getElementById('guessTip').style.color = '#f86b6b';
             }
@@ -1090,10 +1326,61 @@
     // 记忆翻牌游戏模块
     // ======================
     const GameMemory = (function() {
-        const emojis = ['🐱', '😺', '😸', '😻', '😽', '😹', '🙀', '😿'];
+        // 猫咪相关图案库（丰富多样的猫咪主题图案）
+        const catEmojis = [
+            '🐱', '😺', '😸', '😻', '😽', '😹', '😿', '🙀', // 猫咪表情
+            '🐟', '🍖', '🥩', '🦐', '🐠', '🐡', '�', '🦑', // 鱼和肉
+            '🧶', '�🎾', '⚽', '🎱', '🎲', '�', '🧸',       // 玩具
+            '🛏️', '🥛', '🍼', '💤', '😴', '🛋️', '🏠',     // 生活用品
+            '💕', '💖', '💗', '❤️', '🌟', '✨', '⭐',       // 装饰
+            '🐾', '🐱‍👤', '😻‍❄️', '😸‍🔥'                 // 特殊猫咪图案
+        ];
         let cards = [];
         let flippedCards = [];
         let matchedPairs = 0;
+        let pairsCount = 8; // 当前难度的配对数量
+        
+        // 难度配置
+        const difficulties = {
+            easy: { pairs: 6, name: '简单', cols: 4 },
+            medium: { pairs: 8, name: '中等', cols: 4 },
+            hard: { pairs: 12, name: '困难', cols: 6 }
+        };
+        
+        // 显示难度选择弹窗
+        function showDifficultySelect() {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <h3>🃏 选择难度</h3>
+                    <div class="difficulty-buttons">
+                        <button onclick="GameMemory.selectDifficulty('easy')">🌱 ${difficulties.easy.name}<br>(${difficulties.easy.pairs}对卡片)</button>
+                        <button onclick="GameMemory.selectDifficulty('medium')">🌿 ${difficulties.medium.name}<br>(${difficulties.medium.pairs}对卡片)</button>
+                        <button onclick="GameMemory.selectDifficulty('hard')">🌳 ${difficulties.hard.name}<br>(${difficulties.hard.pairs}对卡片)</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.onclick = (e) => {
+                if (e.target === modal) {
+                    document.body.removeChild(modal);
+                }
+            };
+        }
+        
+        function initCards() {
+            // 随机选择pairsCount个不同的图案，确保每个图案只出现2次
+            const shuffledEmojis = Utils.shuffleArray([...catEmojis]);
+            const selectedEmojis = shuffledEmojis.slice(0, pairsCount);
+            cards = [];
+            // 每个图案精确添加2次，不会出现4个一样的
+            selectedEmojis.forEach(emoji => {
+                cards.push(emoji, emoji);
+            });
+            // 洗牌
+            cards = Utils.shuffleArray(cards);
+        }
         
         function render() {
             const grid = document.getElementById('memoryGrid');
@@ -1131,9 +1418,13 @@
                 allCards[second].classList.add('matched');
                 matchedPairs++;
 
-                if (matchedPairs === emojis.length) {
-                    const reward = GameManager.giveReward(5, 25);
-                    setTimeout(() => alert(`🎉 全部配对成功！获得 ${reward} 经验！`), 300);
+                if (matchedPairs === pairsCount) {
+                    // 根据配对速度计算奖励（翻牌次数越少奖励越多）
+                    const flips = document.querySelectorAll('.memory-card.flipped, .memory-card.matched').length;
+                    const reward = Math.max(1, Math.min(10, Math.floor(15 - flips / 3)));
+                    const fishReward = GameManager.giveFishReward(reward, reward + 2);
+                    GameManager.updateBestScore('Memory', flips, '翻牌数');
+                    setTimeout(() => alert(`🎉 全部配对成功！获得 ${fishReward} 小鱼干！\n翻牌次数: ${flips}`), 300);
                 }
             } else {
                 allCards[first].classList.remove('flipped');
@@ -1147,14 +1438,22 @@
         return {
             start: function() {
                 if (!GameManager.checkFish(1)) return;
-                GameManager.show('gameMemory');
+                showDifficultySelect();
+            },
+            
+            selectDifficulty: function(difficulty) {
+                // 移除弹窗
+                document.querySelectorAll('.modal').forEach(m => document.body.removeChild(m));
                 
-                // 创建配对卡片（使用Fisher-Yates洗牌）
-                cards = [...emojis, ...emojis];
-                cards = Utils.shuffleArray(cards);
+                // 设置难度
+                const config = difficulties[difficulty];
+                pairsCount = config.pairs;
+                
+                // 初始化游戏
+                GameManager.show('gameMemory');
+                initCards();
                 flippedCards = [];
                 matchedPairs = 0;
-                
                 render();
             }
         };
@@ -1215,8 +1514,11 @@
         function checkWin() {
             const winState = [1, 2, 3, 4, 5, 6, 7, 8, 0];
             if (JSON.stringify(board) === JSON.stringify(winState)) {
-                const reward = GameManager.giveReward(5, 25);
-                alert(`🎉 拼图完成！用了 ${moves} 步，获得 ${reward} 经验！`);
+                // 根据步数计算奖励（步数越少奖励越多）
+                const reward = Math.max(1, Math.min(10, Math.floor(30 - moves / 2)));
+                const fishReward = GameManager.giveFishReward(reward, reward + 2);
+                GameManager.updateBestScore('Puzzle', moves, '步数');
+                alert(`🎉 拼图完成！用了 ${moves} 步，获得 ${fishReward} 小鱼干！`);
             }
         }
         
@@ -1235,6 +1537,22 @@
             }
         };
     })();
+
+    // ======================
+    // 主题切换
+    // ======================
+    const isDark = localStorage.getItem('darkTheme') === 'true';
+    if (isDark) {
+        document.body.classList.add('dark');
+        document.getElementById('themeToggle').innerText = '☀️';
+    }
+
+    document.getElementById('themeToggle').onclick = () => {
+        document.body.classList.toggle('dark');
+        const isDarkNow = document.body.classList.contains('dark');
+        localStorage.setItem('darkTheme', isDarkNow);
+        document.getElementById('themeToggle').innerText = isDarkNow ? '☀️' : '🌙';
+    };
 
     // ======================
     // 音乐播放器
@@ -1291,13 +1609,15 @@
     };
 </script>
 
-<!-- 固定音乐播放器 -->
-<div class="music-player">
+<!-- 主题切换 + 音乐播放器 -->
+<div class="control-bar" id="controlBar">
+    <button class="theme-btn" id="themeToggle">🌙</button>
+    <div class="divider"></div>
     <button class="music-btn" id="prevMusic">⏮</button>
     <button class="music-btn" id="toggleMusic">▶️</button>
     <button class="music-btn" id="nextMusic">⏭</button>
     <div class="music-info" id="musicInfo">歌曲 1</div>
-    <audio id="bgmAudio" preload="auto"></audio>
+    <audio id="bgmAudio" preload="auto">
 </div>
 
 </body>

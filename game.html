@@ -222,11 +222,11 @@
 <div class="container">
     <div class="game-card">
         <h2 class="game-title">🎮 哈基米小游戏合集</h2>
-        <button class="btn btn-2048" id="btn-2048" onclick="start2048()">🧩 2048 游戏</button>
-        <button class="btn btn-mine" onclick="startMine()">💣 扫雷游戏</button>
-        <button class="btn" style="background:#4af34a;" onclick="startGuess()">🔮 猜谜游戏</button>
-        <button class="btn" style="background:#ffaa00;" onclick="startMemory()">🃏 记忆翻牌</button>
-        <button class="btn" style="background:#ff7b9c;" onclick="startPuzzle()">🧩 猫咪拼图</button>
+        <button class="btn btn-2048" id="btn-2048" onclick="Game2048.start()">🧩 2048 游戏</button>
+        <button class="btn btn-mine" onclick="GameMine.start()">💣 扫雷游戏</button>
+        <button class="btn" style="background:#4af34a;" onclick="GameGuess.start()">🔮 猜谜游戏</button>
+        <button class="btn" style="background:#ffaa00;" onclick="GameMemory.start()">🃏 记忆翻牌</button>
+        <button class="btn" style="background:#ff7b9c;" onclick="GamePuzzle.start()">🧩 猫咪拼图</button>
         <div class="tip" id="tip">消耗 1 小鱼干玩一次，胜利获得 5~25 经验</div>
     </div>
 
@@ -251,7 +251,7 @@
             <div id="guessHint"></div>
             <div class="guess-word" id="guessWord"></div>
             <input type="text" class="guess-input" id="guessInput" placeholder="输入答案">
-            <button class="btn btn-primary" onclick="checkGuess()">确定</button>
+            <button class="btn btn-primary" onclick="GameGuess.check()">确定</button>
             <div class="tip" id="guessTip"></div>
         </div>
     </div>
@@ -271,828 +271,970 @@
 
 <script>
     // ======================
-    // 主题初始化
+    // 工具函数库
     // ======================
-    const isDark = localStorage.getItem('darkTheme') === 'true';
-    if (isDark) {
-        document.body.classList.add('dark');
-    }
-
-    // 获取用户数据
-    const user = localStorage.getItem('user') || '';
-
-    // ======================
-    // API配置 - 预留MySQL接口
-    // ======================
-    const API_BASE = 'https://cursor-supermom-stress.ngrok-free.dev/api';
-
-    async function syncUserDataToAPI() {
-        if (!user) return;
-        try {
-            await fetch(`${API_BASE}/user/${user}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ level: lv, exp: exp, fish: fish })
-            });
-        } catch (e) {}
-    }
-    
-    // 从用户数据中读取属性
-    function getUserData(username) {
-        const key = 'userData_' + username;
-        const data = localStorage.getItem(key);
-        if (!data) return null;
-        try {
-            return JSON.parse(data);
-        } catch (e) {
-            return null;
-        }
-    }
-    
-    // 获取当前用户数据
-    function getCurrentUserData() {
-        if (!user) {
-            return { level: 0, exp: 0, fish: 10000 };
-        }
-        return getUserData(user) || { level: 0, exp: 0, fish: 10 };
-    }
-    
-    // 保存用户数据
-    function saveUserData(username, obj) {
-        const key = 'userData_' + username;
-        localStorage.setItem(key, JSON.stringify(obj));
-    }
-    
-    // 全局数据（从用户数据读取）
-    let userData = getCurrentUserData();
-    let fish = userData.fish;
-    let exp = userData.exp;
-    let lv = userData.level;
-
-    function getLevelIcon(lv) {
-        if(lv>=8) return '👑皇冠';
-        if(lv>=4) return '🌙月亮';
-        return '⭐星星';
-    }
-    function getLevelName(lv) {
-        if(lv>=8) return '铲屎官之神';
-        if(lv>=6) return '资深铲屎官';
-        if(lv>=4) return '资深铲屎官';
-        if(lv>=2) return '新手铲屎官';
-        return '见习铲屎官';
-    }
-
-    // 保存当前用户数据
-    function saveCurrentUserData() {
-        if (!user) return;
-        const existingData = getUserData(user) || {};
-        saveUserData(user, {
-            ...existingData,
-            level: lv,
-            exp: exp,
-            fish: fish
-        });
-    }
-
-    // 更新等级面板
-    function updateLevel() {
-        if(user) {
-            const levelIcon = getLevelIcon(lv);
-            const levelName = getLevelName(lv);
-            document.getElementById('levelBox').innerText = `${user} ${levelIcon}${levelName} Lv${lv} 🐟${fish}`;
-        } else {
-            document.getElementById('levelBox').innerText = '游客';
-        }
-    }
-    updateLevel();
-
-    // ======================
-    // 2048 （提升难度：高概率出4、增加合并限制、更容易卡盘）
-    // ======================
-    let grid;
-    let score;
-    let gameOver2048 = false;
-
-    function start2048() {
-        if (fish < 1) { alert('小鱼干不足！'); return; }
-        fish--;
-        saveCurrentUserData();
-        updateLevel();
-
-        document.getElementById('gameMine').style.display = 'none';
-        document.getElementById('game2048').style.display = 'block';
-
-        grid = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]];
-        score = 0;
-        gameOver2048 = false;
-        // 难度加强：初始也高概率出4
-        addNumHard();
-        addNumHard();
-        render2048();
-    }
-
-    // 高难度生成数字：4出现概率提升至40%
-    function addNumHard() {
-        let list = [];
-        for (let i=0;i<4;i++) for (let j=0;j<4;j++) if (grid[i][j]===0) list.push([i,j]);
-        if (!list.length) {
-            checkGameOver2048();
-            return;
-        }
-        let [x,y] = list[Math.floor(Math.random()*list.length)];
-        grid[x][y] = Math.random() < 0.6 ? 2 : 4;
-    }
-
-    function render2048() {
-        let dom = document.getElementById('grid2048');
-        dom.innerHTML = '';
-        for (let i=0;i<4;i++) {
-            for (let j=0;j<4;j++) {
-                let c = document.createElement('div');
-                c.className = 'cell';
-                c.innerText = grid[i][j] || '';
-                dom.appendChild(c);
+    const Utils = {
+        // Fisher-Yates 洗牌算法
+        shuffleArray: function(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
             }
+            return arr;
+        },
+        
+        // 深拷贝
+        deepClone: function(obj) {
+            return JSON.parse(JSON.stringify(obj));
+        },
+        
+        // 随机整数
+        randomInt: function(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
         }
-        document.getElementById('score2048').innerText = '分数：' + score;
-    }
-
-    document.addEventListener('keydown', e => {
-        if (!document.getElementById('game2048').style.display || gameOver2048) return;
-        let old = JSON.stringify(grid);
-        if (e.key === 'ArrowLeft') moveLeft();
-        if (e.key === 'ArrowRight') moveRight();
-        if (e.key === 'ArrowUp') moveUp();
-        if (e.key === 'ArrowDown') moveDown();
-        if (JSON.stringify(grid) !== old) {
-            addNumHard();
-            render2048();
-            checkWin2048();
-            checkGameOver2048();
-        }
-    });
-
-    // 触摸滑动支持
-    let touchStartX = 0;
-    let touchStartY = 0;
-    let touchEndX = 0;
-    let touchEndY = 0;
-
-    document.getElementById('game2048').addEventListener('touchstart', e => {
-        if (gameOver2048) return;
-        touchStartX = e.changedTouches[0].screenX;
-        touchStartY = e.changedTouches[0].screenY;
-    });
-
-    document.getElementById('game2048').addEventListener('touchend', e => {
-        if (gameOver2048) return;
-        touchEndX = e.changedTouches[0].screenX;
-        touchEndY = e.changedTouches[0].screenY;
-        handleSwipe();
-    });
-
-    function handleSwipe() {
-        let old = JSON.stringify(grid);
-        const diffX = touchEndX - touchStartX;
-        const diffY = touchEndY - touchStartY;
-        const threshold = 30;
-
-        if (Math.abs(diffX) > Math.abs(diffY)) {
-            // 水平滑动
-            if (diffX > threshold) {
-                moveRight();
-            } else if (diffX < -threshold) {
-                moveLeft();
-            }
-        } else {
-            // 垂直滑动
-            if (diffY > threshold) {
-                moveDown();
-            } else if (diffY < -threshold) {
-                moveUp();
-            }
-        }
-
-        // 检查是否有移动（包括方块移动但未合并的情况）
-        if (JSON.stringify(grid) !== old) {
-            addNumHard();
-            render2048();
-            checkWin2048();
-            checkGameOver2048();
-        }
-    }
-
-    function moveLeft() {
-        for (let i=0;i<4;i++) {
-            let arr = grid[i].filter(v=>v);
-            for (let j=0;j<arr.length-1;j++) {
-                if (arr[j] === arr[j+1]) { arr[j]*=2; score+=arr[j]; arr[j+1]=0; j++; }
-            }
-            arr = arr.filter(v=>v);
-            while(arr.length<4) arr.push(0);
-            grid[i] = arr;
-        }
-    }
-    function moveRight() {
-        for (let i=0;i<4;i++) {
-            let arr = grid[i].filter(v=>v).reverse();
-            for (let j=0;j<arr.length-1;j++) if (arr[j]===arr[j+1]) { arr[j]*=2; score+=arr[j]; arr[j+1]=0; j++; }
-            arr = arr.filter(v=>v).reverse();
-            while(arr.length<4) arr.unshift(0);
-            grid[i] = arr;
-        }
-    }
-    function moveUp() {
-        for (let j=0;j<4;j++) {
-            let arr = [];
-            for (let i=0;i<4;i++) arr.push(grid[i][j]);
-            arr = arr.filter(v=>v);
-            for (let i=0;i<arr.length-1;i++) if (arr[i]===arr[i+1]) { arr[i]*=2; score+=arr[i]; arr[i+1]=0; i++; }
-            arr = arr.filter(v=>v);
-            while(arr.length<4) arr.push(0);
-            for (let i=0;i<4;i++) grid[i][j] = arr[i];
-        }
-    }
-    function moveDown() {
-        for (let j=0;j<4;j++) {
-            let arr = [];
-            for (let i=0;i<4;i++) arr.push(grid[i][j]);
-            arr = arr.filter(v=>v).reverse();
-            for (let i=0;i<arr.length-1;i++) if (arr[i]===arr[i+1]) { arr[i]*=2; score+=arr[i]; arr[i+1]=0; i++; }
-            arr = arr.filter(v=>v).reverse();
-            while(arr.length<4) arr.unshift(0);
-            for (let i=0;i<4;i++) grid[i][j] = arr[i];
-        }
-    }
-
-    // 判定胜利
-    function checkWin2048() {
-        for (let i=0;i<4;i++) for (let j=0;j<4;j++) {
-            if (grid[i][j] === 2048) {
-                let add = Math.floor(Math.random()*21)+5;
-                exp += add;
-                saveCurrentUserData();
-                updateLevel();
-                syncUserDataToAPI();
-                alert('恭喜合成2048！获得 ' + add + ' 经验！');
-                gameOver2048 = true;
-                localStorage.setItem('win2048_' + user, 'true');
-            }
-        }
-    }
-
-    // 判定游戏结束（无空位+无法合并）
-    function checkGameOver2048() {
-        // 有空位直接返回
-        for(let i=0;i<4;i++){
-            for(let j=0;j<4;j++){
-                if(grid[i][j] === 0) return;
-            }
-        }
-        // 横向可合并
-        for(let i=0;i<4;i++){
-            for(let j=0;j<3;j++){
-                if(grid[i][j] === grid[i][j+1]) return;
-            }
-        }
-        // 纵向可合并
-        for(let j=0;j<4;j++){
-            for(let i=0;i<3;i++){
-                if(grid[i][j] === grid[i+1][j]) return;
-            }
-        }
-        gameOver2048 = true;
-        alert('2048 游戏结束，棋盘已满无法移动！');
-    }
-
-    // ======================
-    // 扫雷游戏（踩雷全局结束、封锁所有格子）
-    // ======================
-    let mineMap;
-    let flagMap;
-    let gameOverMine = false;
-    let firstClickMine = true;
-    let mineRows = 9;
-    let mineCols = 9;
-    let mineCount = 10;
-    let longPressTimer = null;
-
-    // 难度配置
-    const mineDifficulties = {
-        easy: { rows: 9, cols: 9, mines: 10, name: '简单' },
-        medium: { rows: 16, cols: 16, mines: 40, name: '中等' },
-        hard: { rows: 16, cols: 30, mines: 99, name: '困难' }
     };
 
-    function startMine() {
-        if (fish < 1) { alert('小鱼干不足！'); return; }
+    // ======================
+    // 用户数据管理模块
+    // ======================
+    const UserManager = (function() {
+        const API_BASE = 'https://cursor-supermom-stress.ngrok-free.dev/api';
+        const VISITOR_FISH = 10000;
+        const DEFAULT_USER_FISH = 10;
         
-        // 显示难度选择弹窗
-        showDifficultySelect();
-    }
-
-    function showDifficultySelect() {
-        const modal = document.createElement('div');
-        modal.className = 'modal';
-        modal.innerHTML = `
-            <div class="modal-content">
-                <h3>💣 选择难度</h3>
-                <div class="difficulty-buttons">
-                    <button onclick="selectDifficulty('easy')">🌱 ${mineDifficulties.easy.name}<br>(${mineDifficulties.easy.rows}×${mineDifficulties.easy.cols} · ${mineDifficulties.easy.mines}雷)</button>
-                    <button onclick="selectDifficulty('medium')">🌿 ${mineDifficulties.medium.name}<br>(${mineDifficulties.medium.rows}×${mineDifficulties.medium.cols} · ${mineDifficulties.medium.mines}雷)</button>
-                    <button onclick="selectDifficulty('hard')">🌳 ${mineDifficulties.hard.name}<br>(${mineDifficulties.hard.rows}×${mineDifficulties.hard.cols} · ${mineDifficulties.hard.mines}雷)</button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(modal);
-        modal.onclick = (e) => {
-            if (e.target === modal) {
-                document.body.removeChild(modal);
+        let user = localStorage.getItem('user') || '';
+        let data = { level: 0, exp: 0, fish: VISITOR_FISH };
+        
+        // 初始化
+        function init() {
+            if (user) {
+                const savedData = getUserData(user);
+                if (savedData) {
+                    data = {
+                        level: savedData.level || 0,
+                        exp: savedData.exp || 0,
+                        fish: savedData.fish || DEFAULT_USER_FISH
+                    };
+                } else {
+                    data = { level: 0, exp: 0, fish: DEFAULT_USER_FISH };
+                }
+            } else {
+                data = { level: 0, exp: 0, fish: VISITOR_FISH };
+            }
+        }
+        
+        // 从localStorage读取用户数据
+        function getUserData(username) {
+            const key = 'userData_' + username;
+            const data = localStorage.getItem(key);
+            if (!data) return null;
+            try {
+                return JSON.parse(data);
+            } catch (e) {
+                return null;
+            }
+        }
+        
+        // 保存用户数据到localStorage
+        function saveUserData(username, obj) {
+            const key = 'userData_' + username;
+            localStorage.setItem(key, JSON.stringify(obj));
+        }
+        
+        // 同步数据到API
+        async function syncToAPI() {
+            if (!user) return;
+            try {
+                await fetch(`${API_BASE}/user/${user}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        level: data.level, 
+                        exp: data.exp, 
+                        fish: data.fish 
+                    })
+                });
+            } catch (e) {}
+        }
+        
+        // 获取等级图标
+        function getLevelIcon(lv) {
+            if (lv >= 8) return '👑皇冠';
+            if (lv >= 4) return '🌙月亮';
+            return '⭐星星';
+        }
+        
+        // 获取等级名称
+        function getLevelName(lv) {
+            if (lv >= 8) return '铲屎官之神';
+            if (lv >= 6) return '资深铲屎官';
+            if (lv >= 4) return '资深铲屎官';
+            if (lv >= 2) return '新手铲屎官';
+            return '见习铲屎官';
+        }
+        
+        // 获取升级所需经验
+        function getNeedExp(lv) {
+            return Math.floor(50 * Math.pow(1.5, lv));
+        }
+        
+        return {
+            init: init,
+            
+            getUser: function() { return user; },
+            
+            getLevel: function() { return data.level; },
+            setLevel: function(val) { data.level = val; },
+            
+            getExp: function() { return data.exp; },
+            addExp: function(val) { 
+                data.exp += val; 
+                // 自动升级
+                const need = getNeedExp(data.level);
+                while (data.exp >= need) {
+                    data.exp -= need;
+                    data.level++;
+                }
+            },
+            
+            getFish: function() { return data.fish; },
+            addFish: function(val) { data.fish += val; },
+            spendFish: function(val) { 
+                if (data.fish >= val) {
+                    data.fish -= val;
+                    return true;
+                }
+                return false;
+            },
+            
+            // 保存当前用户数据
+            save: function() {
+                if (!user) return;
+                saveUserData(user, data);
+            },
+            
+            // 同步到API
+            sync: syncToAPI,
+            
+            // 更新UI显示
+            updateDisplay: function() {
+                const levelBox = document.getElementById('levelBox');
+                if (user) {
+                    const levelIcon = getLevelIcon(data.level);
+                    const levelName = getLevelName(data.level);
+                    levelBox.innerText = `${user} ${levelIcon}${levelName} Lv${data.level} 🐟${data.fish}`;
+                } else {
+                    levelBox.innerText = `游客 🐟${data.fish}`;
+                }
+            },
+            
+            // 获取升级进度百分比
+            getLevelProgress: function() {
+                const need = getNeedExp(data.level);
+                return need === 0 ? 0 : Math.min(100, (data.exp / need) * 100);
             }
         };
-    }
+    })();
 
-    function selectDifficulty(difficulty) {
-        // 移除弹窗
-        document.querySelectorAll('.modal').forEach(m => document.body.removeChild(m));
+    // 初始化用户数据
+    UserManager.init();
+    UserManager.updateDisplay();
+
+    // ======================
+    // 游戏管理器模块
+    // ======================
+    const GameManager = (function() {
+        const gameIds = ['game2048', 'gameMine', 'gameGuess', 'gameMemory', 'gamePuzzle'];
         
-        // 设置难度
-        const config = mineDifficulties[difficulty];
-        mineRows = config.rows;
-        mineCols = config.cols;
-        mineCount = config.mines;
-
-        // 扣除小鱼干
-        fish--;
-        saveCurrentUserData();
-        updateLevel();
-
-        document.getElementById('game2048').style.display = 'none';
-        document.getElementById('gameMine').style.display = 'block';
-
-        firstClickMine = true;
-        gameOverMine = false;
-        // 延迟到第一次点击才生成雷
-        mineMap = [];
-        flagMap = [];
-        for (let i=0;i<mineRows;i++) {
-            mineMap.push(Array(mineCols).fill(false));
-            flagMap.push(Array(mineCols).fill(false));
-        }
-        renderMine();
-    }
-
-    // 生成雷图（排除点击位置周围，优化雷的分布）
-    function generateMines(firstX, firstY) {
-        const totalCells = mineRows * mineCols;
-        let arr = Array(totalCells).fill(false);
-        
-        // 使用更均匀的雷分布算法
-        let placedMines = 0;
-        while (placedMines < mineCount) {
-            const pos = Math.floor(Math.random() * totalCells);
-            const kx = Math.floor(pos / mineCols);
-            const ky = pos % mineCols;
+        return {
+            // 隐藏所有游戏
+            hideAll: function() {
+                gameIds.forEach(id => {
+                    document.getElementById(id).style.display = 'none';
+                });
+            },
             
-            // 检查是否在安全区域内
-            let isInSafeZone = false;
-            for (let ddx = -2; ddx <= 2; ddx++) {
-                for (let ddy = -2; ddy <= 2; ddy++) {
-                    if (kx + ddx === firstX && ky + ddy === firstY) {
-                        isInSafeZone = true;
-                        break;
+            // 显示指定游戏
+            show: function(gameId) {
+                this.hideAll();
+                document.getElementById(gameId).style.display = 'block';
+            },
+            
+            // 检查小鱼干是否足够
+            checkFish: function(cost) {
+                if (!UserManager.spendFish(cost)) {
+                    alert('小鱼干不足！');
+                    return false;
+                }
+                UserManager.save();
+                UserManager.updateDisplay();
+                return true;
+            },
+            
+            // 发放奖励
+            giveReward: function(minExp, maxExp) {
+                const exp = Utils.randomInt(minExp, maxExp);
+                UserManager.addExp(exp);
+                UserManager.save();
+                UserManager.updateDisplay();
+                UserManager.sync();
+                return exp;
+            }
+        };
+    })();
+
+    // ======================
+    // 2048 游戏模块
+    // ======================
+    const Game2048 = (function() {
+        let grid;
+        let score;
+        let gameOver = false;
+        
+        // 高难度生成数字：4出现概率提升至40%
+        function addNum() {
+            let emptyCells = [];
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 4; j++) {
+                    if (grid[i][j] === 0) {
+                        emptyCells.push([i, j]);
                     }
                 }
-                if (isInSafeZone) break;
+            }
+            if (!emptyCells.length) {
+                checkGameOver();
+                return;
+            }
+            const [x, y] = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+            grid[x][y] = Math.random() < 0.6 ? 2 : 4;
+        }
+        
+        function render() {
+            const dom = document.getElementById('grid2048');
+            dom.innerHTML = '';
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 4; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.innerText = grid[i][j] || '';
+                    dom.appendChild(cell);
+                }
+            }
+            document.getElementById('score2048').innerText = '分数：' + score;
+        }
+        
+        function moveLeft() {
+            for (let i = 0; i < 4; i++) {
+                let arr = grid[i].filter(v => v);
+                for (let j = 0; j < arr.length - 1; j++) {
+                    if (arr[j] === arr[j + 1]) {
+                        arr[j] *= 2;
+                        score += arr[j];
+                        arr[j + 1] = 0;
+                        j++;
+                    }
+                }
+                arr = arr.filter(v => v);
+                while (arr.length < 4) arr.push(0);
+                grid[i] = arr;
+            }
+        }
+        
+        function moveRight() {
+            for (let i = 0; i < 4; i++) {
+                let arr = grid[i].filter(v => v).reverse();
+                for (let j = 0; j < arr.length - 1; j++) {
+                    if (arr[j] === arr[j + 1]) {
+                        arr[j] *= 2;
+                        score += arr[j];
+                        arr[j + 1] = 0;
+                        j++;
+                    }
+                }
+                arr = arr.filter(v => v).reverse();
+                while (arr.length < 4) arr.unshift(0);
+                grid[i] = arr;
+            }
+        }
+        
+        function moveUp() {
+            for (let j = 0; j < 4; j++) {
+                let arr = [];
+                for (let i = 0; i < 4; i++) {
+                    if (grid[i][j]) arr.push(grid[i][j]);
+                }
+                for (let i = 0; i < arr.length - 1; i++) {
+                    if (arr[i] === arr[i + 1]) {
+                        arr[i] *= 2;
+                        score += arr[i];
+                        arr[i + 1] = 0;
+                        i++;
+                    }
+                }
+                arr = arr.filter(v => v);
+                while (arr.length < 4) arr.push(0);
+                for (let i = 0; i < 4; i++) grid[i][j] = arr[i];
+            }
+        }
+        
+        function moveDown() {
+            for (let j = 0; j < 4; j++) {
+                let arr = [];
+                for (let i = 0; i < 4; i++) {
+                    if (grid[i][j]) arr.push(grid[i][j]);
+                }
+                arr.reverse();
+                for (let i = 0; i < arr.length - 1; i++) {
+                    if (arr[i] === arr[i + 1]) {
+                        arr[i] *= 2;
+                        score += arr[i];
+                        arr[i + 1] = 0;
+                        i++;
+                    }
+                }
+                arr = arr.filter(v => v).reverse();
+                while (arr.length < 4) arr.unshift(0);
+                for (let i = 0; i < 4; i++) grid[i][j] = arr[i];
+            }
+        }
+        
+        function checkWin() {
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 4; j++) {
+                    if (grid[i][j] === 2048) return true;
+                }
+            }
+            return false;
+        }
+        
+        function canMove() {
+            // 检查是否有空格
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 4; j++) {
+                    if (grid[i][j] === 0) return true;
+                }
+            }
+            // 检查水平方向是否有可合并的
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 3; j++) {
+                    if (grid[i][j] === grid[i][j + 1]) return true;
+                }
+            }
+            // 检查垂直方向是否有可合并的
+            for (let j = 0; j < 4; j++) {
+                for (let i = 0; i < 3; i++) {
+                    if (grid[i][j] === grid[i + 1][j]) return true;
+                }
+            }
+            return false;
+        }
+        
+        function checkGameOver() {
+            if (!canMove()) {
+                gameOver = true;
+                alert('2048 游戏结束，棋盘已满无法移动！');
+            }
+        }
+        
+        function handleMove(direction) {
+            if (gameOver) return;
+            
+            const oldState = JSON.stringify(grid);
+            
+            switch (direction) {
+                case 'left': moveLeft(); break;
+                case 'right': moveRight(); break;
+                case 'up': moveUp(); break;
+                case 'down': moveDown(); break;
             }
             
-            // 检查周围是否已有太多雷（避免集中）
-            let nearbyMines = 0;
-            if (!isInSafeZone) {
-                for (let ddx = -2; ddx <= 2; ddx++) {
-                    for (let ddy = -2; ddy <= 2; ddy++) {
-                        const nx = kx + ddx;
-                        const ny = ky + ddy;
-                        if (nx >= 0 && nx < mineRows && ny >= 0 && ny < mineCols) {
-                            const npos = nx * mineCols + ny;
-                            if (arr[npos]) nearbyMines++;
+            // 检查是否有移动（包括方块移动但未合并的情况）
+            if (JSON.stringify(grid) !== oldState) {
+                addNum();
+                render();
+                
+                if (checkWin()) {
+                    gameOver = true;
+                    const reward = GameManager.giveReward(5, 25);
+                    alert(`🎉 恭喜达到2048！获得 ${reward} 经验！`);
+                    localStorage.setItem('win2048_' + UserManager.getUser(), 'true');
+                    return;
+                }
+                
+                checkGameOver();
+            }
+        }
+        
+        // 触摸滑动支持
+        let touchStartX = 0;
+        let touchStartY = 0;
+        
+        function initTouchEvents() {
+            const gameElement = document.getElementById('game2048');
+            
+            gameElement.addEventListener('touchstart', e => {
+                if (gameOver) return;
+                touchStartX = e.changedTouches[0].screenX;
+                touchStartY = e.changedTouches[0].screenY;
+            });
+            
+            gameElement.addEventListener('touchend', e => {
+                if (gameOver) return;
+                const touchEndX = e.changedTouches[0].screenX;
+                const touchEndY = e.changedTouches[0].screenY;
+                const diffX = touchEndX - touchStartX;
+                const diffY = touchEndY - touchStartY;
+                const threshold = 30;
+                
+                if (Math.abs(diffX) > Math.abs(diffY)) {
+                    handleMove(diffX > threshold ? 'right' : 'left');
+                } else {
+                    handleMove(diffY > threshold ? 'down' : 'up');
+                }
+            });
+        }
+        
+        // 键盘事件
+        function initKeyboardEvents() {
+            document.addEventListener('keydown', e => {
+                if (!document.getElementById('game2048').style.display || gameOver) return;
+                
+                switch (e.key) {
+                    case 'ArrowLeft': handleMove('left'); break;
+                    case 'ArrowRight': handleMove('right'); break;
+                    case 'ArrowUp': handleMove('up'); break;
+                    case 'ArrowDown': handleMove('down'); break;
+                }
+            });
+        }
+        
+        return {
+            start: function() {
+                if (!GameManager.checkFish(1)) return;
+                
+                GameManager.show('game2048');
+                
+                grid = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]];
+                score = 0;
+                gameOver = false;
+                
+                // 难度加强：初始也高概率出4
+                addNum();
+                addNum();
+                render();
+            },
+            
+            init: function() {
+                initTouchEvents();
+                initKeyboardEvents();
+            }
+        };
+    })();
+
+    // 初始化2048事件
+    Game2048.init();
+
+    // ======================
+    // 扫雷游戏模块
+    // ======================
+    const GameMine = (function() {
+        let mineMap;
+        let flagMap;
+        let gameOver = false;
+        let firstClick = true;
+        let rows = 9;
+        let cols = 9;
+        let mineCount = 10;
+        let longPressTimer = null;
+        
+        // 难度配置
+        const difficulties = {
+            easy: { rows: 9, cols: 9, mines: 10, name: '简单' },
+            medium: { rows: 16, cols: 16, mines: 40, name: '中等' },
+            hard: { rows: 16, cols: 30, mines: 99, name: '困难' }
+        };
+        
+        // 生成雷图（优化的雷分布算法）
+        function generateMines(firstX, firstY) {
+            const totalCells = rows * cols;
+            const positions = [];
+            
+            // 生成所有可用位置（排除安全区域）
+            for (let k = 0; k < totalCells; k++) {
+                const x = Math.floor(k / cols);
+                const y = k % cols;
+                
+                // 检查是否在安全区域内（点击位置周围2格）
+                let isSafeZone = false;
+                for (let dx = -2; dx <= 2; dx++) {
+                    for (let dy = -2; dy <= 2; dy++) {
+                        if (x + dx === firstX && y + dy === firstY) {
+                            isSafeZone = true;
+                            break;
+                        }
+                    }
+                    if (isSafeZone) break;
+                }
+                
+                if (!isSafeZone) {
+                    positions.push({ x, y, pos: k });
+                }
+            }
+            
+            // 使用Fisher-Yates洗牌算法随机选择雷位置
+            const shuffled = Utils.shuffleArray(positions);
+            const minePositions = shuffled.slice(0, mineCount);
+            
+            // 初始化雷图
+            for (let i = 0; i < rows; i++) {
+                mineMap[i] = Array(cols).fill(false);
+            }
+            
+            // 放置雷
+            minePositions.forEach(pos => {
+                mineMap[pos.x][pos.y] = true;
+            });
+        }
+        
+        function render() {
+            const dom = document.getElementById('boardMine');
+            dom.innerHTML = '';
+            dom.style.gridTemplateColumns = `repeat(${cols}, 30px)`;
+            
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'mine-cell';
+                    cell.dataset.row = i;
+                    cell.dataset.col = j;
+                    
+                    // 左键点击
+                    cell.onclick = () => openCell(i, j);
+                    
+                    // 右键插旗
+                    cell.oncontextmenu = (e) => {
+                        e.preventDefault();
+                        toggleFlag(i, j);
+                    };
+                    
+                    // 移动端长按插旗
+                    cell.addEventListener('touchstart', (e) => {
+                        e.preventDefault();
+                        longPressTimer = setTimeout(() => {
+                            toggleFlag(i, j);
+                        }, 500);
+                    });
+                    
+                    cell.addEventListener('touchend', () => {
+                        if (longPressTimer) {
+                            clearTimeout(longPressTimer);
+                            longPressTimer = null;
+                        }
+                    });
+                    
+                    cell.addEventListener('touchcancel', () => {
+                        if (longPressTimer) {
+                            clearTimeout(longPressTimer);
+                            longPressTimer = null;
+                        }
+                    });
+                    
+                    dom.appendChild(cell);
+                }
+            }
+        }
+        
+        // 递归展开空白区域（限制展开深度）
+        function expandEmpty(x, y, cells, visited, depth = 0) {
+            const maxDepth = 3;
+            const idx = x * cols + y;
+            
+            if (visited[idx]) return;
+            if (x < 0 || x >= rows || y < 0 || y >= cols) return;
+            if (cells[idx].classList.contains('open')) return;
+            if (cells[idx].classList.contains('flagged')) return;
+            
+            visited[idx] = true;
+            
+            // 计算周围雷数
+            let cnt = 0;
+            for (let dx = -1; dx <= 1; dx++) {
+                for (let dy = -1; dy <= 1; dy++) {
+                    const nx = x + dx;
+                    const ny = y + dy;
+                    if (nx >= 0 && nx < rows && ny >= 0 && ny < cols && mineMap[nx][ny]) {
+                        cnt++;
+                    }
+                }
+            }
+            
+            cells[idx].classList.add('open');
+            cells[idx].innerText = cnt || '';
+            cells[idx].onclick = null;
+            
+            // 如果周围没有雷且深度未超过限制，继续递归展开
+            if (cnt === 0 && depth < maxDepth) {
+                for (let dx = -1; dx <= 1; dx++) {
+                    for (let dy = -1; dy <= 1; dy++) {
+                        if (dx !== 0 || dy !== 0) {
+                            expandEmpty(x + dx, y + dy, cells, visited, depth + 1);
                         }
                     }
                 }
             }
+        }
+        
+        // 插旗/取消插旗
+        function toggleFlag(x, y) {
+            if (gameOver) return;
+            const cells = document.querySelectorAll('.mine-cell');
+            const idx = x * cols + y;
+            const cell = cells[idx];
             
-            // 如果位置安全且周围雷不多，放置雷
-            if (!isInSafeZone && !arr[pos] && nearbyMines < 2) {
-                arr[pos] = true;
-                placedMines++;
+            if (cell.classList.contains('open')) return;
+            
+            if (flagMap[x][y]) {
+                flagMap[x][y] = false;
+                cell.classList.remove('flagged');
+                cell.innerText = '';
+            } else {
+                flagMap[x][y] = true;
+                cell.classList.add('flagged');
+                cell.innerText = '🚩';
             }
-        }
-        
-        for (let i=0;i<mineRows;i++) mineMap[i] = arr.splice(0,mineCols);
-    }
-
-    function renderMine() {
-        let dom = document.getElementById('boardMine');
-        dom.innerHTML = '';
-        // 动态设置网格列数
-        dom.style.gridTemplateColumns = `repeat(${mineCols}, 30px)`;
-        for (let i=0;i<mineRows;i++) {
-            for (let j=0;j<mineCols;j++) {
-                let c = document.createElement('div');
-                c.className = 'mine-cell';
-                c.dataset.row = i;
-                c.dataset.col = j;
-                
-                // 左键点击
-                c.onclick = () => openMine(i,j);
-                
-                // 右键插旗
-                c.oncontextmenu = (e) => {
-                    e.preventDefault();
-                    toggleFlag(i, j);
-                };
-                
-                // 移动端长按插旗
-                c.addEventListener('touchstart', (e) => {
-                    e.preventDefault();
-                    longPressTimer = setTimeout(() => {
-                        toggleFlag(i, j);
-                    }, 500);
-                });
-                
-                c.addEventListener('touchend', () => {
-                    if (longPressTimer) {
-                        clearTimeout(longPressTimer);
-                        longPressTimer = null;
-                    }
-                });
-                
-                c.addEventListener('touchcancel', () => {
-                    if (longPressTimer) {
-                        clearTimeout(longPressTimer);
-                        longPressTimer = null;
-                    }
-                });
-                
-                dom.appendChild(c);
-            }
-        }
-    }
-
-    // 递归展开空白区域（限制展开深度）
-    function expandEmpty(x, y, cells, visited, depth = 0) {
-        const maxDepth = 3; // 限制最大展开深度，增加游戏趣味
-        let idx = x * mineCols + y;
-        if (visited[idx]) return;
-        if (x < 0 || x >= mineRows || y < 0 || y >= mineCols) return;
-        if (cells[idx].classList.contains('open')) return;
-        if (cells[idx].classList.contains('flagged')) return;
-        
-        visited[idx] = true;
-        
-        // 计算周围雷数
-        let cnt = 0;
-        for (let dx=-1;dx<=1;dx++) {
-            for (let dy=-1;dy<=1;dy++) {
-                let nx = x+dx, ny = y+dy;
-                if (nx>=0 && nx<mineRows && ny>=0 && ny<mineCols && mineMap[nx][ny]) cnt++;
-            }
-        }
-        
-        cells[idx].classList.add('open');
-        cells[idx].innerText = cnt || '';
-        cells[idx].onclick = null;
-        
-        // 如果周围没有雷且深度未超过限制，继续递归展开
-        if (cnt === 0 && depth < maxDepth) {
-            for (let dx=-1;dx<=1;dx++) {
-                for (let dy=-1;dy<=1;dy++) {
-                    if (dx !== 0 || dy !== 0) {
-                        expandEmpty(x+dx, y+dy, cells, visited, depth + 1);
-                    }
-                }
-            }
-        }
-    }
-    
-    // 插旗/取消插旗
-    function toggleFlag(x, y) {
-        if (gameOverMine) return;
-        const cells = document.querySelectorAll('.mine-cell');
-        const idx = x * mineCols + y;
-        const cell = cells[idx];
-        
-        if (cell.classList.contains('open')) return;
-        
-        if (flagMap[x][y]) {
-            // 取消插旗
-            flagMap[x][y] = false;
-            cell.classList.remove('flagged');
-            cell.innerText = '';
-        } else {
-            // 插旗
-            flagMap[x][y] = true;
-            cell.classList.add('flagged');
-            cell.innerText = '🚩';
+            
+            updateRemainingMines();
         }
         
         // 更新剩余雷数显示
-        updateRemainingMines();
-    }
-    
-    // 更新剩余雷数显示
-    function updateRemainingMines() {
-        let flaggedCount = 0;
-        for (let i=0; i<mineRows; i++) {
-            for (let j=0; j<mineCols; j++) {
-                if (flagMap[i][j]) flaggedCount++;
-            }
-        }
-        const remaining = mineCount - flaggedCount;
-        const mineCountElement = document.getElementById('mineCount');
-        if (mineCountElement) {
-            mineCountElement.innerText = `剩余雷数: ${remaining}`;
-        }
-    }
-
-    function openMine(x,y) {
-        if(gameOverMine) return;
-        const cells = document.querySelectorAll('.mine-cell');
-        const idx = x * mineCols + y;
-        
-        if (cells[idx].classList.contains('open')) return;
-        if (cells[idx].classList.contains('flagged')) return; // 不能点击插旗的格子
-        
-        // 第一次点击：生成雷并确保不踩雷
-        if (firstClickMine) {
-            firstClickMine = false;
-            generateMines(x, y);
-            updateRemainingMines(); // 第一次点击后显示剩余雷数
-        }
-
-        // 踩到地雷：游戏结束，全开所有雷，锁定棋盘
-        if (mineMap[x][y]) {
-            gameOverMine = true;
-            // 显示全部地雷
-            for(let i=0;i<mineRows;i++){
-                for(let j=0;j<mineCols;j++){
-                    let pos = i*mineCols+j;
-                    if(mineMap[i][j]){
-                        cells[pos].classList.add('boom');
-                        cells[pos].innerText = '💣';
-                    }
-                    cells[pos].onclick = null;
+        function updateRemainingMines() {
+            let flaggedCount = 0;
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    if (flagMap[i][j]) flaggedCount++;
                 }
             }
-            alert('踩到地雷！游戏结束！');
-            return;
-        }
-
-        // 展开区域
-        let visited = Array(mineRows * mineCols).fill(false);
-        expandEmpty(x, y, cells, visited);
-        checkWinMine();
-    }
-
-    // 扫雷胜利判定
-    function checkWinMine() {
-        let total = mineRows * mineCols - mineCount;
-        let open = document.querySelectorAll('.mine-cell.open').length;
-        if (open >= total) {
-            gameOverMine = true;
-            const cells = document.querySelectorAll('.mine-cell');
-            cells.forEach(c=>c.onclick = null);
-
-            // 根据难度调整奖励
-            let add = Math.floor(Math.random()*21)+5;
-            if (mineCount >= 40) add *= 2; // 中等难度双倍奖励
-            if (mineCount >= 99) add *= 3; // 困难难度三倍奖励
-            
-            exp += add;
-            saveCurrentUserData();
-            updateLevel();
-            syncUserDataToAPI();
-            alert('扫雷胜利！获得 ' + add + ' 经验！');
-            localStorage.setItem('winMine_' + user, 'true');
-        }
-    }
-
-    // ======================
-    // 猜谜游戏
-    // ======================
-    const guessPuzzles = [
-        { hint: '它是猫咪最喜欢的食物，通常是鱼做的零食', answer: '小鱼干' },
-        { hint: '猫咪发出的满足声音，通常在被抚摸时发出', answer: '呼噜' },
-        { hint: '猫咪用来磨爪子的东西', answer: '猫抓板' },
-        { hint: '猫咪睡觉的地方', answer: '猫窝' },
-        { hint: '猫咪玩耍用的长绳玩具', answer: '逗猫棒' },
-        { hint: '布偶猫的另一个名字', answer: '布拉多尔' },
-        { hint: '猫咪用来清洁自己的行为', answer: '舔毛' },
-        { hint: '年糕最喜欢做的事情', answer: '贴贴' }
-    ];
-
-    let currentPuzzle;
-    function startGuess() {
-        if (fish < 1) { alert('小鱼干不足！'); return; }
-        fish--;
-        saveCurrentUserData();
-        updateLevel();
-
-        document.getElementById('game2048').style.display = 'none';
-        document.getElementById('gameMine').style.display = 'none';
-        document.getElementById('gameMemory').style.display = 'none';
-        document.getElementById('gamePuzzle').style.display = 'none';
-        document.getElementById('gameGuess').style.display = 'block';
-
-        currentPuzzle = guessPuzzles[Math.floor(Math.random() * guessPuzzles.length)];
-        document.getElementById('guessHint').innerText = '💡 提示：' + currentPuzzle.hint;
-        document.getElementById('guessWord').innerText = '???';
-        document.getElementById('guessInput').value = '';
-        document.getElementById('guessTip').innerText = '';
-    }
-
-    function checkGuess() {
-        const input = document.getElementById('guessInput').value.trim();
-        if (input === currentPuzzle.answer) {
-            let add = Math.floor(Math.random()*21)+5;
-            exp += add;
-            saveCurrentUserData();
-            updateLevel();
-            syncUserDataToAPI();
-            document.getElementById('guessTip').innerText = '🎉 答对了！获得 ' + add + ' 经验！';
-            document.getElementById('guessTip').style.color = '#4af34a';
-            setTimeout(startGuess, 2000);
-        } else {
-            document.getElementById('guessTip').innerText = '❌ 答错了，再试试！';
-            document.getElementById('guessTip').style.color = '#f86b6b';
-        }
-    }
-
-    // ======================
-    // 记忆翻牌游戏
-    // ======================
-    const catEmojis = ['🐱', '😺', '😸', '😻', '😽', '😹', '🙀', '😿'];
-    let memoryCards = [];
-    let flippedCards = [];
-    let matchedPairs = 0;
-
-    function startMemory() {
-        if (fish < 1) { alert('小鱼干不足！'); return; }
-        fish--;
-        saveCurrentUserData();
-        updateLevel();
-
-        document.getElementById('game2048').style.display = 'none';
-        document.getElementById('gameMine').style.display = 'none';
-        document.getElementById('gameGuess').style.display = 'none';
-        document.getElementById('gamePuzzle').style.display = 'none';
-        document.getElementById('gameMemory').style.display = 'block';
-
-        // 创建配对卡片
-        memoryCards = [...catEmojis, ...catEmojis];
-        memoryCards.sort(() => Math.random() - 0.5);
-        flippedCards = [];
-        matchedPairs = 0;
-
-        renderMemory();
-    }
-
-    function renderMemory() {
-        const grid = document.getElementById('memoryGrid');
-        grid.innerHTML = '';
-        memoryCards.forEach((emoji, i) => {
-            const card = document.createElement('div');
-            card.className = 'memory-card';
-            card.dataset.index = i;
-            card.onclick = () => flipCard(i);
-            card.innerText = '?';
-            grid.appendChild(card);
-        });
-    }
-
-    function flipCard(index) {
-        const cards = document.querySelectorAll('.memory-card');
-        if (flippedCards.length >= 2) return;
-        if (cards[index].classList.contains('flipped') || cards[index].classList.contains('matched')) return;
-
-        cards[index].classList.add('flipped');
-        cards[index].innerText = memoryCards[index];
-        flippedCards.push(index);
-
-        if (flippedCards.length === 2) {
-            setTimeout(checkMatch, 500);
-        }
-    }
-
-    function checkMatch() {
-        const cards = document.querySelectorAll('.memory-card');
-        const [first, second] = flippedCards;
-
-        if (memoryCards[first] === memoryCards[second]) {
-            cards[first].classList.add('matched');
-            cards[second].classList.add('matched');
-            matchedPairs++;
-
-            if (matchedPairs === catEmojis.length) {
-                let add = Math.floor(Math.random()*21)+5;
-                exp += add;
-                saveCurrentUserData();
-                updateLevel();
-                syncUserDataToAPI();
-                setTimeout(() => alert('🎉 全部配对成功！获得 ' + add + ' 经验！'), 300);
+            const remaining = mineCount - flaggedCount;
+            const mineCountElement = document.getElementById('mineCount');
+            if (mineCountElement) {
+                mineCountElement.innerText = `剩余雷数: ${remaining}`;
             }
-        } else {
-            cards[first].classList.remove('flipped');
-            cards[second].classList.remove('flipped');
-            cards[first].innerText = '?';
-            cards[second].innerText = '?';
         }
-        flippedCards = [];
-    }
-
-    // ======================
-    // 拼图游戏（数字华容道）
-    // ======================
-    let puzzleBoard = [];
-    let puzzleMoves = 0;
-
-    function startPuzzle() {
-        if (fish < 1) { alert('小鱼干不足！'); return; }
-        fish--;
-        saveCurrentUserData();
-        updateLevel();
-
-        document.getElementById('game2048').style.display = 'none';
-        document.getElementById('gameMine').style.display = 'none';
-        document.getElementById('gameGuess').style.display = 'none';
-        document.getElementById('gameMemory').style.display = 'none';
-        document.getElementById('gamePuzzle').style.display = 'block';
-
-        // 生成可解的拼图
-        do {
-            puzzleBoard = [1,2,3,4,5,6,7,8,0];
-            puzzleBoard.sort(() => Math.random() - 0.5);
-        } while (!isSolvable(puzzleBoard));
         
-        puzzleMoves = 0;
-        renderPuzzle();
-    }
-
-    function isSolvable(arr) {
-        let inversions = 0;
-        const filtered = arr.filter(n => n !== 0);
-        for (let i=0; i<filtered.length; i++) {
-            for (let j=i+1; j<filtered.length; j++) {
-                if (filtered[i] > filtered[j]) inversions++;
+        // 打开格子
+        function openCell(x, y) {
+            if (gameOver) return;
+            const cells = document.querySelectorAll('.mine-cell');
+            const idx = x * cols + y;
+            
+            if (cells[idx].classList.contains('open')) return;
+            if (cells[idx].classList.contains('flagged')) return;
+            
+            // 第一次点击：生成雷并确保不踩雷
+            if (firstClick) {
+                firstClick = false;
+                generateMines(x, y);
+                updateRemainingMines();
+            }
+            
+            // 踩到地雷
+            if (mineMap[x][y]) {
+                gameOver = true;
+                for (let i = 0; i < rows; i++) {
+                    for (let j = 0; j < cols; j++) {
+                        const pos = i * cols + j;
+                        if (mineMap[i][j]) {
+                            cells[pos].classList.add('boom');
+                            cells[pos].innerText = '💣';
+                        }
+                        cells[pos].onclick = null;
+                    }
+                }
+                alert('踩到地雷！游戏结束！');
+                return;
+            }
+            
+            // 展开区域
+            const visited = Array(rows * cols).fill(false);
+            expandEmpty(x, y, cells, visited);
+            checkWin();
+        }
+        
+        // 胜利判定
+        function checkWin() {
+            const total = rows * cols - mineCount;
+            const open = document.querySelectorAll('.mine-cell.open').length;
+            
+            if (open >= total) {
+                gameOver = true;
+                const cells = document.querySelectorAll('.mine-cell');
+                cells.forEach(c => c.onclick = null);
+                
+                // 根据难度调整奖励
+                let reward = Utils.randomInt(5, 25);
+                if (mineCount >= 40) reward *= 2;   // 中等难度双倍
+                if (mineCount >= 99) reward *= 3;   // 困难难度三倍
+                
+                GameManager.giveReward(reward, reward); // 使用固定奖励值
+                alert(`扫雷胜利！获得 ${reward} 经验！`);
+                localStorage.setItem('winMine_' + UserManager.getUser(), 'true');
             }
         }
-        return inversions % 2 === 0;
-    }
-
-    function renderPuzzle() {
-        const grid = document.getElementById('puzzleGrid');
-        grid.innerHTML = '';
-        puzzleBoard.forEach((num, i) => {
-            const piece = document.createElement('div');
-            piece.className = 'puzzle-piece' + (num === 0 ? ' empty' : '');
-            piece.dataset.index = i;
-            piece.onclick = () => movePiece(i);
-            piece.innerText = num || '';
-            grid.appendChild(piece);
-        });
-    }
-
-    function movePiece(index) {
-        const emptyIndex = puzzleBoard.indexOf(0);
-        const row = Math.floor(index / 3);
-        const col = index % 3;
-        const emptyRow = Math.floor(emptyIndex / 3);
-        const emptyCol = emptyIndex % 3;
-
-        // 检查是否相邻
-        if ((Math.abs(row - emptyRow) === 1 && col === emptyCol) ||
-            (Math.abs(col - emptyCol) === 1 && row === emptyRow)) {
+        
+        // 显示难度选择弹窗
+        function showDifficultySelect() {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <h3>💣 选择难度</h3>
+                    <div class="difficulty-buttons">
+                        <button onclick="GameMine.selectDifficulty('easy')">🌱 ${difficulties.easy.name}<br>(${difficulties.easy.rows}×${difficulties.easy.cols} · ${difficulties.easy.mines}雷)</button>
+                        <button onclick="GameMine.selectDifficulty('medium')">🌿 ${difficulties.medium.name}<br>(${difficulties.medium.rows}×${difficulties.medium.cols} · ${difficulties.medium.mines}雷)</button>
+                        <button onclick="GameMine.selectDifficulty('hard')">🌳 ${difficulties.hard.name}<br>(${difficulties.hard.rows}×${difficulties.hard.cols} · ${difficulties.hard.mines}雷)</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.onclick = (e) => {
+                if (e.target === modal) {
+                    document.body.removeChild(modal);
+                }
+            };
+        }
+        
+        return {
+            start: function() {
+                if (!GameManager.checkFish(1)) return;
+                showDifficultySelect();
+            },
             
-            // 交换
-            puzzleBoard[emptyIndex] = puzzleBoard[index];
-            puzzleBoard[index] = 0;
-            puzzleMoves++;
-            renderPuzzle();
-            checkPuzzleWin();
-        }
-    }
+            selectDifficulty: function(difficulty) {
+                // 移除弹窗
+                document.querySelectorAll('.modal').forEach(m => document.body.removeChild(m));
+                
+                // 设置难度
+                const config = difficulties[difficulty];
+                rows = config.rows;
+                cols = config.cols;
+                mineCount = config.mines;
+                
+                // 初始化游戏
+                GameManager.show('gameMine');
+                firstClick = true;
+                gameOver = false;
+                
+                mineMap = [];
+                flagMap = [];
+                for (let i = 0; i < rows; i++) {
+                    mineMap.push(Array(cols).fill(false));
+                    flagMap.push(Array(cols).fill(false));
+                }
+                
+                render();
+            }
+        };
+    })();
 
-    function checkPuzzleWin() {
-        const winState = [1,2,3,4,5,6,7,8,0];
-        if (JSON.stringify(puzzleBoard) === JSON.stringify(winState)) {
-            let add = Math.floor(Math.random()*21)+5;
-            exp += add;
-            saveCurrentUserData();
-            updateLevel();
-            syncUserDataToAPI();
-            alert(`🎉 拼图完成！用了 ${puzzleMoves} 步，获得 ${add} 经验！`);
+    // ======================
+    // 猜谜游戏模块
+    // ======================
+    const GameGuess = (function() {
+        const puzzles = [
+            { hint: '它是猫咪最喜欢的食物，通常是鱼做的零食', answer: '小鱼干' },
+            { hint: '猫咪发出的满足声音，通常在被抚摸时发出', answer: '呼噜' },
+            { hint: '猫咪用来磨爪子的东西', answer: '猫抓板' },
+            { hint: '猫咪睡觉的地方', answer: '猫窝' },
+            { hint: '猫咪玩耍用的长绳玩具', answer: '逗猫棒' },
+            { hint: '布偶猫的另一个名字', answer: '布拉多尔' },
+            { hint: '猫咪用来清洁自己的行为', answer: '舔毛' },
+            { hint: '年糕最喜欢做的事情', answer: '贴贴' }
+        ];
+        
+        let currentPuzzle;
+        
+        function showPuzzle() {
+            currentPuzzle = puzzles[Math.floor(Math.random() * puzzles.length)];
+            document.getElementById('guessHint').innerText = '💡 提示：' + currentPuzzle.hint;
+            document.getElementById('guessWord').innerText = '???';
+            document.getElementById('guessInput').value = '';
+            document.getElementById('guessTip').innerText = '';
         }
-    }
+        
+        function checkAnswer() {
+            const input = document.getElementById('guessInput').value.trim();
+            if (input === currentPuzzle.answer) {
+                const reward = GameManager.giveReward(5, 25);
+                document.getElementById('guessTip').innerText = '🎉 答对了！获得 ' + reward + ' 经验！';
+                document.getElementById('guessTip').style.color = '#4af34a';
+                setTimeout(showPuzzle, 2000);
+            } else {
+                document.getElementById('guessTip').innerText = '❌ 答错了，再试试！';
+                document.getElementById('guessTip').style.color = '#f86b6b';
+            }
+        }
+        
+        return {
+            start: function() {
+                if (!GameManager.checkFish(1)) return;
+                GameManager.show('gameGuess');
+                showPuzzle();
+            },
+            
+            check: checkAnswer
+        };
+    })();
+
+    // ======================
+    // 记忆翻牌游戏模块
+    // ======================
+    const GameMemory = (function() {
+        const emojis = ['🐱', '😺', '😸', '😻', '😽', '😹', '🙀', '😿'];
+        let cards = [];
+        let flippedCards = [];
+        let matchedPairs = 0;
+        
+        function render() {
+            const grid = document.getElementById('memoryGrid');
+            grid.innerHTML = '';
+            cards.forEach((emoji, i) => {
+                const card = document.createElement('div');
+                card.className = 'memory-card';
+                card.dataset.index = i;
+                card.onclick = () => flip(i);
+                card.innerText = '?';
+                grid.appendChild(card);
+            });
+        }
+        
+        function flip(index) {
+            const allCards = document.querySelectorAll('.memory-card');
+            if (flippedCards.length >= 2) return;
+            if (allCards[index].classList.contains('flipped') || allCards[index].classList.contains('matched')) return;
+
+            allCards[index].classList.add('flipped');
+            allCards[index].innerText = cards[index];
+            flippedCards.push(index);
+
+            if (flippedCards.length === 2) {
+                setTimeout(checkMatch, 500);
+            }
+        }
+        
+        function checkMatch() {
+            const allCards = document.querySelectorAll('.memory-card');
+            const [first, second] = flippedCards;
+
+            if (cards[first] === cards[second]) {
+                allCards[first].classList.add('matched');
+                allCards[second].classList.add('matched');
+                matchedPairs++;
+
+                if (matchedPairs === emojis.length) {
+                    const reward = GameManager.giveReward(5, 25);
+                    setTimeout(() => alert(`🎉 全部配对成功！获得 ${reward} 经验！`), 300);
+                }
+            } else {
+                allCards[first].classList.remove('flipped');
+                allCards[second].classList.remove('flipped');
+                allCards[first].innerText = '?';
+                allCards[second].innerText = '?';
+            }
+            flippedCards = [];
+        }
+        
+        return {
+            start: function() {
+                if (!GameManager.checkFish(1)) return;
+                GameManager.show('gameMemory');
+                
+                // 创建配对卡片（使用Fisher-Yates洗牌）
+                cards = [...emojis, ...emojis];
+                cards = Utils.shuffleArray(cards);
+                flippedCards = [];
+                matchedPairs = 0;
+                
+                render();
+            }
+        };
+    })();
+
+    // ======================
+    // 拼图游戏模块（数字华容道）
+    // ======================
+    const GamePuzzle = (function() {
+        let board = [];
+        let moves = 0;
+        
+        // 检查拼图是否可解
+        function isSolvable(arr) {
+            let inversions = 0;
+            const filtered = arr.filter(n => n !== 0);
+            for (let i = 0; i < filtered.length; i++) {
+                for (let j = i + 1; j < filtered.length; j++) {
+                    if (filtered[i] > filtered[j]) inversions++;
+                }
+            }
+            return inversions % 2 === 0;
+        }
+        
+        function render() {
+            const grid = document.getElementById('puzzleGrid');
+            grid.innerHTML = '';
+            board.forEach((num, i) => {
+                const piece = document.createElement('div');
+                piece.className = 'puzzle-piece' + (num === 0 ? ' empty' : '');
+                piece.dataset.index = i;
+                piece.onclick = () => move(i);
+                piece.innerText = num || '';
+                grid.appendChild(piece);
+            });
+        }
+        
+        function move(index) {
+            const emptyIndex = board.indexOf(0);
+            const row = Math.floor(index / 3);
+            const col = index % 3;
+            const emptyRow = Math.floor(emptyIndex / 3);
+            const emptyCol = emptyIndex % 3;
+
+            // 检查是否相邻
+            if ((Math.abs(row - emptyRow) === 1 && col === emptyCol) ||
+                (Math.abs(col - emptyCol) === 1 && row === emptyRow)) {
+                
+                // 交换
+                board[emptyIndex] = board[index];
+                board[index] = 0;
+                moves++;
+                render();
+                checkWin();
+            }
+        }
+        
+        function checkWin() {
+            const winState = [1, 2, 3, 4, 5, 6, 7, 8, 0];
+            if (JSON.stringify(board) === JSON.stringify(winState)) {
+                const reward = GameManager.giveReward(5, 25);
+                alert(`🎉 拼图完成！用了 ${moves} 步，获得 ${reward} 经验！`);
+            }
+        }
+        
+        return {
+            start: function() {
+                if (!GameManager.checkFish(1)) return;
+                GameManager.show('gamePuzzle');
+                
+                // 生成可解的拼图（使用Fisher-Yates洗牌）
+                do {
+                    board = Utils.shuffleArray([1, 2, 3, 4, 5, 6, 7, 8, 0]);
+                } while (!isSolvable(board));
+                
+                moves = 0;
+                render();
+            }
+        };
+    })();
 
     // ======================
     // 音乐播放器

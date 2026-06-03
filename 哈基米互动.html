@@ -304,18 +304,39 @@
         return lv * 100;
     }
 
-    // 初始化本地存储
-    if(!localStorage.getItem('level')) localStorage.setItem('level',0);
-    if(!localStorage.getItem('exp')) localStorage.setItem('exp',0);
-    if(!localStorage.getItem('fish')) localStorage.setItem('fish',0);
+    // 用户数据存储函数
+    function getUserData(username) {
+        const key = 'userData_' + username;
+        const data = localStorage.getItem(key);
+        if (!data) return null;
+        try {
+            return JSON.parse(data);
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function saveUserData(username, obj) {
+        const key = 'userData_' + username;
+        localStorage.setItem(key, JSON.stringify(obj));
+    }
+
     if(!localStorage.getItem('lastSign')) localStorage.setItem('lastSign','');
 
     let user = localStorage.getItem('user') || '';
-    let lv = parseInt(localStorage.getItem('level'))||0;
-    let exp = parseInt(localStorage.getItem('exp'))||0;
-    let fish = parseInt(localStorage.getItem('fish'))||0;
     let lastSign = localStorage.getItem('lastSign');
     const today = new Date().toLocaleDateString();
+
+    // 从用户数据中读取属性
+    let lv = 0, exp = 0, fish = 0;
+    if (user) {
+        const userData = getUserData(user);
+        if (userData) {
+            lv = userData.level || 0;
+            exp = userData.exp || 0;
+            fish = userData.fish || 0;
+        }
+    }
 
     // 更新导航
     function updateTopNav() {
@@ -346,14 +367,25 @@
             `当前经验：${exp} / 升级需：${need}`;
     }
 
+    // 保存当前用户数据
+    function saveCurrentUserData() {
+        if (!user) return;
+        const existingData = getUserData(user) || {};
+        saveUserData(user, {
+            ...existingData,
+            level: lv,
+            exp: exp,
+            fish: fish
+        });
+    }
+
     // 升级逻辑
     function doLevelUp() {
         const need = getNeedExp(lv);
         while (exp >= need) {
             exp -= need;
             lv += 1;
-            localStorage.setItem('level', lv);
-            localStorage.setItem('exp', exp);
+            saveCurrentUserData();
         }
         // 检查等级成就
         if (lv >= 5) {
@@ -365,36 +397,80 @@
     updateAll();
 
     // 每日签到：+10经验 +3小鱼干
-    document.getElementById('signBtn').onclick = () => {
+    const API_BASE = 'http://localhost:5000/api';
+    
+    document.getElementById('signBtn').onclick = async () => {
         if(lastSign === today){
             document.getElementById('signTip').innerText = '今日已签到';
             document.getElementById('signTip').className = 'tip error';
             return;
         }
-        exp += 10;
-        fish += 3;
-        lastSign = today;
-        localStorage.setItem('exp', exp);
-        localStorage.setItem('fish', fish);
-        localStorage.setItem('lastSign', lastSign);
-        doLevelUp();
-        document.getElementById('signTip').innerText = '签到成功！+10经验 +3小鱼干';
-        document.getElementById('signTip').className = 'tip success';
-        updateAll();
-        syncUserDataToAPI();
+        
+        if (!user) {
+            document.getElementById('signTip').innerText = '请先登录！';
+            document.getElementById('signTip').className = 'tip error';
+            return;
+        }
 
-        // 累加签到天数
-        let totalSignDays = parseInt(localStorage.getItem('totalSignDays_' + user) || '0');
-        totalSignDays++;
-        localStorage.setItem('totalSignDays_' + user, totalSignDays);
+        try {
+            const response = await fetch(`${API_BASE}/user/${user}/sign`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await response.json();
+            
+            if(data.success){
+                // 更新本地数据
+                lv = data.level;
+                exp = data.exp;
+                fish = data.fish;
+                lastSign = today;
+                localStorage.setItem('lastSign', lastSign);
+                saveCurrentUserData();
+                
+                document.getElementById('signTip').innerText = data.message;
+                document.getElementById('signTip').className = 'tip success';
+                updateAll();
 
-        // 累加小鱼干
-        let totalFish = parseInt(localStorage.getItem('totalFish_' + user) || '0');
-        totalFish += 3;
-        localStorage.setItem('totalFish_' + user, totalFish);
+                // 累加签到天数
+                let totalSignDays = parseInt(localStorage.getItem('totalSignDays_' + user) || '0');
+                totalSignDays++;
+                localStorage.setItem('totalSignDays_' + user, totalSignDays);
 
-        // 检查成就
-        checkAchievements();
+                // 累加小鱼干
+                let totalFish = parseInt(localStorage.getItem('totalFish_' + user) || '0');
+                totalFish += 3;
+                localStorage.setItem('totalFish_' + user, totalFish);
+
+                // 检查成就
+                checkAchievements();
+            } else {
+                document.getElementById('signTip').innerText = data.message;
+                document.getElementById('signTip').className = 'tip error';
+            }
+        } catch (e) {
+            console.error('签到失败:', e);
+            // 降级到本地签到
+            exp += 10;
+            fish += 3;
+            lastSign = today;
+            localStorage.setItem('lastSign', lastSign);
+            saveCurrentUserData();
+            doLevelUp();
+            document.getElementById('signTip').innerText = '签到成功！+10经验 +3小鱼干';
+            document.getElementById('signTip').className = 'tip success';
+            updateAll();
+
+            let totalSignDays = parseInt(localStorage.getItem('totalSignDays_' + user) || '0');
+            totalSignDays++;
+            localStorage.setItem('totalSignDays_' + user, totalSignDays);
+
+            let totalFish = parseInt(localStorage.getItem('totalFish_' + user) || '0');
+            totalFish += 3;
+            localStorage.setItem('totalFish_' + user, totalFish);
+
+            checkAchievements();
+        }
     };
 
     // 投喂游戏：跳转game.html，1鱼干玩1次
@@ -450,7 +526,7 @@
         // 只有撸到第100次才送1小鱼干
         if (petCount === 100) {
             fish++;
-            localStorage.setItem('fish', fish);
+            saveCurrentUserData();
             reaction.innerText = `🎉 撸猫100次！获得 1 小鱼干！`;
             updateAll();
             syncUserDataToAPI();
@@ -643,7 +719,7 @@
         if (answer === q.a) {
             exp += 5;
             quizCorrectCount++;
-            localStorage.setItem('exp', exp);
+            saveCurrentUserData();
             localStorage.setItem('quizCorrect_' + user, quizCorrectCount);
             doLevelUp();
             updateAll();

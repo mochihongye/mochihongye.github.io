@@ -367,9 +367,12 @@
             const res = await fetch(`${API_BASE}/user/${user}`);
             if (res.ok) {
                 const data = await res.json();
-                localStorage.setItem('level', data.level);
-                localStorage.setItem('exp', data.exp);
-                localStorage.setItem('fish', data.fish);
+                // 使用用户专属键名存储
+                saveUserData(user, {
+                    level: data.level,
+                    exp: data.exp,
+                    fish: data.fish
+                });
                 return data;
             }
         } catch (e) {}
@@ -377,9 +380,8 @@
     }
 
     async function saveUserDataToAPI(user, data) {
-        localStorage.setItem('level', data.level);
-        localStorage.setItem('exp', data.exp);
-        localStorage.setItem('fish', data.fish);
+        // 使用用户专属键名存储
+        saveUserData(user, data);
         try {
             await fetch(`${API_BASE}/user/${user}`, {
                 method: 'POST',
@@ -407,18 +409,20 @@
         }
 
         try {
-            const res = await fetch(`${API_BASE}/message`, {
+            const res = await fetch(`${API_BASE}/messages`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username: user, message: msgText })
+                body: JSON.stringify({ username: user, content: msgText })
             });
-            if (res.ok) {
+            const data = await res.json();
+            if (data.success) {
                 document.getElementById('msgText').value = '';
                 alert('留言成功～年糕收到啦！');
             } else {
-                alert('留言失败，请重试！');
+                alert(data.message || '留言失败，请重试！');
             }
         } catch (e) {
+            console.error('留言失败:', e);
             alert('留言失败，请重试！');
         }
     }
@@ -495,6 +499,17 @@
         return '见习铲屎官';
     }
 
+    function getUserData(username) {
+        const key = 'userData_' + username;
+        const data = localStorage.getItem(key);
+        if (!data) return null;
+        try {
+            return JSON.parse(data);
+        } catch (e) {
+            return null;
+        }
+    }
+
     function updateTopNav() {
         const user = localStorage.getItem('user');
         const link = document.getElementById('loginOut');
@@ -512,15 +527,24 @@
 
     async function updateLevelDisplay() {
         const user = localStorage.getItem('user') || '';
-        let level = parseInt(localStorage.getItem('level')) || 0;
-        let fish = parseInt(localStorage.getItem('fish')) || 0;
+        let level = 0;
+        let fish = 0;
 
         if (user) {
+            // 优先从本地用户数据读取
+            const userData = getUserData(user);
+            if (userData) {
+                level = userData.level || 0;
+                fish = userData.fish || 0;
+            }
+            
+            // 尝试从API获取最新数据
             const apiData = await fetchUserDataFromAPI(user);
             if (apiData) {
                 level = apiData.level;
                 fish = apiData.fish;
             }
+            
             const levelIcon = getLevelIcon(level);
             const levelName = getLevelName(level);
             document.getElementById('levelBox').innerText =

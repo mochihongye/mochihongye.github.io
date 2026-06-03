@@ -188,7 +188,7 @@
 <div class="container">
     <div class="game-card">
         <h2 class="game-title">🎮 哈基米小游戏合集</h2>
-        <button class="btn btn-2048" onclick="start2048()">🧩 2048 游戏</button>
+        <button class="btn btn-2048" id="btn-2048" onclick="start2048()">🧩 2048 游戏</button>
         <button class="btn btn-mine" onclick="startMine()">💣 扫雷游戏</button>
         <button class="btn" style="background:#4af34a;" onclick="startGuess()">🔮 猜谜游戏</button>
         <button class="btn" style="background:#ffaa00;" onclick="startMemory()">🃏 记忆翻牌</button>
@@ -255,11 +255,40 @@
         } catch (e) {}
     }
 
-    // 全局数据
-    let fish = parseInt(localStorage.getItem('fish')) || 0;
-    let exp = parseInt(localStorage.getItem('exp')) || 0;
-    let lv = parseInt(localStorage.getItem('level')) || 0;
+    // 获取用户数据
     const user = localStorage.getItem('user') || '';
+    
+    // 从用户数据中读取属性
+    function getUserData(username) {
+        const key = 'userData_' + username;
+        const data = localStorage.getItem(key);
+        if (!data) return null;
+        try {
+            return JSON.parse(data);
+        } catch (e) {
+            return null;
+        }
+    }
+    
+    // 获取当前用户数据
+    function getCurrentUserData() {
+        if (!user) {
+            return { level: 0, exp: 0, fish: 1000 };
+        }
+        return getUserData(user) || { level: 0, exp: 0, fish: 10 };
+    }
+    
+    // 保存用户数据
+    function saveUserData(username, obj) {
+        const key = 'userData_' + username;
+        localStorage.setItem(key, JSON.stringify(obj));
+    }
+    
+    // 全局数据（从用户数据读取）
+    let userData = getCurrentUserData();
+    let fish = userData.fish;
+    let exp = userData.exp;
+    let lv = userData.level;
 
     function getLevelIcon(lv) {
         if(lv>=8) return '👑皇冠';
@@ -272,6 +301,18 @@
         if(lv>=4) return '资深铲屎官';
         if(lv>=2) return '新手铲屎官';
         return '见习铲屎官';
+    }
+
+    // 保存当前用户数据
+    function saveCurrentUserData() {
+        if (!user) return;
+        const existingData = getUserData(user) || {};
+        saveUserData(user, {
+            ...existingData,
+            level: lv,
+            exp: exp,
+            fish: fish
+        });
     }
 
     // 更新等级面板
@@ -296,7 +337,7 @@
     function start2048() {
         if (fish < 1) { alert('小鱼干不足！'); return; }
         fish--;
-        localStorage.setItem('fish', fish);
+        saveCurrentUserData();
         updateLevel();
 
         document.getElementById('gameMine').style.display = 'none';
@@ -352,6 +393,55 @@
         }
     });
 
+    // 触摸滑动支持
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchEndX = 0;
+    let touchEndY = 0;
+
+    document.getElementById('game2048').addEventListener('touchstart', e => {
+        if (gameOver2048) return;
+        touchStartX = e.changedTouches[0].screenX;
+        touchStartY = e.changedTouches[0].screenY;
+    });
+
+    document.getElementById('game2048').addEventListener('touchend', e => {
+        if (gameOver2048) return;
+        touchEndX = e.changedTouches[0].screenX;
+        touchEndY = e.changedTouches[0].screenY;
+        handleSwipe();
+    });
+
+    function handleSwipe() {
+        let old = JSON.stringify(grid);
+        const diffX = touchEndX - touchStartX;
+        const diffY = touchEndY - touchStartY;
+        const threshold = 30;
+
+        if (Math.abs(diffX) > Math.abs(diffY)) {
+            // 水平滑动
+            if (diffX > threshold) {
+                moveRight();
+            } else if (diffX < -threshold) {
+                moveLeft();
+            }
+        } else {
+            // 垂直滑动
+            if (diffY > threshold) {
+                moveDown();
+            } else if (diffY < -threshold) {
+                moveUp();
+            }
+        }
+
+        if (JSON.stringify(grid) !== old) {
+            addNumHard();
+            render2048();
+            checkWin2048();
+            checkGameOver2048();
+        }
+    }
+
     function moveLeft() {
         for (let i=0;i<4;i++) {
             let arr = grid[i].filter(v=>v);
@@ -401,7 +491,7 @@
             if (grid[i][j] === 2048) {
                 let add = Math.floor(Math.random()*21)+5;
                 exp += add;
-                localStorage.setItem('exp', exp);
+                saveCurrentUserData();
                 updateLevel();
                 syncUserDataToAPI();
                 alert('恭喜合成2048！获得 ' + add + ' 经验！');
@@ -440,23 +530,59 @@
     // ======================
     let mineMap;
     let gameOverMine = false;
+    let firstClickMine = true;
 
     function startMine() {
         if (fish < 1) { alert('小鱼干不足！'); return; }
         fish--;
-        localStorage.setItem('fish', fish);
+        saveCurrentUserData();
         updateLevel();
 
         document.getElementById('game2048').style.display = 'none';
         document.getElementById('gameMine').style.display = 'block';
 
+        firstClickMine = true;
+        gameOverMine = false;
+        // 延迟到第一次点击才生成雷
         mineMap = [];
+        for (let i=0;i<9;i++) mineMap.push(Array(9).fill(false));
+        renderMine();
+    }
+
+    // 生成雷图（排除点击位置周围）
+    function generateMines(firstX, firstY) {
         let arr = Array(81).fill(false);
         for (let i=0;i<10;i++) arr[i] = true;
         arr.sort(() => Math.random()-0.5);
-        for (let i=0;i<9;i++) mineMap.push(arr.splice(0,9));
-        gameOverMine = false;
-        renderMine();
+        
+        // 确保点击位置和周围不是雷
+        for (let dx=-1;dx<=1;dx++) {
+            for (let dy=-1;dy<=1;dy++) {
+                let nx = firstX+dx, ny = firstY+dy;
+                if (nx>=0 && nx<9 && ny>=0 && ny<9) {
+                    let pos = nx*9+ny;
+                    if (arr[pos]) {
+                        arr[pos] = false;
+                        // 找一个安全的位置放雷
+                        for (let k=0;k<81;k++) {
+                            let kx = Math.floor(k/9), ky = k%9;
+                            let isSafe = true;
+                            for (let ddx=-1;ddx<=1;ddx++) {
+                                for (let ddy=-1;ddy<=1;ddy++) {
+                                    if (kx+ddx===firstX && ky+ddy===firstY) isSafe = false;
+                                }
+                            }
+                            if (isSafe && !arr[k]) {
+                                arr[k] = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        for (let i=0;i<9;i++) mineMap[i] = arr.splice(0,9);
     }
 
     function renderMine() {
@@ -472,10 +598,52 @@
         }
     }
 
+    // 递归展开空白区域
+    function expandEmpty(x, y, cells, visited) {
+        let idx = x * 9 + y;
+        if (visited[idx]) return;
+        if (x < 0 || x >= 9 || y < 0 || y >= 9) return;
+        if (cells[idx].classList.contains('open')) return;
+        
+        visited[idx] = true;
+        
+        // 计算周围雷数
+        let cnt = 0;
+        for (let dx=-1;dx<=1;dx++) {
+            for (let dy=-1;dy<=1;dy++) {
+                let nx = x+dx, ny = y+dy;
+                if (nx>=0 && nx<9 && ny>=0 && ny<9 && mineMap[nx][ny]) cnt++;
+            }
+        }
+        
+        cells[idx].classList.add('open');
+        cells[idx].innerText = cnt || '';
+        cells[idx].onclick = null;
+        
+        // 如果周围没有雷，继续递归展开
+        if (cnt === 0) {
+            for (let dx=-1;dx<=1;dx++) {
+                for (let dy=-1;dy<=1;dy++) {
+                    if (dx !== 0 || dy !== 0) {
+                        expandEmpty(x+dx, y+dy, cells, visited);
+                    }
+                }
+            }
+        }
+    }
+
     function openMine(x,y) {
         if(gameOverMine) return;
         const cells = document.querySelectorAll('.mine-cell');
         const idx = x * 9 + y;
+        
+        if (cells[idx].classList.contains('open')) return;
+        
+        // 第一次点击：生成雷并确保不踩雷
+        if (firstClickMine) {
+            firstClickMine = false;
+            generateMines(x, y);
+        }
 
         // 踩到地雷：游戏结束，全开所有雷，锁定棋盘
         if (mineMap[x][y]) {
@@ -495,18 +663,9 @@
             return;
         }
 
-        // 计算周围雷数
-        let cnt = 0;
-        for (let dx=-1;dx<=1;dx++) {
-            for (let dy=-1;dy<=1;dy++) {
-                let nx = x+dx, ny = y+dy;
-                if (nx>=0 && nx<9 && ny>=0 && ny<9 && mineMap[nx][ny]) cnt++;
-            }
-        }
-
-        cells[idx].classList.add('open');
-        cells[idx].innerText = cnt || '';
-        cells[idx].onclick = null;
+        // 展开区域
+        let visited = Array(81).fill(false);
+        expandEmpty(x, y, cells, visited);
         checkWinMine();
     }
 
@@ -521,7 +680,7 @@
 
             let add = Math.floor(Math.random()*21)+5;
             exp += add;
-            localStorage.setItem('exp', exp);
+            saveCurrentUserData();
             updateLevel();
             syncUserDataToAPI();
             alert('扫雷胜利！获得 ' + add + ' 经验！');
@@ -547,7 +706,7 @@
     function startGuess() {
         if (fish < 1) { alert('小鱼干不足！'); return; }
         fish--;
-        localStorage.setItem('fish', fish);
+        saveCurrentUserData();
         updateLevel();
 
         document.getElementById('game2048').style.display = 'none';
@@ -568,7 +727,7 @@
         if (input === currentPuzzle.answer) {
             let add = Math.floor(Math.random()*21)+5;
             exp += add;
-            localStorage.setItem('exp', exp);
+            saveCurrentUserData();
             updateLevel();
             syncUserDataToAPI();
             document.getElementById('guessTip').innerText = '🎉 答对了！获得 ' + add + ' 经验！';
@@ -591,7 +750,7 @@
     function startMemory() {
         if (fish < 1) { alert('小鱼干不足！'); return; }
         fish--;
-        localStorage.setItem('fish', fish);
+        saveCurrentUserData();
         updateLevel();
 
         document.getElementById('game2048').style.display = 'none';
@@ -648,7 +807,7 @@
             if (matchedPairs === catEmojis.length) {
                 let add = Math.floor(Math.random()*21)+5;
                 exp += add;
-                localStorage.setItem('exp', exp);
+                saveCurrentUserData();
                 updateLevel();
                 syncUserDataToAPI();
                 setTimeout(() => alert('🎉 全部配对成功！获得 ' + add + ' 经验！'), 300);
@@ -671,7 +830,7 @@
     function startPuzzle() {
         if (fish < 1) { alert('小鱼干不足！'); return; }
         fish--;
-        localStorage.setItem('fish', fish);
+        saveCurrentUserData();
         updateLevel();
 
         document.getElementById('game2048').style.display = 'none';
@@ -739,7 +898,7 @@
         if (JSON.stringify(puzzleBoard) === JSON.stringify(winState)) {
             let add = Math.floor(Math.random()*21)+5;
             exp += add;
-            localStorage.setItem('exp', exp);
+            saveCurrentUserData();
             updateLevel();
             syncUserDataToAPI();
             alert(`🎉 拼图完成！用了 ${puzzleMoves} 步，获得 ${add} 经验！`);

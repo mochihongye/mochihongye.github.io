@@ -1,0 +1,2898 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>哈基米首页 - 年糕的小窝</title>
+    <style>
+        /* 动画定义 */
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* 全局变量 */
+        :root {
+            --primary-color: #6366f1;
+            --primary-light: #818cf8;
+            --primary-dark: #4f46e5;
+            --secondary-color: #ec4899;
+            --secondary-light: #f472b6;
+            --accent-green: #22c55e;
+            --accent-yellow: #f59e0b;
+            --bg-gradient: linear-gradient(135deg, #f0f4ff 0%, #fdf4ff 100%);
+            --card-shadow: 0 4px 20px rgba(99, 102, 241, 0.1);
+            --card-hover-shadow: 0 8px 30px rgba(99, 102, 241, 0.2);
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { 
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; 
+            background: var(--bg-gradient);
+            min-height: 100vh;
+        }
+
+        /* 侧边栏导航 */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: linear-gradient(180deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 30px 25px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 4px 0 30px rgba(99, 102, 241, 0.3);
+        }
+        .sidebar .logo {
+            font-size: 26px;
+            font-weight: bold;
+            margin-bottom: 40px;
+            text-align: center;
+            padding-bottom: 25px;
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+        }
+        .sidebar .nav-links {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .sidebar .nav-links a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px 20px;
+            border-radius: 14px;
+            text-decoration: none;
+            color: rgba(255,255,255,0.9);
+            font-size: 16px;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(255,255,255,0.08);
+        }
+        .sidebar .nav-links a:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateX(8px);
+        }
+        .sidebar .nav-links a.active {
+            background: rgba(255,255,255,255,0.25);
+            font-weight: 600;
+            transform: translateX(12px);
+            box-shadow: 4px 4px 15px rgba(0,0,0,0.2);
+            border-radius: 14px 20px 20px 14px;
+        }
+        .notification-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 12px 15px;
+            margin: 5px 0;
+            background: linear-gradient(135deg, rgba(251, 146, 60, 0.2), rgba(251, 146, 60, 0.1));
+            border: none;
+            border-radius: 14px;
+            color: #ea580c;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            position: relative;
+        }
+        .notification-btn:hover {
+            background: linear-gradient(135deg, rgba(251, 146, 60, 0.3), rgba(251, 146, 60, 0.2));
+            transform: translateX(8px);
+        }
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: 10px;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+            animation: badgePulse 2s infinite;
+        }
+        @keyframes badgePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .notification-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: white;
+            border-radius: 20px;
+            width: 420px;
+            max-height: 60vh;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            z-index: 1000;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .notification-panel.show {
+            transform: translate(-50%, -50%) scale(1);
+        }
+        .notification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 25px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            color: white;
+        }
+        .notification-header h3 {
+            margin: 0;
+            font-size: 18px;
+        }
+        .notification-header .close-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        .notification-header .close-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: rotate(90deg);
+        }
+        .notification-list {
+            padding: 15px;
+            max-height: 40vh;
+            overflow-y: auto;
+        }
+        .notification-item {
+            padding: 15px;
+            background: rgba(99, 102, 241, 0.05);
+            border-radius: 12px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+        }
+        .notification-item:hover {
+            background: rgba(99, 102, 241, 0.1);
+            transform: translateX(5px);
+            border-left-color: var(--primary-color);
+        }
+        .notification-item.unread {
+            background: linear-gradient(135deg, rgba(251, 146, 60, 0.1), rgba(251, 146, 60, 0.05));
+            border-left-color: #fb923c;
+        }
+        .notification-content {
+            font-size: 14px;
+            color: #374151;
+            line-height: 1.5;
+        }
+        .notification-time {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-top: 5px;
+        }
+        .empty-notification {
+            text-align: center;
+            color: #9ca3af;
+            padding: 40px 20px;
+            font-size: 14px;
+        }
+        .notification-footer {
+            padding: 15px 25px;
+            border-top: 1px solid rgba(99, 102, 241, 0.1);
+            text-align: right;
+        }
+        .mark-all-read-btn {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .mark-all-read-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(99, 102, 241, 0.3);
+        }
+        .notification-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            display: none;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+        .notification-overlay.show {
+            display: block;
+        }
+        .floating-notification {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            z-index: 1001;
+            transform: translateX(400px);
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .floating-notification.show {
+            transform: translateX(0);
+        }
+        .floating-notification-content {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: white;
+            padding: 20px 25px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            min-width: 300px;
+            max-width: 400px;
+            position: relative;
+            animation: floatBounce 0.5s ease;
+        }
+        @keyframes floatBounce {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .floating-icon {
+            font-size: 36px;
+            animation: iconWave 1s infinite;
+        }
+        @keyframes iconWave {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+        }
+        .floating-text {
+            flex: 1;
+        }
+        .floating-title {
+            display: block;
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 14px;
+            margin-bottom: 3px;
+        }
+        .floating-message {
+            display: block;
+            color: #4b5563;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        .floating-close {
+            background: rgba(0,0,0,0.1);
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 14px;
+            color: #6b7280;
+            transition: all 0.3s;
+        }
+        .floating-close:hover {
+            background: rgba(0,0,0,0.2);
+            transform: rotate(90deg);
+        }
+        body.dark .notification-panel {
+            background: #1e1b4b;
+        }
+        body.dark .notification-item {
+            background: rgba(255,255,255,0.05);
+        }
+        body.dark .notification-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        body.dark .notification-item.unread {
+            background: rgba(251, 146, 60, 0.15);
+        }
+        body.dark .notification-content {
+            color: #e0e0e0;
+        }
+        body.dark .notification-time {
+            color: rgba(255,255,255,0.5);
+        }
+        body.dark .empty-notification {
+            color: rgba(255,255,255,0.5);
+        }
+        body.dark .floating-notification-content {
+            background: #1e1b4b;
+        }
+        body.dark .floating-title {
+            color: #a5b4fc;
+        }
+        body.dark .floating-message {
+            color: #d1d5db;
+        }
+        .sidebar .nav-links a .icon {
+            font-size: 18px;
+        }
+        .sidebar .level-box {
+            padding: 18px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 14px;
+            margin-top: auto;
+            text-align: center;
+            font-size: 14px;
+            line-height: 1.6;
+            position: relative;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.15);
+            word-break: break-word;
+            overflow-wrap: break-word;
+            white-space: normal;
+        }
+
+        /* 顶部导航（保留用于小屏幕） */
+        .top-nav {
+            display: none;
+        }
+
+        /* 横幅 */
+        .banner {
+            width: calc(100% - 260px);
+            height: 420px;
+            background: linear-gradient(135deg, #00E676 0%, #AA00FF 50%, #FF9100 100%);
+            display: flex;
+            align-items: center;
+            margin-left: 260px;
+            justify-content: center;
+            color: white;
+            font-size: 48px;
+            font-weight: bold;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        .banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 50%);
+            animation: pulse 8s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+        }
+        .banner-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+        .banner-subtitle {
+            font-size: 18px;
+            font-weight: normal;
+            opacity: 0.9;
+            margin-top: 10px;
+        }
+
+        /* 容器 */
+        .container {
+            width: calc(100% - 280px);
+            margin-left: 280px;
+            padding: 30px 25px;
+            min-height: calc(100vh - 420px);
+            box-sizing: border-box;
+        }
+
+        /* 卡片 */
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 35px;
+            margin-bottom: 30px;
+            box-shadow: var(--card-shadow);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(99, 102, 241, 0.08);
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--card-hover-shadow);
+        }
+        .card h2 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-size: 24px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(99, 102, 241, 0.15);
+            position: relative;
+        }
+        .card h2::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 60px;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+        }
+
+        /* 网格图片区 */
+        .img-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 25px;
+        }
+        .img-grid img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 16px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .img-grid img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.2);
+        }
+
+        /* 表格 */
+        .cat-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 25px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .cat-table th {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            color: white;
+            padding: 16px 20px;
+            text-align: left;
+            font-weight: 600;
+        }
+        .cat-table td {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+            transition: background 0.2s;
+        }
+        .cat-table tr:hover td {
+            background: rgba(99, 102, 241, 0.03);
+        }
+
+        /* 语录 */
+        .quote-box {
+            background: linear-gradient(135deg, #fdf4ff 0%, #f0f9ff 100%);
+            border-radius: 16px;
+            padding: 25px 30px;
+            margin-top: 25px;
+            font-style: italic;
+            color: #831843;
+            text-align: center;
+            font-size: 16px;
+            line-height: 1.8;
+            border-left: 4px solid var(--secondary-color);
+        }
+
+        /* 快速入口 */
+        .quick-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-top: 25px;
+        }
+        .quick-item {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            padding: 35px 25px;
+            border-radius: 20px;
+            text-align: center;
+            color: white;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.3);
+        }
+        .quick-item:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 12px 30px rgba(99, 102, 241, 0.4);
+        }
+        .quick-item .icon {
+            font-size: 45px;
+            margin-bottom: 15px;
+            display: block;
+        }
+        .quick-item .title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .quick-item.pink {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-light));
+            box-shadow: 0 6px 20px rgba(236, 72, 153, 0.3);
+        }
+        .quick-item.pink:hover {
+            box-shadow: 0 12px 30px rgba(236, 72, 153, 0.4);
+        }
+        .quick-item.green {
+            background: linear-gradient(135deg, var(--accent-green), #4ade80);
+            box-shadow: 0 6px 20px rgba(34, 197, 94, 0.3);
+        }
+        .quick-item.green:hover {
+            box-shadow: 0 12px 30px rgba(34, 197, 94, 0.4);
+        }
+        .quick-item.yellow {
+            background: linear-gradient(135deg, var(--accent-yellow), #fbbf24);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.3);
+            color: #374151;
+        }
+        .quick-item.yellow:hover {
+            box-shadow: 0 12px 30px rgba(245, 158, 11, 0.4);
+        }
+
+        /* 留言 */
+        .message-form {
+            margin-top: 25px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: #374151;
+            font-weight: 600;
+            font-size: 15px;
+        }
+        .form-group textarea {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid rgba(99, 102, 241, 0.2);
+            border-radius: 14px;
+            font-size: 15px;
+            resize: vertical;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+        .submit-btn {
+            background: linear-gradient(135deg, var(--accent-green), #4ade80);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 14px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+        }
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(34, 197, 94, 0.4);
+        }
+
+        /* 猫咪品种选择器 */
+        .cat-breed-selector {
+            margin-top: 20px;
+        }
+        .breed-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .filter-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            background: rgba(99, 102, 241, 0.1);
+            border: 2px solid rgba(99, 102, 241, 0.2);
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .filter-btn:hover {
+            background: rgba(99, 102, 241, 0.15);
+            border-color: var(--primary-color);
+        }
+        .filter-btn.active {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
+        .btn-arrow {
+            font-size: 12px;
+            transition: transform 0.3s;
+        }
+        .filter-btn.active .btn-arrow {
+            transform: rotate(180deg);
+        }
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background: rgba(99, 102, 241, 0.05);
+            border-radius: 25px;
+            padding: 5px 15px;
+            border: 2px solid rgba(99, 102, 241, 0.2);
+            transition: all 0.3s;
+        }
+        .search-bar:focus-within {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+        .search-bar input {
+            border: none;
+            background: transparent;
+            padding: 10px 15px;
+            font-size: 14px;
+            width: 200px;
+            outline: none;
+        }
+        .search-btn {
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 5px;
+        }
+        .filter-content {
+            display: none;
+            padding: 15px;
+            background: rgba(99, 102, 241, 0.03);
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+        .filter-content.show {
+            display: block;
+        }
+        .filter-panel {
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+        .filter-panel.active {
+            display: block;
+        }
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .sub-categories {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .sub-category {
+            padding: 6px 16px;
+            border: 1.5px solid rgba(99, 102, 241, 0.2);
+            background: white;
+            border-radius: 18px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .sub-category:hover {
+            border-color: var(--primary-color);
+            background: rgba(99, 102, 241, 0.05);
+        }
+        .sub-category.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        .breed-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 12px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .breed-card {
+            padding: 15px;
+            background: rgba(99, 102, 241, 0.05);
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        .breed-card:hover {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: var(--primary-color);
+        }
+        .breed-card .breed-name {
+            font-weight: 600;
+            color: #374151;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        .breed-card .breed-origin {
+            font-size: 12px;
+            color: #9ca3af;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        /* 猫咪详情弹窗 */
+        .cat-detail-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            padding: 10px;
+            box-sizing: border-box;
+            overflow: hidden;
+            pointer-events: auto;
+            transform: none !important;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 24px;
+            max-width: 600px;
+            width: calc(100% - 20px);
+            max-height: 90vh;
+            overflow-y: auto;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) !important;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.35);
+            pointer-events: auto;
+        }
+        .modal-close {
+            position: sticky;
+            top: 0;
+            float: right;
+            font-size: 32px;
+            cursor: pointer;
+            color: #9ca3af;
+            transition: all 0.3s;
+            z-index: 10;
+        }
+        .modal-close:hover {
+            color: #374151;
+        }
+        .modal-body {
+            padding: 40px;
+        }
+        .modal-body h3 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-size: 26px;
+        }
+        .modal-body p {
+            color: #4b5563;
+            line-height: 1.8;
+            margin-bottom: 15px;
+            font-size: 15px;
+        }
+        .modal-body .label {
+            font-weight: 600;
+            color: #374151;
+            display: inline-block;
+            width: 80px;
+        }
+        .modal-body .cat-image-placeholder {
+            width: 100%;
+            height: 280px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(99, 102, 241, 0.2));
+            border-radius: 16px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 80px;
+        }
+        .cat-intro {
+            background: rgba(99, 102, 241, 0.05);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            line-height: 1.8;
+            color: #4b5563;
+            font-size: 14px;
+        }
+        .cat-info-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .info-item {
+            background: rgba(99, 102, 241, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .info-label {
+            display: block;
+            font-size: 12px;
+            color: #9ca3af;
+            margin-bottom: 5px;
+        }
+        .info-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+        }
+        .cat-traits {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .trait-item {
+            padding: 15px;
+            border-radius: 10px;
+        }
+        .trait-pros {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+        .trait-cons {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+        .trait-label {
+            display: block;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+        .trait-pros .trait-label {
+            color: #16a34a;
+        }
+        .trait-cons .trait-label {
+            color: #dc2626;
+        }
+        .trait-value {
+            font-size: 13px;
+            color: #4b5563;
+            line-height: 1.5;
+        }
+
+        /* 留言列表 */
+        .message-list {
+            margin-top: 25px;
+        }
+        .message-item {
+            padding: 20px;
+            background: rgba(99, 102, 241, 0.05);
+            border-radius: 14px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+        .message-item:hover {
+            background: rgba(99, 102, 241, 0.08);
+        }
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .message-username {
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 15px;
+        }
+        .message-time {
+            font-size: 13px;
+            color: #9ca3af;
+        }
+        .message-content {
+            color: #374151;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+        .message-actions {
+            margin-top: 12px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            align-items: center;
+        }
+        .like-btn {
+            background: none;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+            padding: 5px 10px;
+            border-radius: 8px;
+        }
+        .like-btn:hover {
+            background: rgba(239, 68, 68, 0.1);
+            transform: scale(1.1);
+        }
+        .comment-toggle {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+            font-size: 14px;
+            padding: 5px 10px;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        .comment-toggle:hover {
+            background: rgba(99, 102, 241, 0.1);
+        }
+        .comment-section {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(99, 102, 241, 0.15);
+            display: none;
+        }
+        .comment-section.show {
+            display: block;
+        }
+        .comment-input-area {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .comment-input-area input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 2px solid rgba(99, 102, 241, 0.2);
+            border-radius: 10px;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s;
+        }
+        .comment-input-area input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+        .comment-submit-btn {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .comment-submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+        .comment-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            margin-left: 0 !important;
+            padding-left: 0 !important;
+        }
+        .comment-item {
+            background: rgba(99, 102, 241, 0.08) !important;
+            padding: 12px 15px !important;
+            transition: all 0.3s;
+            width: 100% !important;
+            box-sizing: border-box;
+            text-indent: 0 !important;
+            border: none !important;
+            margin: 0 !important;
+        }
+        
+        /* 扁平化：移除嵌套容器的左边距和边框 */
+        .nested-replies {
+            display: none !important; /* 完全隐藏嵌套容器，扁平化处理 */
+        }
+        
+        /* 评论项分隔线 */
+        .comment-item {
+            border-bottom: 1px solid rgba(99, 102, 241, 0.15);
+        }
+        .comment-item:last-child {
+            border-bottom: none;
+        }
+        
+        /* 确保动态添加的评论项样式统一 */
+        .comment-list .comment-item {
+            margin-left: 0 !important;
+            padding-left: 15px !important;
+            padding-right: 15px !important;
+            width: 100% !important;
+            font-size: 14px !important;
+            border-left: none !important;
+            border-bottom: 1px solid rgba(99, 102, 241, 0.15) !important;
+        }
+        .comment-list .comment-item:last-child {
+            border-bottom: none !important;
+        }
+        
+        /* 回复标签样式 */
+        .reply-tag {
+            display: inline-block;
+            color: #818cf8;
+            font-size: 12px;
+            font-weight: 500;
+            background: rgba(129, 140, 248, 0.1);
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin: 0 8px;
+        }
+        .comment-item .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        .comment-username {
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 13px;
+        }
+        .comment-time {
+            font-size: 11px;
+            color: #9ca3af;
+        }
+        .comment-content {
+            color: #4b5563;
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 8px;
+        }
+        .comment-item.reply {
+            margin-left: 30px;
+            border-left: 3px solid var(--primary-light);
+            position: relative;
+        }
+        .comment-item.reply::before {
+            content: '↩';
+            position: absolute;
+            left: -18px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            color: var(--primary-color);
+        }
+        .comment-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            font-size: 13px;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed rgba(99, 102, 241, 0.2);
+        }
+        .comment-action {
+            cursor: pointer;
+            color: #6b7280;
+            transition: all 0.3s;
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: rgba(99, 102, 241, 0.1);
+        }
+        .comment-action:hover {
+            color: var(--primary-color);
+            background: rgba(99, 102, 241, 0.2);
+        }
+        .comment-action.liked {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.15);
+        }
+        .comment-action.liked:hover {
+            color: #dc2626;
+            background: rgba(239, 68, 68, 0.25);
+        }
+        .reply-input-area {
+            margin-top: 10px;
+            display: flex;
+            gap: 8px;
+        }
+        .reply-input-area input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+        .reply-submit-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .reply-submit-btn:hover {
+            background: var(--primary-dark);
+        }
+        body.dark .reply-input-area input {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(165, 180, 252, 0.3);
+            color: #e0e0e0;
+        }
+
+        /* 主题切换 + 音乐播放器 */
+        .control-bar {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 30px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .control-bar .theme-btn {
+            background: none;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            padding: 8px 14px;
+            border-radius: 25px;
+            transition: all 0.3s;
+        }
+        .control-bar .theme-btn:hover {
+            background: rgba(99, 102, 241, 0.1);
+        }
+        .control-bar .divider {
+            width: 1px;
+            height: 30px;
+            background: rgba(0,0,0,0.1);
+        }
+        .control-bar .music-info {
+            font-size: 14px;
+            max-width: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #374151;
+        }
+        .control-bar .music-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+        .control-bar .music-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        /* 全局日夜切换样式 */
+        body.dark {
+            background: linear-gradient(135deg, #0f0d24 0%, #1a163a 50%, #0f0d24 100%);
+            color: #e0e0e0;
+        }
+        body.dark .card {
+            background: rgba(20, 18, 45, 0.95);
+            border-color: rgba(255,255,255,0.15);
+        }
+        body.dark .card h2 {
+            color: #ffffff;
+        }
+        body.dark .card h2::after {
+            background: linear-gradient(90deg, #a5b4fc, #f472b6);
+        }
+        body.dark .card p {
+            color: #e0e0e0;
+        }
+        body.dark .card ul li {
+            color: #d0d0d0;
+        }
+        body.dark .card strong {
+            color: #a5b4fc;
+        }
+        body.dark .level-box {
+            background: rgba(255,255,255,0.1);
+            color: #ffffff;
+        }
+        body.dark .control-bar {
+            background: rgba(20, 18, 45, 0.95);
+            color: #ffffff;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        }
+        body.dark .control-bar .divider {
+            background: rgba(255,255,255,0.15);
+        }
+        body.dark .control-bar .music-info {
+            color: #ffffff;
+        }
+        body.dark .control-bar .theme-btn:hover {
+            background: rgba(255,255,255,0.15);
+        }
+        body.dark .form-group textarea {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.2);
+            color: #ffffff;
+        }
+        body.dark .form-group textarea:focus {
+            border-color: #818cf8;
+        }
+        body.dark .form-group label {
+            color: #ffffff;
+        }
+        body.dark .quote-box {
+            background: rgba(236, 72, 153, 0.15);
+            color: #f472b6;
+            border-left-color: #f472b6;
+        }
+        body.dark .cat-table th {
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+        }
+        body.dark .cat-table td {
+            border-color: rgba(255,255,255,0.1);
+            color: #e0e0e0;
+        }
+        body.dark .cat-table tr:hover td {
+            background: rgba(255,255,255,0.08);
+        }
+        body.dark .message-item {
+            background: rgba(255,255,255,0.08);
+        }
+        body.dark .message-item:hover {
+            background: rgba(255,255,255,0.12);
+        }
+        body.dark .message-content {
+            color: #e0e0e0;
+        }
+        body.dark .message-username {
+            color: #a5b4fc;
+        }
+        body.dark .message-time {
+            color: rgba(255,255,255,0.6);
+        }
+        body.dark .like-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+        body.dark .comment-toggle:hover {
+            background: rgba(165, 180, 252, 0.2);
+        }
+        body.dark .comment-section {
+            border-top-color: rgba(255,255,255,0.15);
+        }
+        body.dark .comment-input-area input {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(165, 180, 252, 0.3);
+            color: #e0e0e0;
+        }
+        body.dark .comment-input-area input:focus {
+            border-color: #a5b4fc;
+            box-shadow: 0 0 0 4px rgba(165, 180, 252, 0.1);
+        }
+        body.dark .comment-item {
+            background: rgba(255,255,255,0.08) !important;
+        }
+        body.dark .comment-username {
+            color: #a5b4fc;
+        }
+        body.dark .comment-time {
+            color: rgba(255,255,255,0.5);
+        }
+        body.dark .comment-content {
+            color: #d1d5db;
+        }
+        body.dark .comment-actions {
+            border-top-color: rgba(255,255,255,0.15);
+        }
+        body.dark .comment-action {
+            background: rgba(255,255,255,0.1);
+            color: #9ca3af;
+        }
+        body.dark .comment-action:hover {
+            color: #a5b4fc;
+            background: rgba(165, 180, 252, 0.2);
+        }
+        body.dark .comment-action.liked {
+            color: #f87171;
+            background: rgba(248, 113, 113, 0.2);
+        }
+        body.dark .quick-item {
+            background: linear-gradient(135deg, #5b5bd9 0%, #7a7aff 100%);
+        }
+        body.dark .quick-item.pink {
+            background: linear-gradient(135deg, #d946a0 0%, #f472b6 100%);
+        }
+        body.dark .quick-item.green {
+            background: linear-gradient(135deg, #16a34a 0%, #4ade80 100%);
+        }
+        body.dark .quick-item.yellow {
+            background: linear-gradient(135deg, #d97706 0%, #fbbf24 100%);
+            color: #1a163a;
+        }
+        body.dark .banner {
+            background: linear-gradient(135deg, #00b347 0%, #8800cc 50%, #cc6600 100%);
+        }
+        body.dark .sidebar {
+            background: linear-gradient(180deg, #312e81 0%, #1e1b4b 100%);
+        }
+        body.dark .sidebar .nav-links a {
+            background: rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.9);
+        }
+        body.dark .sidebar .nav-links a:hover {
+            background: rgba(255,255,255,0.15);
+        }
+        body.dark .sidebar .nav-links a.active {
+            background: rgba(255,255,255,0.2);
+        }
+        body.dark .filter-btn {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.2);
+        }
+        body.dark .filter-btn:hover {
+            background: rgba(255,255,255,0.15);
+            border-color: #a5b4fc;
+        }
+        body.dark .filter-btn.active {
+            background: #a5b4fc;
+            border-color: #a5b4fc;
+        }
+        body.dark .search-bar {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.2);
+        }
+        body.dark .search-bar input {
+            color: #e0e0e0;
+        }
+        body.dark .filter-content {
+            background: rgba(255,255,255,0.05);
+        }
+        body.dark .sub-category {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.2);
+        }
+        body.dark .sub-category:hover {
+            background: rgba(255,255,255,0.12);
+            border-color: #a5b4fc;
+        }
+        body.dark .sub-category.active {
+            background: #a5b4fc;
+            border-color: #a5b4fc;
+        }
+        body.dark .breed-card {
+            background: rgba(255,255,255,0.05);
+        }
+        body.dark .breed-card:hover {
+            background: rgba(255,255,255,0.08);
+        }
+        body.dark .breed-card .breed-name {
+            color: #e0e0e0;
+        }
+        body.dark .breed-card .breed-origin {
+            color: rgba(255,255,255,0.5);
+        }
+        body.dark .modal-content {
+            background: #1e1e2e;
+        }
+        body.dark .modal-close {
+            color: rgba(255,255,255,0.5);
+        }
+        body.dark .modal-close:hover {
+            color: #e0e0e0;
+        }
+        body.dark .modal-body h3 {
+            color: #a5b4fc;
+        }
+        body.dark .modal-body p {
+            color: #d1d5db;
+        }
+        body.dark .modal-body .label {
+            color: #e0e0e0;
+        }
+        body.dark .modal-body .cat-image-placeholder {
+            background: linear-gradient(135deg, rgba(165, 180, 252, 0.1), rgba(165, 180, 252, 0.2));
+        }
+        body.dark .cat-intro {
+            background: rgba(255,255,255,0.05);
+            color: #d1d5db;
+        }
+        body.dark .info-item {
+            background: rgba(255,255,255,0.05);
+        }
+        body.dark .info-value {
+            color: #e0e0e0;
+        }
+        body.dark .trait-pros {
+            background: rgba(34, 197, 94, 0.15);
+            border-color: rgba(34, 197, 94, 0.3);
+        }
+        body.dark .trait-cons {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+        body.dark .trait-value {
+            color: #d1d5db;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 1200px) {
+            .breed-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .quick-links {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        @media (max-width: 992px) {
+            .breed-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .quick-links {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 60px;
+            }
+            .sidebar .nav-links a span:last-child,
+            .sidebar .logo {
+                display: none;
+            }
+            .main-content {
+                margin-left: 60px;
+            }
+            .breed-grid {
+                grid-template-columns: 1fr;
+            }
+            .quick-links {
+                grid-template-columns: 1fr;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .message-board {
+                padding: 15px;
+            }
+            .modal-content {
+                width: 95%;
+                max-height: 90vh;
+            }
+        }
+        @media (max-width: 480px) {
+            .sidebar {
+                width: 50px;
+            }
+            .main-content {
+                margin-left: 50px;
+            }
+            .hero-title {
+                font-size: 24px;
+            }
+            .section-title {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- 侧边栏导航 -->
+<div class="sidebar">
+    <div class="logo">🐱 哈基米小窝</div>
+    <div class="nav-links">
+        <a href="index-main.html" class="active">
+            <span class="icon">🏠</span>
+            <span>首页</span>
+        </a>
+        <a href="哈基米介绍.html">
+            <span class="icon">📋</span>
+            <span>年糕档案</span>
+        </a>
+        <a href="哈基米子网站.html">
+            <span class="icon">📸</span>
+            <span>年糕相册</span>
+        </a>
+        <a href="哈基米互动.html">
+            <span class="icon">🎮</span>
+            <span>互动专区</span>
+        </a>
+        <a href="game.html">
+            <span class="icon">🎯</span>
+            <span>小游戏中心</span>
+        </a>
+        <a href="admin.html" id="adminLink" style="display:none;">
+            <span class="icon">⚙️</span>
+            <span>后台管理</span>
+        </a>
+        <button class="notification-btn" id="notificationBtn" onclick="toggleNotificationPanel()" style="display:none;">
+            <span class="icon">🔔</span>
+            <span>通知</span>
+            <span class="notification-badge" id="notificationBadge">0</span>
+        </button>
+        <a href="index.html" id="loginOut">
+            <span class="icon">🔑</span>
+            <span>登录</span>
+        </a>
+    </div>
+    <div class="level-box" id="levelBox"></div>
+</div>
+
+<!-- 通知面板 -->
+<div class="notification-panel" id="notificationPanel">
+    <div class="notification-header">
+        <h3>🔔 消息通知</h3>
+        <button class="close-btn" onclick="toggleNotificationPanel()">✕</button>
+    </div>
+    <div class="notification-list" id="notificationList">
+        <p class="empty-notification">暂无新通知</p>
+    </div>
+    <div class="notification-footer">
+        <button class="mark-all-read-btn" onclick="markAllNotificationsRead()">全部标为已读</button>
+    </div>
+</div>
+
+<!-- 通知遮罩 -->
+<div class="notification-overlay" id="notificationOverlay" onclick="toggleNotificationPanel()"></div>
+
+<!-- 浮动通知卡片 -->
+<div class="floating-notification" id="floatingNotification">
+    <div class="floating-notification-content">
+        <span class="floating-icon">💬</span>
+        <div class="floating-text">
+            <span class="floating-title">新消息提醒</span>
+            <span class="floating-message" id="floatingMessage"></span>
+        </div>
+        <button class="floating-close" onclick="hideFloatingNotification()">✕</button>
+    </div>
+</div>
+
+<!-- 横幅 -->
+<div class="banner">
+    <div class="banner-content">
+        🐱 欢迎来到年糕的治愈小窝 🐱
+        <div class="banner-subtitle">~ 软萌可爱的布偶哈基米等你来撩 ~</div>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- 快速功能区 -->
+    <div class="card">
+        <h2>🎯 快速入口</h2>
+        <div class="quick-grid">
+            <div class="quick-item" onclick="window.location.href='哈基米介绍.html'">
+                <span class="icon">📋</span>
+                <span class="title">年糕档案</span>
+            </div>
+            <div class="quick-item pink" onclick="window.location.href='哈基米子网站.html'">
+                <span class="icon">📸</span>
+                <span class="title">年糕相册</span>
+            </div>
+            <div class="quick-item green" onclick="window.location.href='哈基米互动.html'">
+                <span class="icon">🎮</span>
+                <span class="title">互动专区</span>
+            </div>
+            <div class="quick-item yellow" onclick="window.location.href='game.html'">
+                <span class="icon">🎲</span>
+                <span class="title">小游戏</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 什么是哈基米 -->
+    <div class="card">
+        <h2>✨ 什么是哈基米？</h2>
+        <p style="color:#374151;line-height:1.8;font-size:15px;">
+            <strong style="color:var(--primary-color);">哈基米</strong>是网络流行语，源自日语「はちみつ」（蜂蜜）的可爱发音。
+        </p>
+        <p style="color:#374151;line-height:1.8;font-size:15px;margin-top:10px;">
+            <strong style="color:var(--primary-color);">动漫来源：</strong>出自日本动画《赛马娘 Pretty Derby》中特别周的台词「はちみつ！」（蜂蜜！），因为发音可爱而走红。
+        </p>
+        <p style="color:#374151;line-height:1.8;font-size:15px;margin-top:10px;">
+            <strong style="color:var(--primary-color);">爆火原因：</strong>2023年前后在短视频平台广泛传播，网友用这个词形容软萌可爱的小动物，特别是猫咪，逐渐演变成对可爱事物的爱称。
+        </p>
+        <p style="color:#374151;line-height:1.8;font-size:15px;margin-top:10px;">
+            年糕就是一只超可爱的哈基米，软萌、黏人、颜值爆表，治愈每一天～
+        </p>
+    </div>
+
+    <!-- 猫咪品种科普 -->
+    <div class="card">
+        <h2>🐾 猫咪品种科普</h2>
+        <p style="color:#374151;line-height:1.8;font-size:15px;margin-bottom:15px;">
+            全世界正式认证的纯种猫大约 <strong style="color:var(--primary-color);">40-70种</strong>，若算上未被官方认证的新品系、地方变种和家猫，一般笼统说有 <strong style="color:var(--primary-color);">100种左右</strong>。点击下方品种卡片了解更多！
+        </p>
+        <div class="cat-breed-selector" id="catBreedSelector">
+            <div class="breed-header">
+                <div class="filter-buttons">
+                    <button class="filter-btn" id="countryBtn" onclick="toggleFilter('country')">
+                        <span>🌍</span>
+                        <span>国家</span>
+                        <span class="btn-arrow">▼</span>
+                    </button>
+                    <button class="filter-btn" id="featureBtn" onclick="toggleFilter('feature')">
+                        <span>✨</span>
+                        <span>特点</span>
+                        <span class="btn-arrow">▼</span>
+                    </button>
+                </div>
+                <div class="search-bar">
+                    <input type="text" id="breedSearch" placeholder="搜索猫咪品种...">
+                    <button class="search-btn" onclick="searchBreeds()">🔍</button>
+                </div>
+            </div>
+            <div class="filter-content">
+                <div class="filter-panel" id="countryPanel">
+                    <div class="sub-categories" id="countryCategories">
+                    </div>
+                </div>
+                <div class="filter-panel" id="featurePanel">
+                    <div class="sub-categories" id="featureCategories">
+                    </div>
+                </div>
+            </div>
+            <div class="breed-grid" id="breedGrid">
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="cat-detail-modal" id="catDetailModal" style="display:none;">
+    <div class="modal-content">
+        <span class="modal-close" onclick="closeCatModal()">&times;</span>
+        <div class="modal-body" id="modalBody">
+        </div>
+    </div>
+</div>
+
+<!-- 主题切换 + 音乐播放器 -->
+<div class="control-bar" id="controlBar">
+    <button class="theme-btn" id="themeToggle">🌙</button>
+    <div class="divider"></div>
+    <button class="music-btn" id="prevMusic">⏮</button>
+    <button class="music-btn" id="toggleMusic">▶️</button>
+    <button class="music-btn" id="nextMusic">⏭</button>
+    <div class="music-info" id="musicInfo">歌曲 1</div>
+    <audio id="bgmAudio" preload="auto"></audio>
+</div>
+
+<script>
+    // ======================
+    // 主题切换
+    // ======================
+    const isDark = localStorage.getItem('darkTheme') === 'true';
+    if (isDark) {
+        document.body.classList.add('dark');
+        document.getElementById('themeToggle').innerText = '☀️';
+    }
+
+    document.getElementById('themeToggle').onclick = () => {
+        document.body.classList.toggle('dark');
+        const isDarkNow = document.body.classList.contains('dark');
+        localStorage.setItem('darkTheme', isDarkNow);
+        document.getElementById('themeToggle').innerText = isDarkNow ? '☀️' : '🌙';
+    };
+
+    // ======================
+    // API配置
+    // ======================
+    const API_BASE = '/api';
+
+    async function fetchUserDataFromAPI(user) {
+        try {
+            const res = await fetch(`${API_BASE}/user/${user}`);
+            if (res.ok) {
+                const data = await res.json();
+                saveUserData(user, {
+                    level: data.level,
+                    exp: data.exp,
+                    fish: data.fish
+                });
+                return data;
+            }
+        } catch (e) {}
+        return null;
+    }
+
+    async function saveUserDataToAPI(user, data) {
+        saveUserData(user, data);
+        try {
+            await fetch(`${API_BASE}/user/${user}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+        } catch (e) {}
+    }
+
+    // ======================
+    // 猫咪品种数据
+    // ======================
+    const catBreeds = [
+        { name: '英国短毛猫', origin: '英国', type: '短毛', flag: '🇬🇧', introduction: '头部圆润饱满，脸颊丰腴，短毛浓密厚实、触感柔软，毛色丰富，经典蓝猫、银渐层、金渐层最受欢迎。性格温顺佛系，天生不爱吵闹，领地意识弱，攻击性极低，情绪稳定，适应能力强。饲养难度低，短毛日常梳理即可，但代谢偏慢、食欲旺盛，极易发胖，需要严格控制食量并适当引导运动。平均寿命14-20年。优点是体质强健、抗病能力强，亲人粘人又不过分缠人，适配上班族、老人和小孩，是新手首选品种。缺点是性格偏慵懒，不爱活动，长期圈养易引发肥胖、脂肪肝等问题，互动积极性不高。', appearance: '头大脸圆，短毛密，蓝猫、银渐层为主', personality: '安静温顺，不爱叫，佛系', care: '易打理，易胖需控食', lifespan: '14-20年', pros: '体质稳，适合新手', cons: '不爱动，易肥胖' },
+        { name: '美国短毛猫', origin: '美国', type: '短毛', flag: '🇺🇸', introduction: '体态匀称健壮，肌肉发达，面部线条利落，标志性虎斑纹路清晰立体，短毛紧实顺滑。性格活泼机敏，好奇心强，天性友善包容，对人类、其他宠物都少有敌意，几乎无主动攻击行为，胆大不怕生。体质优秀，野外驯化基因保留完整，生病概率低，日常打理简单。平均寿命15-20年。优点是情绪稳定、忍耐力强，能陪伴孩童玩耍，居家适应性极佳，饲养省心。缺点是精力十分旺盛，独处时容易拆家，需要充足玩具和活动空间。', appearance: '体格健壮，虎斑纹路明显', personality: '活泼聪明，亲人不怕生', care: '抗病强，好养活', lifespan: '15-20年', pros: '性格稳定，适合家庭', cons: '精力较旺盛' },
+        { name: '布偶猫', origin: '美国', type: '长毛', flag: '🇺🇸', introduction: '大型长毛猫，毛发蓬松修长，双眼为纯净湛蓝色，分双色、重点色、手套色等品相，体态优雅轻盈。性格被誉为"仙女猫"，天生温顺软糯，疼痛感知阈值高，被抱起时会放松身体如同布偶，本能排斥打斗，攻击性几乎为零。长毛需要每日梳毛防止打结，肠胃先天脆弱，饮食必须精细，忌频繁换粮和杂食。平均寿命12-15年。优点是颜值出众，脾气绝佳，粘人贴心，适合多成员家庭。缺点是掉毛量大，玻璃肠胃易腹泻呕吐，饲养成本和精力投入较高。', appearance: '长毛，蓝眼睛，体型大', personality: '温柔粘人，无攻击性', care: '需每日梳毛，肠胃弱', lifespan: '12-15年', pros: '颜值高，脾气极好', cons: '玻璃胃，掉毛多' },
+        { name: '暹罗猫', origin: '泰国', type: '短毛', flag: '🇹🇭', introduction: '体型纤细修长，四肢匀称，面部、耳朵、四肢、尾巴为深色重点色，躯干毛色浅，蓝瞳灵动，随着年龄增长毛色会持续加深。性格外向热情，被称作"猫界小狗"，话多爱叫唤，粘人程度极高，智商出众，学习能力强。天性活泼好动，领地意识中等，很少主动伤人，但情绪敏感，独处易焦虑。毛发短易打理，天生怕冷，低温环境易生病。平均寿命12-20年。优点是通人性、互动性强，能快速听懂主人指令，忠诚度高。缺点是叫声尖锐频繁，精力过剩，长时间独处会出现乱挠、乱叫等行为问题。', appearance: '重点色，身材纤细，蓝眼睛', personality: '话痨，粘人，好奇心强', care: '怕冷，爱互动', lifespan: '12-20年', pros: '聪明通人性', cons: '太爱叫，精力旺盛' },
+        { name: '异国短毛猫（加菲）', origin: '美国', type: '短毛', flag: '🇺🇸', introduction: '由波斯猫与美短杂交培育，典型扁脸短鼻，脸部扁平圆润，身体圆胖，短毛浓密柔软，毛色种类繁多。性格慵懒安静，行动迟缓，性情温和隐忍，没有争斗欲望，攻击性极低，偏爱安静休憩。面部结构特殊，鼻道短，易堆积泪痕、污垢，需要每天清洁眼部和面部；短鼻基因导致呼吸功能偏弱，肠胃也较为敏感。平均寿命10-15年。优点是外形呆萌可爱，性格佛系安静，不吵不闹。缺点是先天面部缺陷易引发呼吸道疾病、泪痕问题，肠胃脆弱，运动能力差。', appearance: '扁脸短鼻，毛短密', personality: '安静慵懒，温顺', care: '需擦脸，易呼吸问题', lifespan: '10-15年', pros: '呆萌，不爱闹', cons: '易有泪痕、肠胃差' },
+        { name: '缅因猫', origin: '美国', type: '长毛', flag: '🇺🇸', introduction: '世界体型最大的家养长毛猫，体格魁梧强壮，四肢粗壮，耳尖带有标志性毛簇，尾巴宽大蓬松，毛发厚实耐寒。性格反差极大，体型凶悍却内心温柔，人称"温柔巨人"，智商高、忠诚度强，领地意识温和，不会主动攻击人和其他动物，甚至能牵绳外出遛弯。食量、饮水量、排泄量都远超普通猫咪，长毛需每日深度梳理，毛发厚重不耐高温。平均寿命12-15年。优点是性格沉稳护主，适应能力强，体质强悍。缺点是体型庞大占用空间大，食量和饲养开销高，掉毛严重，夏季易中暑。', appearance: '巨型长毛，耳尖有毛簇', personality: '温柔巨人，忠诚聪明', care: '食量大，需勤梳毛', lifespan: '12-15年', pros: '性格好，能遛', cons: '吃得多，掉毛巨多' },
+        { name: '斯芬克斯无毛猫', origin: '加拿大', type: '无毛', flag: '🇨🇦', introduction: '几乎无被毛，皮肤带有自然褶皱，触感温热柔软，仅耳周、口鼻、尾部有少量细软胎毛，体型线条流畅。性格极度热情粘人，对人类毫无戒备心，社交能力极强，愿意主动亲近陌生人，攻击性基本不存在。体表无毛，既怕冷也怕强光暴晒，皮肤油脂分泌旺盛，需要定期擦拭清洁、做好保湿，冬季必须保暖。平均寿命10-15年。优点是完全不掉毛，完美适配猫毛过敏人群，互动感拉满。缺点是饲养环境要求严苛，日常护理繁琐，皮肤易出油、长痘、晒伤。', appearance: '无毛，皮肤褶皱', personality: '极度粘人，热情', care: '怕冷怕热，需擦皮肤', lifespan: '10-15年', pros: '不掉毛，适合过敏者', cons: '需恒温，易出油' },
+        { name: '德文卷毛猫', origin: '英国', type: '短毛', flag: '🇬🇧', introduction: '毛发呈自然小卷、稀疏轻薄，大耳朵、尖脸蛋，五官灵动像小精灵，体态轻盈灵巧。性格活泼跳脱，精力充沛，粘人爱撒娇，亲近所有家庭成员，互动欲望强烈，天性友善，极少发脾气伤人。卷毛不易脱落，打理简单，毛发保温能力差，体质偏娇弱。平均寿命12-15年。优点是掉毛极少，性格讨喜，智商高，互动趣味足。缺点是精力过于旺盛，昼夜都爱活动，睡眠较少，怕冷畏寒。', appearance: '卷毛，大耳朵，精灵脸', personality: '活泼粘人，像小狗', care: '掉毛少，易打理', lifespan: '12-15年', pros: '掉毛极少，性格好', cons: '精力太旺盛' },
+        { name: '狸花猫', origin: '中国', type: '短毛', flag: '🇨🇳', introduction: '本土自然品种，短毛顺滑，黑灰相间虎斑纹路清晰，体态矫健，肌肉发达，身手敏捷。经过自然选育，体质达到顶尖水平，性格独立沉稳，忠诚度极高，认主能力强。天性警惕性高，对外界戒备，但对主人温顺包容，仅在被恶意挑衅时自卫，不会主动攻击。不挑食、抗病强，野外生存能力出众，捕鼠本能突出。平均寿命15-20年。优点是皮实好养，几乎不生病，忠诚度高，自理能力强。缺点是性格偏独立，不像宠物猫那般时刻粘人，野性本能较强。', appearance: '短毛虎斑，体格结实', personality: '独立，忠诚，捕鼠强', care: '体质极强，超好养', lifespan: '15-20年', pros: '不生病，省心', cons: '有点独立，不太粘人' },
+        { name: '橘猫', origin: '世界各地', type: '短毛', flag: '🧡', introduction: '属于中华田园猫色系分类，多为短毛，毛色以纯橘、橘白为主，体态普遍圆润肥胖。橘色相关染色体会从基因层面抑制暴躁、争斗的本能，先天攻击性极低，性格随和包容，脾气宽厚，接受度高，对人、其他宠物都十分友善。天生贪吃，消化吸收能力强，"十橘九胖"是普遍现象，必须严格管控饮食，避免过度肥胖。平均寿命14-18年。优点是性格佛系亲人，不挑食，情绪稳定，治愈感强。缺点是食欲失控，极易肥胖，肥胖易诱发心脏病、关节病。', appearance: '橘白相间，易发胖', personality: '随和，贪吃，亲人', care: '需严格控制体重', lifespan: '14-18年', pros: '性格好，不挑食', cons: '极易肥胖' },
+        { name: '波斯猫', origin: '伊朗', type: '长毛', flag: '🇮🇷', introduction: '经典长毛猫，毛发浓密修长如丝绸，面部扁平短鼻，体态雍容华贵，气质优雅，毛色丰富。性格安静慵懒，举止优雅，喜静不喜动，领地意识薄弱，性情温顺隐忍，几乎不会主动发起攻击，偏爱安静陪伴。长毛极易打结、缠绕，必须每天长时间梳毛，扁脸结构易堆积泪痕，呼吸道偏弱。平均寿命12-17年。优点是颜值高贵，性格安静温顺，适合安静的居家环境。缺点是掉毛量大，毛发护理耗时久，易有泪痕、呼吸不畅等问题。', appearance: '长毛扁脸，气质优雅', personality: '安静温柔，高贵', care: '必须每天梳毛', lifespan: '12-17年', pros: '脾气好，安静', cons: '掉毛多，易泪痕' },
+        { name: '金吉拉', origin: '英国', type: '长毛', flag: '🇬🇧', introduction: '波斯猫的变种品种，长毛蓬松柔软，毛尖带有渐变阴影色，面部扁平，整体造型圆润可爱。性格文静内敛，爱干净，性情温柔软糯，脾气极好，包容度高，没有攻击性，举止优雅。毛发细软极易打结，眼部泪腺发达，泪痕问题十分突出，日常清洁和梳毛工作量大。平均寿命12-15年。优点是颜值甜美，性格安静乖巧，动作轻柔。缺点是泪痕顽固，毛发难打理，体质偏弱，抵抗力一般。', appearance: '长毛，扁脸，浅色毛', personality: '温顺文静，爱干净', care: '毛发易打结', lifespan: '12-15年', pros: '颜值高，性格软', cons: '泪痕严重，难打理' },
+        { name: '苏格兰折耳', origin: '英国', type: '短毛', flag: '🇬🇧', introduction: '标志性向前弯折的耳朵，头部圆润，脸型饱满，体态圆胖，分长毛、短毛两种品相。性格温柔恬静，胆小温顺，动作轻柔，待人友善，攻击性极低，喜欢依偎在主人身边。先天携带软骨发育不良的遗传病基因，所有折耳猫成年后大概率出现关节疼痛、行动不便等问题，需要长期养护。平均寿命10-14年。优点是外形软萌可爱，性格安静粘人，情绪温顺。缺点是遗传性骨骼疾病无法根治，终身伴随疼痛，饲养风险高。', appearance: '耳朵向前折，圆脸', personality: '温柔安静，亲人', care: '易有骨骼病', lifespan: '10-14年', pros: '长相可爱', cons: '基因遗传病' },
+        { name: '曼基康矮脚猫', origin: '美国', type: '短毛', flag: '🇺🇸', introduction: '先天短腿特征，四肢短小，身体修长，体态呆萌，毛发分长短两种。性格活泼好动，好奇心爆棚，性格开朗友善，社交能力强，和同类、人类都能和睦相处，很少出现打斗行为。短腿结构导致脊椎、腰椎承受压力较大，禁止频繁攀爬、跳跃，避免剧烈运动。平均寿命12-15年。优点是外形呆萌有趣，性格活泼开朗，互动性强。缺点是骨骼结构存在缺陷，易患上脊椎、关节类疾病。', appearance: '腿极短，身体长', personality: '活泼好动，好奇心强', care: '注意脊椎健康', lifespan: '12-15年', pros: '外形超萌', cons: '易有脊椎压力' },
+        { name: '山东狮子猫', origin: '中国', type: '长毛', flag: '🇨🇳', introduction: '本土长毛品种，毛发修长蓬松，体态偏大，纯白品相居多，不少个体拥有一蓝一黄的鸳鸯眼，外形酷似狮子。性格温和沉稳，安静亲人，性情宽厚，领地意识不强，攻击性弱，适应居家生活。长毛浓密，换季掉毛严重，需要定期梳毛，本土品种体质强健，很少生病。平均寿命14-18年。优点是颜值高、体质好，性格温顺亲人，饲养难度低。缺点是长毛掉毛量大，日常梳理不能间断。', appearance: '长毛纯白，常见鸳鸯眼', personality: '温和，安静，亲人', care: '需梳毛，体质好', lifespan: '14-18年', pros: '颜值高，好养', cons: '掉毛多' },
+        { name: '孟加拉豹猫', origin: '美国', type: '短毛', flag: '🇺🇸', introduction: '体态矫健肌肉感十足，短毛带有类似野生豹子的斑纹，皮毛富有光泽，动作敏捷轻盈。性格聪明灵动，运动能力极强，精力旺盛，智商远超普通家猫。天性活泼好动，野性基因保留较多，正常状态下友善亲人，但兴奋度高时容易动作失控，极少主动伤人。运动量需求极大，需要大空间和逗猫玩具释放精力。平均寿命12-16年。优点是智商高、互动有趣，短毛掉毛少，体态优美。缺点是精力过剩，活动量需求大，野性较强，不适合狭小公寓。', appearance: '豹纹皮毛，肌肉感强', personality: '活跃，聪明，运动型', care: '需要大量活动', lifespan: '12-16年', pros: '智商高，不掉毛', cons: '精力过剩' },
+        { name: '俄罗斯蓝猫', origin: '俄罗斯', type: '短毛', flag: '🇷🇺', introduction: '短毛呈现均匀灰蓝色，毛发浓密有光泽，身形修长优雅，绿色眼眸通透，面部线条精致。性格安静内敛，偏高冷胆小，警惕心强，慢热，对陌生人保持距离，但对主人忠诚温顺，天生不爱争斗，攻击性为零。身体干净无体味，掉毛量少，体质稳定，生病概率低。平均寿命13-18年。优点是安静优雅、无异味、掉毛少，作息规律。缺点是性格高冷慢热，不喜热闹，惧怕陌生环境和陌生人。', appearance: '短毛灰蓝，绿眼，身材修长', personality: '安静害羞，高冷', care: '干净，少病', lifespan: '13-18年', pros: '无体味，掉毛少', cons: '有点高冷' },
+        { name: '柯尼斯卷毛猫', origin: '英国', type: '短毛', flag: '🇬🇧', introduction: '全身覆盖细密卷曲短毛，体型纤细瘦弱，四肢修长，体态轻盈。性格活泼粘人，爱撒娇、爱互动，性格开朗热情，社交能力强，对所有人都十分友善，不会发脾气。毛发保温能力差，天生怕冷，体型偏瘦弱，抵抗力一般。平均寿命12-16年。优点是卷毛几乎不掉毛，适合过敏人群，性格活泼讨喜。缺点是畏寒怕冷，体质偏弱，需要做好保暖工作。', appearance: '卷毛，身材纤细', personality: '活泼，粘人，爱撒娇', care: '掉毛极少', lifespan: '12-16年', pros: '不掉毛，适合过敏', cons: '怕冷' },
+        { name: '塞尔凯克卷毛猫', origin: '美国', type: '长毛', flag: '🇺🇸', introduction: '毛发呈羊毛状自然卷曲，脸部圆润，身体壮实，体态憨厚，分长短毛品类。性格是猫中"老好人"，极度温顺慵懒，忍耐力极强，无论被抚摸、逗弄都不会生气，本能完全排斥攻击行为，包容度拉满。卷毛质地厚实，容易打结粘连，需要定期深度梳理毛发。平均寿命12-15年。优点是脾气绝佳，憨厚温顺，适合有小孩、多宠物的家庭。缺点是毛发易打结，打理繁琐，食量偏大易发胖。', appearance: '羊毛卷，大脸', personality: '温顺，慵懒，脾气好', care: '卷毛需护理', lifespan: '12-15年', pros: '性格软萌', cons: '毛易打结' },
+        { name: '挪威森林猫', origin: '挪威', type: '长毛', flag: '🇳🇴', introduction: '大型长毛猫，双层被毛厚实防水，体型高大威猛，四肢有力，擅长攀爬，外形野性大气。性格独立聪慧，勇敢机敏，祖先生活在野外，适应力极强。性情沉稳，不会主动挑事，仅在受到威胁时自卫，忠诚度高。双层长毛换季大量掉毛，毛发厚实耐热性差，耐寒能力极强。平均寿命12-16年。优点是体质强悍，身手敏捷，独立省心，颜值大气。缺点是体型大占空间，掉毛严重，长毛护理耗时。', appearance: '长毛，体型大，像小狮子', personality: '独立，聪明，勇敢', care: '耐寒，掉毛多', lifespan: '12-16年', pros: '体质好，颜值高', cons: '掉毛严重' },
+        { name: '新加坡猫', origin: '新加坡', type: '短毛', flag: '🇸🇬', introduction: '全球体型最小的家猫，体态娇小玲珑，短毛细腻，身形纤细，整体小巧可爱。性格安静粘人，胆小谨慎，性情温和，没有争斗欲望，攻击性极低，偏爱安静的生活环境。体型小巧适合公寓饲养，品种稀有，市场价格偏高。平均寿命12-15年。优点是体型迷你不占空间，安静乖巧，食量小。缺点是数量稀少、购买成本高，胆子极小，容易应激。', appearance: '体型最小的猫', personality: '粘人，安静', care: '小巧，适合公寓', lifespan: '12-15年', pros: '体型小，不占空间', cons: '稀少，价格高' },
+        { name: '东短猫', origin: '泰国', type: '短毛', flag: '🇹🇭', introduction: '头部修长，耳朵宽大直立，身形纤细苗条，短毛顺滑，毛色多样。性格活泼好动，思维敏捷，好奇心强，行动灵活，粘人且爱叫唤，社交能力尚可，很少主动攻击他人。精力旺盛，独处容易无聊，需要主人陪伴互动。平均寿命12-15年。优点是短毛易打理，体型轻盈，互动性不错。缺点是外形小众接受度低，爱叫、精力充沛，独处易焦虑。', appearance: '大耳朵，长脸', personality: '活泼，好动', care: '需要陪伴', lifespan: '12-15年', pros: '掉毛少', cons: '外形小众' },
+        { name: '阿比西尼亚猫', origin: '埃塞俄比亚', type: '短毛', flag: '🇪🇹', introduction: '短毛贴身顺滑，毛色多为红棕、黄褐色，毛发带有渐变光泽，体态优雅，动作轻盈敏捷。智商位列猫咪前列，活泼好动，好奇心极强，探索欲旺盛，性格像小狗一样亲人，奔跑跳跃能力出众。天性友善，不爱打斗，但运动量需求极大，闲不住。平均寿命12-15年。优点是智商极高，动作优雅，互动趣味十足。缺点是精力无限，一刻不得闲，需要大量活动空间。', appearance: '短毛，红褐色', personality: '聪明，好动，像小狗', care: '喜欢互动', lifespan: '12-15年', pros: '智商极高', cons: '精力旺盛' },
+        { name: '土耳其安哥拉猫', origin: '土耳其', type: '长毛', flag: '🇹🇷', introduction: '经典长毛猫，毛发纤细顺滑、飘逸灵动，身形修长优雅，体态轻盈，动作优美。性格聪明活泼，反应灵敏，爱干净，自理能力强，性情温和，有一定独立性，不会过度粘人，攻击性弱。长毛质感顺滑，相比其他长毛猫更不易打结，日常打理相对轻松。平均寿命12-17年。优点是毛发好打理，动作优雅，爱干净，体质稳定。缺点是性格偏独立，和主人的亲密感较弱。', appearance: '长毛，纤细优雅', personality: '活泼，聪明', care: '爱干净', lifespan: '12-17年', pros: '毛顺滑好打理', cons: '有点独立' },
+        { name: '土耳其梵猫', origin: '土耳其', type: '长毛', flag: '🇹🇷', introduction: '长毛品种，主体毛发为纯白色，仅头部、尾部带有彩色斑块，毛发防水性佳，天生喜爱玩水。性格活泼开朗，精力充沛，性情友善，领地意识不强，和同类、人类都能和平相处。品种十分稀有，国内饲养数量少，喜爱戏水，容易弄湿家居。平均寿命12-15年。优点是外形独特，爱干净，性格活泼有趣。缺点是品种稀缺难购买，爱玩水容易弄乱家中环境。', appearance: '长毛，头尾有色，身体白', personality: '爱水，活泼', care: '喜欢玩水', lifespan: '12-15年', pros: '独特，爱干净', cons: '稀少' },
+        { name: '伯曼猫', origin: '缅甸', type: '长毛', flag: '🇲🇲', introduction: '中型长毛猫，重点色面部，四只爪子自带白色"手套"，毛发蓬松柔软，双眼圆润湛蓝。性格温柔恬静，举止优雅，脾气宽厚，忍耐力强，几乎没有攻击性，安静陪伴型猫咪。长毛质地柔软，不易大面积打结，护理难度低于波斯猫、布偶猫。平均寿命12-16年。优点是性格温顺安静，毛发打理简单，颜值高雅。缺点是长毛依旧存在掉毛问题，运动量偏小易慵懒发胖。', appearance: '长毛重点色，白手套', personality: '温和，安静', care: '毛不易打结', lifespan: '12-16年', pros: '脾气好', cons: '掉毛多' },
+        { name: '雪鞋猫', origin: '美国', type: '短毛', flag: '🇺🇸', introduction: '由暹罗猫培育而来，重点色身体，四只脚掌为标志性纯白色，短毛顺滑，体态匀称。性格聪明粘人，性情温和，继承了暹罗猫的互动性，但叫声更轻柔，情绪稳定，不爱打斗，包容性强。短毛易打理，体质健康，饲养门槛低。平均寿命12-15年。优点是颜值独特，性格乖巧聪明，饲养省心。缺点是品种小众，国内繁育数量少，购买渠道有限。', appearance: '白爪子，重点色', personality: '粘人，聪明', care: '好打理', lifespan: '12-15年', pros: '性格好', cons: '少见' },
+        { name: '日本短尾猫', origin: '日本', type: '短毛', flag: '🇯🇵', introduction: '尾部天生短粗，形似兔子尾巴，短毛浓密，体态匀称，是日本传统本土猫。性格活泼亲人，性情温顺开朗，适应能力强，情绪稳定，攻击性极低，传统寓意吉祥。体质强健，抗病能力好，日常饲养简单。平均寿命12-15年。优点是性格讨喜，体质皮实，外形独特。缺点是国内饲养人数少，品种知名度低，购买不便。', appearance: '兔子尾，短尾', personality: '活泼，亲人', care: '体质好', lifespan: '12-15年', pros: '独特，温顺', cons: '国内少' },
+        { name: '索马里猫', origin: '美国', type: '长毛', flag: '🇺🇸', introduction: '阿比西尼亚猫的长毛变种，体态优雅，长毛飘逸有光泽，身形纤细敏捷。性格完美继承阿比西尼亚猫的特点，聪明好动，探索欲强，身手灵活，性格友善，不爱争斗，互动积极性高。长毛易打结、掉毛，需要定期梳毛，运动量需求大。平均寿命12-15年。优点是颜值出众，智商高，互动有趣。缺点是长毛护理麻烦，精力旺盛，掉毛较多。', appearance: '长毛版阿比', personality: '活泼，聪明', care: '需要运动', lifespan: '12-15年', pros: '颜值高', cons: '掉毛多' },
+        { name: '彼得秃猫', origin: '俄罗斯', type: '无毛', flag: '🇷🇺', introduction: '全身无毛或仅有少量细绒毛，皮肤细腻，身形细长，线条柔和，和斯芬克斯外形有明显区别。性格粘人活泼，热情亲人，对主人依赖性强，性情温顺，不会主动攻击。体表无毛，保温能力极差，极度怕冷，皮肤需要定期清洁护理，环境温度要求高。平均寿命10-14年。优点是完全不掉毛，适合猫毛过敏人群，粘人贴心。缺点是饲养环境要求严苛，护理繁琐，体质偏弱。', appearance: '细长，无毛', personality: '粘人，活泼', care: '怕冷，需护理', lifespan: '10-14年', pros: '不掉毛，粘人', cons: '难饲养，怕冷' },
+        { name: '重点色布偶', origin: '美国', type: '长毛', flag: '🇺🇸', introduction: '布偶猫经典品相之一，面部、耳朵、四肢、尾部为深色重点色，躯干浅色系，长毛蓬松，蓝眼睛深邃迷人。性格延续布偶猫特质，极致温柔软糯，疼痛耐受力强，完全没有攻击性，粘人安静，适合陪伴。长毛每日必须梳毛，肠胃先天脆弱，饮食需要精细管控。平均寿命12-15年。优点是颜值仙气十足，脾气温柔，陪伴感强。缺点是掉毛量大，肠胃敏感，饲养投入精力多。', appearance: '重点色，长毛，蓝眼', personality: '温柔软糯，粘人', care: '需每日梳毛', lifespan: '12-15年', pros: '颜值高，脾气好', cons: '掉毛多，肠胃弱' },
+        { name: '美短加白', origin: '美国', type: '短毛', flag: '🇺🇸', introduction: '美国短毛猫热门品相，虎斑纹路搭配大面积白色毛发，面部、胸口、爪子多为白色，体态健壮匀称。性格活泼温顺，结合了美短的机敏与柔和，包容度高，对小孩、宠物都十分友善，几乎无攻击行为。体质强悍，短毛易打理，不挑食，饲养难度极低。平均寿命15-20年。优点是综合品相优秀，体质无敌，性格均衡，全家适配。缺点是精力偏旺盛，独处容易无聊。', appearance: '虎斑加白，健壮', personality: '活泼温顺，友善', care: '易打理', lifespan: '15-20年', pros: '体质好，性格好', cons: '精力旺盛' },
+        { name: '英短银渐层', origin: '英国', type: '短毛', flag: '🇬🇧', introduction: '英国短毛猫热门色系，底层绒毛纯白，毛尖带有浅灰色渐变，整体毛色柔和，圆脸圆身，短毛浓密。性格安静温柔，佛系慵懒，情绪稳定，攻击性极低，喜欢安静依偎主人。遗传了英短易胖的特点，食欲好，运动意愿低，需要控制体重。平均寿命14-20年。优点是颜值高、性格软萌，安静不吵闹，适配室内饲养。缺点是不爱运动，极易肥胖，部分个体易有泪痕问题。', appearance: '银色渐层，圆脸', personality: '安静温柔，佛系', care: '需控体重', lifespan: '14-20年', pros: '颜值高，安静', cons: '易肥胖' },
+        { name: '英短金渐层', origin: '英国', type: '短毛', flag: '🇬🇧', introduction: '英短高端色系，毛发呈现柔和的金黄色渐变，毛量丰厚，脸型圆润，体态敦实可爱。性格温顺乖巧，安静亲人，脾气宽厚，领地意识弱，不会主动争斗，互动温和。易发胖，日常需管控饮食，该品相繁育成本高，市场售价昂贵。平均寿命14-20年。优点是颜值华丽，性格温顺安静，观赏性强。缺点是价格偏高，食欲旺盛易肥胖，运动量不足。', appearance: '金色渐层，圆脸', personality: '温顺乖巧，安静', care: '需控体重', lifespan: '14-20年', pros: '颜值华丽', cons: '价格高，易肥胖' },
+        { name: '纯白田园猫', origin: '中国', type: '短毛', flag: '🇨🇳', introduction: '中华田园猫常见品类，通体纯白色短毛，体态匀称，身形矫健，自然选育品种。性格独立又亲人，性情随和，警惕心适中，仅自卫不主动攻击，适应能力拉满。不挑食、抗病强，环境适应力强，几乎无先天遗传病。平均寿命15-20年。优点是皮实好养，饲养零门槛，体质优秀。缺点是外形无固定品相，个体性格差异较大。', appearance: '纯白短毛，匀称', personality: '独立亲人，随和', care: '极好养', lifespan: '15-20年', pros: '体质好，好养', cons: '性格差异大' },
+        { name: '三花猫', origin: '中国', type: '短毛', flag: '🇨🇳', introduction: '田园猫经典色系，毛发同时分布黑色、橘色、白色三种色块，绝大多数三花猫为雌性，短毛居多，体态灵活。性格聪慧机敏，心思细腻，情绪稳定，脾气温和，包容度高，先天攻击性弱，顾家且认主。本土品种体质强健，不挑食，生病少，饲养十分省心。平均寿命15-20年。优点是智商高、性格温顺，体质皮实，饲养成本低。缺点是毛色分布随机，品相没有统一标准。', appearance: '黑橘白三色', personality: '聪慧机敏，温和', care: '极好养', lifespan: '15-20年', pros: '智商高，体质好', cons: '品相不统一' },
+        { name: '蓝白英短', origin: '英国', type: '短毛', flag: '🇬🇧', introduction: '英国短毛猫经典花色，蓝色毛发搭配对称白色色块，多为白脸、白胸、白爪，圆脸圆胖，短毛厚实。性格安静佛系，慵懒温顺，不爱叫唤，待人友善，争斗欲望极低，喜欢居家休憩。代谢缓慢、食欲佳，肥胖概率极高，需长期控制饮食、引导运动。平均寿命14-20年。优点是颜值耐看，性格安静，互动温和，适合居家陪伴。缺点是运动量少，易引发肥胖及附属疾病。', appearance: '蓝白花色，圆胖', personality: '安静佛系，温顺', care: '需控体重', lifespan: '14-20年', pros: '颜值耐看，安静', cons: '易肥胖' },
+        { name: '蓝重点伯曼猫', origin: '缅甸', type: '长毛', flag: '🇲🇲', introduction: '伯曼猫特色品相，面部重点色为淡蓝色，四爪保留白色手套，长毛蓬松柔软，眼神温顺。性格温和恬静，举止优雅，忍耐力强，没有攻击性，作息规律，喜静不喜闹。长毛柔软不易打结，护理难度中等，掉毛量中等。平均寿命12-16年。优点是脾气柔顺，毛发打理简单，气质优雅。缺点是长毛依旧会掉毛，性格偏慵懒，互动活跃度一般。', appearance: '蓝重点色，白手套', personality: '温和恬静，优雅', care: '护理中等', lifespan: '12-16年', pros: '气质优雅', cons: '掉毛，偏慵懒' },
+        { name: '红阿比猫', origin: '埃塞俄比亚', type: '短毛', flag: '🇪🇹', introduction: '阿比西尼亚猫红色品相，短毛呈现温暖红棕色，毛发光泽感强，体态纤细敏捷，动作灵动。性格聪明活泼，探索欲极强，行动力满分，像小狗一样跟随主人，性情友善，不爱打斗。运动量需求巨大，狭小空间会限制其活动。平均寿命12-15年。优点是智商高、动作优雅，互动趣味十足。缺点是精力过于旺盛，需要大空间活动，闲不住。', appearance: '红棕色，光泽', personality: '聪明活泼，友善', care: '需大空间', lifespan: '12-15年', pros: '智商高，优雅', cons: '精力太旺盛' },
+        { name: '黑白奶牛猫', origin: '中国', type: '短毛', flag: '🇨🇳', introduction: '田园猫特色花色，黑白相间毛发酷似奶牛，短毛顺滑，体态灵活，民间俗称"神经猫"。性格活泼跳脱，脑洞大、行为搞怪，精力充沛，好奇心爆棚。虽然动作调皮好动，但先天没有恶意攻击性，打闹仅为玩耍，对人十分亲近。本土品种体质顶尖，不挑食，适应各种环境，极少生病。平均寿命15-20年。优点是性格有趣、互动欢乐，体质皮实好养活。缺点是过于调皮捣蛋，精力旺盛，偶尔会拆家、捣乱。', appearance: '黑白奶牛色', personality: '活泼搞怪，亲近人', care: '极好养', lifespan: '15-20年', pros: '有趣，体质好', cons: '调皮，精力旺盛' }
+    ];
+
+    const countries = ['全部', '英国', '美国', '中国', '泰国', '加拿大', '伊朗', '俄罗斯', '挪威', '新加坡', '埃塞俄比亚', '土耳其', '缅甸', '日本', '世界各地'];
+    const features = ['全部', '短毛', '长毛', '无毛', '体型大', '体型小', '卷毛', '扁脸', '重点色'];
+    
+    let currentCountry = '全部';
+    let currentFeature = '全部';
+    let currentSearch = '';
+
+    function renderCountryCategories() {
+        const container = document.getElementById('countryCategories');
+        container.innerHTML = countries.map(country => `
+            <button class="sub-category ${currentCountry === country ? 'active' : ''}" onclick="filterByCountry('${country}')">
+                <span>🗺️</span><span>${country}</span>
+            </button>
+        `).join('');
+    }
+
+    function renderFeatureCategories() {
+        const container = document.getElementById('featureCategories');
+        container.innerHTML = features.map(feature => `
+            <button class="sub-category ${currentFeature === feature ? 'active' : ''}" onclick="filterByFeature('${feature}')">
+                <span>${feature === '短毛' ? '🧶' : feature === '长毛' ? '🦯' : feature === '无毛' ? '👀' : feature === '体型大' ? '🐘' : feature === '体型小' ? '🐹' : feature === '卷毛' ? '🌀' : feature === '扁脸' ? '😶' : '⭐'}</span><span>${feature}</span>
+            </button>
+        `).join('');
+    }
+
+    function searchBreeds() {
+        currentSearch = document.getElementById('breedSearch').value.trim();
+        renderBreedCards();
+    }
+
+    document.getElementById('breedSearch').addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') {
+            searchBreeds();
+        }
+    });
+
+    function filterByCountry(country) {
+        currentCountry = country;
+        renderCountryCategories();
+        renderBreedCards();
+    }
+
+    function filterByFeature(feature) {
+        currentFeature = feature;
+        renderFeatureCategories();
+        renderBreedCards();
+    }
+
+    function renderBreedCards() {
+        const grid = document.getElementById('breedGrid');
+        let filtered = catBreeds;
+        
+        if (currentCountry !== '全部') {
+            filtered = filtered.filter(cat => cat.origin === currentCountry);
+        }
+        
+        if (currentFeature !== '全部') {
+            if (currentFeature === '短毛' || currentFeature === '长毛' || currentFeature === '无毛') {
+                filtered = filtered.filter(cat => cat.type === currentFeature);
+            } else if (currentFeature === '体型大') {
+                filtered = filtered.filter(cat => ['缅因猫', '挪威森林猫', '布偶猫', '英国短毛猫'].includes(cat.name));
+            } else if (currentFeature === '体型小') {
+                filtered = filtered.filter(cat => cat.name === '新加坡猫');
+            } else if (currentFeature === '卷毛') {
+                filtered = filtered.filter(cat => ['德文卷毛猫', '柯尼斯卷毛猫', '塞尔凯克卷毛猫'].includes(cat.name));
+            } else if (currentFeature === '扁脸') {
+                filtered = filtered.filter(cat => ['波斯猫', '异国短毛猫（加菲）', '金吉拉'].includes(cat.name));
+            } else if (currentFeature === '重点色') {
+                filtered = filtered.filter(cat => ['暹罗猫', '伯曼猫', '布偶猫'].includes(cat.name));
+            }
+        }
+        
+        if (currentSearch) {
+            const searchLower = currentSearch.toLowerCase();
+            filtered = filtered.filter(cat => 
+                cat.name.toLowerCase().includes(searchLower) ||
+                cat.origin.toLowerCase().includes(searchLower)
+            );
+        }
+        
+        grid.innerHTML = filtered.map(cat => `
+            <div class="breed-card" onclick="showCatDetail('${cat.name}')">
+                <div class="breed-name">${cat.name}</div>
+                <div class="breed-origin">🗺️ ${cat.origin}</div>
+            </div>
+        `).join('');
+    }
+
+    function toggleFilters() {
+        const categories = document.getElementById('breedCategories');
+        const toggle = document.getElementById('filterToggle');
+        const arrow = document.getElementById('filterArrow');
+        
+        categories.classList.toggle('show');
+        toggle.classList.toggle('active');
+    }
+
+    function toggleFilter(type) {
+        const countryBtn = document.getElementById('countryBtn');
+        const featureBtn = document.getElementById('featureBtn');
+        const countryPanel = document.getElementById('countryPanel');
+        const featurePanel = document.getElementById('featurePanel');
+        const filterContent = document.querySelector('.filter-content');
+        
+        if (type === 'country') {
+            // 点击国家按钮
+            if (countryBtn.classList.contains('active')) {
+                // 如果已经激活，关闭它
+                countryBtn.classList.remove('active');
+                countryPanel.classList.remove('active');
+                filterContent.classList.remove('show');
+            } else {
+                // 如果未激活，打开国家面板，关闭特点面板
+                countryBtn.classList.add('active');
+                countryPanel.classList.add('active');
+                featureBtn.classList.remove('active');
+                featurePanel.classList.remove('active');
+                filterContent.classList.add('show');
+            }
+        } else if (type === 'feature') {
+            // 点击特点按钮
+            if (featureBtn.classList.contains('active')) {
+                // 如果已经激活，关闭它
+                featureBtn.classList.remove('active');
+                featurePanel.classList.remove('active');
+                filterContent.classList.remove('show');
+            } else {
+                // 如果未激活，打开特点面板，关闭国家面板
+                featureBtn.classList.add('active');
+                featurePanel.classList.add('active');
+                countryBtn.classList.remove('active');
+                countryPanel.classList.remove('active');
+                filterContent.classList.add('show');
+            }
+        }
+    }
+
+    function showCatDetail(name) {
+        const cat = catBreeds.find(c => c.name === name);
+        if (!cat) return;
+        
+        const modal = document.getElementById('catDetailModal');
+        const body = document.getElementById('modalBody');
+        
+        const index = catBreeds.indexOf(cat) + 1;
+        const imagePath = `首页猫咪品种科普图片/${index}.1.jpeg`;
+        const flag = cat.flag || '🐱';
+        const typeText = cat.type === '短毛' ? '短毛猫' : cat.type === '长毛' ? '长毛猫' : cat.type === '无毛' ? '无毛猫' : '特殊体型';
+        
+        body.innerHTML = `
+            <div style="width:100%;max-height:250px;background:linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(99, 102, 241, 0.2));border-radius:16px;margin-bottom:20px;display:flex;justify-content:center;align-items:center;overflow:hidden;">
+                <img src="${imagePath}" alt="${cat.name}" style="max-width:100%;max-height:250px;object-fit:contain;">
+            </div>
+            <h3>${flag} ${cat.name}</h3>
+            <div class="cat-intro">${cat.introduction}</div>
+            <div class="cat-info-grid">
+                <div class="info-item"><span class="info-label">🗺️ 发源地</span><span class="info-value">${cat.origin}</span></div>
+                <div class="info-item"><span class="info-label">✨ 类型</span><span class="info-value">${typeText}</span></div>
+                <div class="info-item"><span class="info-label">⏳ 寿命</span><span class="info-value">${cat.lifespan}</span></div>
+            </div>
+            <div class="cat-traits">
+                <div class="trait-item trait-pros"><span class="trait-label">✅ 优点</span><span class="trait-value">${cat.pros}</span></div>
+                <div class="trait-item trait-cons"><span class="trait-label">⚠️ 缺点</span><span class="trait-value">${cat.cons}</span></div>
+            </div>
+        `;
+        
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeCatModal() {
+        const modal = document.getElementById('catDetailModal');
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    // 初始化猫咪品种选择器
+    document.addEventListener('DOMContentLoaded', () => {
+        renderCountryCategories();
+        renderFeatureCategories();
+        renderBreedCards();
+        
+        // 点击模态框外部关闭
+        document.getElementById('catDetailModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('catDetailModal')) {
+                closeCatModal();
+            }
+        });
+    });
+
+    // ======================
+    // 加载留言
+    // ======================
+    // 扁平化评论树：将嵌套评论转为单层数组，保持回复关系
+    function flattenComments(comments) {
+        const result = [];
+        
+        function traverse(comment, parentId = null) {
+            result.push({
+                ...comment,
+                parent_id: parentId
+            });
+            // 不递归children，扁平化处理
+        }
+        
+        // 遍历所有评论，按parent_id分组
+        comments.forEach(c => traverse(c, c.parent_id));
+        
+        return result;
+    }
+    
+    // 扁平化渲染：直接渲染所有评论，不嵌套
+    function renderCommentsFlat(comments, messageId) {
+        if (!comments || comments.length === 0) return '';
+        
+        return comments.map(c => {
+            const likes = c.likes || 0;
+            const hasLiked = c.liked_by_user === true;
+            const heartIcon = hasLiked ? '❤️' : '🤍';
+            const replyTo = c.reply_to_username ? `<span class="reply-tag">@${c.reply_to_username}</span>` : '';
+            
+            return `
+            <div class="comment-item" data-comment-id="${c.id}" data-message-id="${messageId}">
+                <div class="comment-header">
+                    <span class="comment-username">${c.username}</span>
+                    ${replyTo}
+                    <span class="comment-time">${new Date(c.created_at).toLocaleString()}</span>
+                </div>
+                <div class="comment-content">${c.comment}</div>
+                <div class="comment-actions">
+                    <span class="comment-action${hasLiked ? ' liked' : ''}" data-action="like-comment" data-like-id="${c.id}" data-type="comment">
+                        ${heartIcon} <span class="like-count">${likes}</span>
+                    </span>
+                    <span class="comment-action" data-action="toggle-reply" data-message-id="${messageId}" data-comment-id="${c.id}" data-username="${c.username}">
+                        💬 回复
+                    </span>
+                </div>
+                <div class="reply-input-area" id="reply-input-${c.id}" style="display:none;">
+                    <input type="text" id="reply-text-${c.id}" placeholder="回复 ${c.username}..." data-parent-id="${c.id}">
+                    <button class="reply-submit-btn" data-action="submit-reply" data-message-id="${messageId}" data-parent-id="${c.id}" data-username="${c.username}">发送</button>
+                </div>
+            </div>
+            `}).join('');
+    }
+    
+    async function loadMessages() {
+        try {
+            const user = localStorage.getItem('user');
+            const url = user ? `${API_BASE}/messages?username=${encodeURIComponent(user)}` : `${API_BASE}/messages`;
+            const res = await fetch(url);
+            const data = await res.json();
+            
+            if (data.success && data.messages.length > 0) {
+                const messageList = document.getElementById('messageList');
+                messageList.innerHTML = data.messages.map(msg => {
+                    // 扁平化渲染评论
+                    const commentsHtml = renderCommentsFlat(msg.comments || [], msg.id);
+                    
+                    const likes = msg.likes || 0;
+                    const hasLiked = msg.liked_by_user === true; // 严格判断，确保只有true时才显示红心
+                    const heartIcon = hasLiked ? '❤️' : '🤍';
+                    
+                    return `
+                    <div class="message-item" data-id="${msg.id}">
+                        <div class="message-header">
+                            <span class="message-username">${msg.username}</span>
+                            <span class="message-time">${new Date(msg.created_at).toLocaleString()}</span>
+                        </div>
+                        <div class="message-content">${msg.message}</div>
+                        <div class="message-actions">
+                            <button class="like-btn${hasLiked ? ' liked' : ''}" data-action="like-message" data-like-id="${msg.id}" data-type="message">
+                                ${heartIcon} <span class="like-count">${likes}</span>
+                            </button>
+                            <button class="comment-toggle" data-action="toggle-comment" data-message-id="${msg.id}">
+                                💬 评论 (${(msg.comments || []).length})
+                            </button>
+                        </div>
+                        <div class="comment-section" id="comment-section-${msg.id}">
+                            <div class="comment-input-area">
+                                <input type="text" id="comment-input-${msg.id}" placeholder="说点什么...">
+                                <button class="comment-submit-btn" data-action="submit-comment" data-message-id="${msg.id}">发送</button>
+                            </div>
+                            <div class="comment-list" id="comment-list-${msg.id}">
+                                ${commentsHtml}
+                            </div>
+                        </div>
+                    </div>
+                `}).join('');
+            } else {
+                document.getElementById('messageList').innerHTML = 
+                    '<p style="text-align:center;color:#9ca3af;padding:30px;">还没有留言，快来抢沙发！</p>';
+            }
+        } catch (e) {
+            console.error('加载留言失败:', e);
+            document.getElementById('messageList').innerHTML = 
+                '<p style="text-align:center;color:#9ca3af;padding:30px;">留言加载失败</p>';
+        }
+    }
+    
+    function toggleComment(messageId) {
+        const section = document.getElementById(`comment-section-${messageId}`);
+        section.classList.toggle('show');
+    }
+    
+    async function likeMessage(messageId) {
+        const user = localStorage.getItem('user');
+        if (!user) {
+            alert('请先登录！');
+            return;
+        }
+        
+        try {
+            const btn = document.querySelector(`.message-item[data-id="${messageId}"] .like-btn`);
+            
+            const res = await fetch(`${API_BASE}/message/${messageId}/like`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: user })
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                // 更新按钮状态
+                if (data.liked) {
+                    btn.classList.add('liked');
+                    btn.innerHTML = `❤️ <span class="like-count">${data.likes}</span>`;
+                    showSuccessToast('❤️ 点赞成功！');
+                } else {
+                    btn.classList.remove('liked');
+                    btn.innerHTML = `🤍 <span class="like-count">${data.likes}</span>`;
+                }
+            } else {
+                alert(data.message || '点赞失败');
+            }
+        } catch (e) {
+            console.error('点赞失败:', e);
+            alert('点赞失败，请重试');
+        }
+    }
+    
+    // ======================
+    // 消息通知功能
+    // ======================
+    let lastNotificationTime = null;
+    
+    async function loadNotifications() {
+        const user = localStorage.getItem('user');
+        if (!user) return;
+        
+        try {
+            const res = await fetch(`${API_BASE}/notifications/${user}`);
+            const data = await res.json();
+            
+            if (data.success && data.notifications.length > 0) {
+                // 显示通知按钮
+                document.getElementById('notificationBtn').style.display = 'flex';
+                
+                // 更新未读数量
+                const unreadCount = data.notifications.filter(n => !n.is_read).length;
+                document.getElementById('notificationBadge').innerText = unreadCount;
+                
+                // 检查是否有新通知（比上次获取时间晚的）
+                const latestNotification = data.notifications[0];
+                if (latestNotification && (!lastNotificationTime || new Date(latestNotification.created_at) > lastNotificationTime)) {
+                    lastNotificationTime = new Date(latestNotification.created_at);
+                    // 显示浮动通知卡片
+                    showFloatingNotification(latestNotification.content);
+                }
+            }
+        } catch (e) {
+            console.error('加载通知失败:', e);
+        }
+    }
+    
+    function toggleNotificationPanel() {
+        const panel = document.getElementById('notificationPanel');
+        const overlay = document.getElementById('notificationOverlay');
+        
+        if (panel.classList.contains('show')) {
+            panel.classList.remove('show');
+            overlay.classList.remove('show');
+        } else {
+            panel.classList.add('show');
+            overlay.classList.add('show');
+            loadNotificationList();
+        }
+    }
+    
+    function formatTime(dateStr) {
+        if (!dateStr) return '';
+        
+        const date = new Date(dateStr);
+        const now = new Date();
+        const diff = now - date;
+        
+        if (isNaN(date.getTime())) {
+            return dateStr;
+        }
+        
+        if (diff < 60000) {
+            return '刚刚';
+        } else if (diff < 3600000) {
+            return `${Math.floor(diff / 60000)}分钟前`;
+        } else if (diff < 86400000) {
+            return `${Math.floor(diff / 3600000)}小时前`;
+        } else {
+            return date.toLocaleDateString();
+        }
+    }
+    
+    async function loadNotificationList() {
+        const user = localStorage.getItem('user');
+        if (!user) return;
+        
+        try {
+            const res = await fetch(`${API_BASE}/notifications/${user}`);
+            const data = await res.json();
+            
+            if (data.success && data.notifications.length > 0) {
+                const list = document.getElementById('notificationList');
+                list.innerHTML = data.notifications.map(n => `
+                    <div class="notification-item${n.is_read ? '' : ' unread'}" 
+                         onclick="markNotificationRead(${n.id})">
+                        <div class="notification-content">${n.content}</div>
+                        <div class="notification-time">${formatTime(n.created_at)}</div>
+                    </div>
+                `).join('');
+            }
+        } catch (e) {
+            console.error('加载通知列表失败:', e);
+        }
+    }
+    
+    async function markNotificationRead(notificationId) {
+        try {
+            await fetch(`${API_BASE}/notifications/${notificationId}/read`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            loadNotificationList();
+            loadNotifications();
+        } catch (e) {
+            console.error('标记通知已读失败:', e);
+        }
+    }
+    
+    async function markAllNotificationsRead() {
+        const user = localStorage.getItem('user');
+        if (!user) return;
+        
+        try {
+            await fetch(`${API_BASE}/notifications/${user}/read-all`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            loadNotificationList();
+            loadNotifications();
+        } catch (e) {
+            console.error('标记所有通知已读失败:', e);
+        }
+    }
+    
+    function showFloatingNotification(message) {
+        const floating = document.getElementById('floatingNotification');
+        const msgElement = document.getElementById('floatingMessage');
+        
+        msgElement.innerText = message;
+        floating.classList.add('show');
+        
+        // 5秒后自动隐藏
+        setTimeout(() => {
+            hideFloatingNotification();
+        }, 5000);
+    }
+    
+    function hideFloatingNotification() {
+        const floating = document.getElementById('floatingNotification');
+        floating.classList.remove('show');
+    }
+    
+    async function likeComment(commentId) {
+        const user = localStorage.getItem('user');
+        if (!user) {
+            alert('请先登录！');
+            return;
+        }
+        
+        try {
+            const res = await fetch(`${API_BASE}/comment/${commentId}/like`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: user })
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                const commentItem = document.querySelector(`.comment-item[data-id="${commentId}"]`);
+                if (commentItem) {
+                    const likeSpan = commentItem.querySelector('.comment-action:first-child');
+                    if (likeSpan) {
+                        if (data.liked) {
+                            likeSpan.innerHTML = `❤️ ${data.likes}`;
+                            likeSpan.classList.add('liked');
+                            showSuccessToast('❤️ 点赞成功！');
+                        } else {
+                            likeSpan.innerHTML = `🤍 ${data.likes}`;
+                            likeSpan.classList.remove('liked');
+                        }
+                    }
+                }
+            } else {
+                alert(data.message || '点赞失败');
+            }
+        } catch (e) {
+            console.error('评论点赞失败:', e);
+            alert('点赞失败，请重试');
+        }
+    }
+    
+    // ======================
+    // 通用成功提示函数
+    function showSuccessToast(message) {
+        const successToast = document.createElement('div');
+        successToast.className = 'success-toast';
+        
+        // 根据消息内容判断颜色
+        const isError = message.includes('❌');
+        const bgColor = isError 
+            ? 'linear-gradient(135deg, #ef4444, #dc2626)'
+            : 'linear-gradient(135deg, #22c55e, #16a34a)';
+        const shadowColor = isError 
+            ? 'rgba(239, 68, 68, 0.4)'
+            : 'rgba(34, 197, 94, 0.4)';
+        
+        successToast.innerHTML = message;
+        successToast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: ${bgColor};
+            color: white;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 0 4px 20px ${shadowColor};
+            z-index: 10000;
+            animation: slideDown 0.3s ease;
+        `;
+        document.body.appendChild(successToast);
+        
+        setTimeout(() => {
+            successToast.style.opacity = '0';
+            successToast.style.transition = 'opacity 0.3s';
+            setTimeout(() => successToast.remove(), 300);
+        }, 2000);
+    }
+    
+    function toggleReplyInput(messageId, commentId) {
+        const replyInput = document.getElementById(`reply-input-${commentId}`);
+        const textInput = document.getElementById(`reply-text-${commentId}`);
+        
+        if (replyInput.style.display === 'none') {
+            replyInput.style.display = 'flex';
+            textInput.focus();
+        } else {
+            replyInput.style.display = 'none';
+            textInput.value = '';
+        }
+    }
+    
+    async function submitReply(messageId, parentId) {
+        const user = localStorage.getItem('user');
+        const input = document.getElementById(`reply-text-${parentId}`);
+        const submitBtn = document.querySelector(`.reply-submit-btn[data-message-id="${messageId}"][data-parent-id="${parentId}"]`);
+        const comment = input.value.trim();
+        
+        console.log('submitReply 开始:', { messageId, parentId, comment, user });
+        
+        if (!user) {
+            showSuccessToast('❌ 请先登录！');
+            return;
+        }
+        
+        if (!comment) {
+            showSuccessToast('❌ 回复内容不能为空！');
+            return;
+        }
+        
+        if (!parentId) {
+            showSuccessToast('❌ 缺少回复目标！');
+            return;
+        }
+        
+        // 防止重复提交：禁用按钮和输入框
+        input.disabled = true;
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = '发送中...';
+        }
+        
+        try {
+            console.log('发送请求:', { messageId, parentId, comment, username: user });
+            const res = await fetch(`${API_BASE}/message/${messageId}/comment`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: user, comment: comment, parent_id: parentId })
+            });
+            
+            // 确保响应已完成并成功
+            if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
+            
+            const data = await res.json();
+            console.log('回复结果:', data);
+            
+            // 确保响应数据有效且包含success字段
+            if (data && typeof data.success === 'boolean') {
+                if (data.success) {
+                    input.value = '';
+                    document.getElementById(`reply-input-${parentId}`).style.display = 'none';
+                    
+                    // 刷新整个评论区，确保数据与服务器同步
+                    await loadMessages();
+                    
+                    // 显示成功提示浮窗
+                    showSuccessToast('✅ 回复发送成功！');
+                } else {
+                    console.error('回复失败:', data.message);
+                    showSuccessToast('❌ ' + (data.message || '回复失败！'));
+                }
+            } else {
+                // 服务器响应格式异常，尝试刷新评论区确认状态
+                console.error('服务器响应格式异常:', data);
+                await loadMessages();
+                showSuccessToast('✅ 回复已提交，请刷新查看！');
+            }
+        } catch (e) {
+            console.error('回复失败:', e);
+            // 网络错误时尝试刷新评论区确认状态
+            try {
+                await loadMessages();
+                showSuccessToast('⚠️ 网络异常，已尝试同步回复！');
+            } catch (syncError) {
+                showSuccessToast('❌ 回复失败，请重试！');
+            }
+        } finally {
+            // 无论成功/失败，恢复按钮和输入框状态
+            input.disabled = false;
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '发送';
+            }
+        }
+    }
+    
+    async function submitComment(messageId) {
+        const user = localStorage.getItem('user');
+        const input = document.getElementById(`comment-input-${messageId}`);
+        const comment = input.value.trim();
+        
+        if (!user) {
+            showSuccessToast('❌ 请先登录！');
+            return;
+        }
+        
+        if (!comment) {
+            showSuccessToast('❌ 评论内容不能为空！');
+            return;
+        }
+        
+        // 禁用输入框和按钮，防止重复提交
+        input.disabled = true;
+        const submitBtn = document.querySelector(`.comment-submit-btn[data-message-id="${messageId}"]`);
+        const originalBtnText = submitBtn ? submitBtn.textContent : '';
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = '发送中...';
+        }
+        
+        try {
+            const res = await fetch(`${API_BASE}/message/${messageId}/comment`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: user, comment: comment })
+            });
+            
+            // 确保响应已完成并成功
+            if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
+            
+            const data = await res.json();
+            
+            // 确保响应数据有效且包含success字段
+            if (data && typeof data.success === 'boolean') {
+                if (data.success) {
+                    input.value = '';
+                    
+                    // 刷新整个评论区，确保数据与服务器同步
+                    await loadMessages();
+                    
+                    // 显示成功提示
+                    showSuccessToast('✅ 评论发送成功！');
+                } else {
+                    showSuccessToast('❌ ' + (data.message || '评论失败！'));
+                }
+            } else {
+                // 服务器响应格式异常，尝试刷新评论区确认状态
+                console.error('服务器响应格式异常:', data);
+                await loadMessages();
+                showSuccessToast('✅ 评论已提交，请刷新查看！');
+            }
+        } catch (e) {
+            console.error('评论失败:', e);
+            // 网络错误时尝试刷新评论区确认状态
+            try {
+                await loadMessages();
+                showSuccessToast('⚠️ 网络异常，已尝试同步评论！');
+            } catch (syncError) {
+                showSuccessToast('❌ 评论失败，请重试！');
+            }
+        } finally {
+            // 恢复输入框和按钮状态
+            input.disabled = false;
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalBtnText;
+            }
+        }
+    }
+    
+    // 高亮闪烁新评论（提示用户这是自己发的）- 持续1秒
+    function highlightNewComment(element) {
+        if (!element) return;
+        
+        element.style.border = '2px solid rgba(99, 102, 241, 0.3)';
+        element.style.borderRadius = '8px';
+        element.style.transition = 'all 0.15s ease';
+        
+        const duration = 1000;
+        const flashCount = 3;
+        const intervalTime = duration / (flashCount * 2);
+        
+        let count = 0;
+        const flashInterval = setInterval(() => {
+            count++;
+            if (count % 2 === 1) {
+                element.style.boxShadow = '0 0 25px rgba(129, 140, 248, 1), inset 0 0 20px rgba(129, 140, 248, 0.5)';
+                element.style.borderColor = '#818cf8';
+                element.style.transform = 'scale(1.02)';
+            } else {
+                element.style.boxShadow = 'none';
+                element.style.borderColor = 'rgba(99, 102, 241, 0.3)';
+                element.style.transform = 'scale(1)';
+            }
+            
+            if (count >= flashCount * 2) {
+                clearInterval(flashInterval);
+                element.style.boxShadow = 'none';
+                element.style.borderColor = 'rgba(99, 102, 241, 0.3)';
+                element.style.transform = 'scale(1)';
+            }
+        }, intervalTime);
+    }
+
+    // ======================
+    // 留言提交
+    // ======================
+    async function submitMessage() {
+        const user = localStorage.getItem('user');
+        const msgText = document.getElementById('msgText').value.trim();
+
+        if (!user) {
+            alert('请先登录后再留言！');
+            return;
+        }
+
+        if (!msgText) {
+            alert('留言内容不能为空！');
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_BASE}/message`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: user, message: msgText })
+            });
+            const data = await res.json();
+            if (data.success) {
+                document.getElementById('msgText').value = '';
+                
+                // 显示成功提示浮窗
+                showSuccessToast('✅ 留言发送成功！年糕收到啦～');
+                
+                loadMessages();
+            } else {
+                alert(data.message || '留言失败，请重试！');
+            }
+        } catch (e) {
+            console.error('留言失败:', e);
+            alert('留言失败，请重试！');
+        }
+    }
+
+    // ======================
+    // 音乐播放器
+    // ======================
+    const musicList = [
+        { name: '歌曲 1', src: '音乐/song1.mp3' },
+        { name: '歌曲 2', src: '音乐/song2.mp3' }
+    ];
+    
+    let currentMusicIndex = 0;
+    let isPlaying = false;
+    const bgmAudio = document.getElementById('bgmAudio');
+
+    function loadMusic(index) {
+        bgmAudio.src = musicList[index].src;
+        document.getElementById('musicInfo').innerText = musicList[index].name;
+    }
+
+    loadMusic(0);
+
+    document.getElementById('toggleMusic').onclick = () => {
+        const btn = document.getElementById('toggleMusic');
+        if (isPlaying) {
+            btn.innerText = '▶️';
+            isPlaying = false;
+            bgmAudio.pause();
+        } else {
+            btn.innerText = '⏸️';
+            isPlaying = true;
+            bgmAudio.play().catch(e => {
+                isPlaying = false;
+                btn.innerText = '▶️';
+            });
+        }
+    };
+
+    bgmAudio.onended = () => {
+        currentMusicIndex = (currentMusicIndex + 1) % musicList.length;
+        loadMusic(currentMusicIndex);
+        if (isPlaying) {
+            bgmAudio.play().catch(e => {});
+        }
+    };
+
+    document.getElementById('prevMusic').onclick = () => {
+        currentMusicIndex = (currentMusicIndex - 1 + musicList.length) % musicList.length;
+        loadMusic(currentMusicIndex);
+        if (isPlaying) bgmAudio.play().catch(e => {});
+    };
+
+    document.getElementById('nextMusic').onclick = () => {
+        currentMusicIndex = (currentMusicIndex + 1) % musicList.length;
+        loadMusic(currentMusicIndex);
+        if (isPlaying) bgmAudio.play().catch(e => {});
+    };
+
+    // ======================
+    // 用户数据显示
+    // ======================
+    function getLevelIcon(lv) {
+        if(lv>=8) return '👑皇冠';
+        if(lv>=4) return '🌙月亮';
+        return '⭐星星';
+    }
+    function getLevelName(lv) {
+        if(lv>=8) return '铲屎官之神';
+        if(lv>=6) return '资深铲屎官';
+        if(lv>=4) return '资深铲屎官';
+        if(lv>=2) return '新手铲屎官';
+        return '见习铲屎官';
+    }
+
+    function getUserData(username) {
+        const key = 'userData_' + username;
+        const data = localStorage.getItem(key);
+        if (!data) return null;
+        try {
+            return JSON.parse(data);
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function saveUserData(username, obj) {
+        const key = 'userData_' + username;
+        localStorage.setItem(key, JSON.stringify(obj));
+    }
+
+    function updateTopNav() {
+        const user = localStorage.getItem('user');
+        const link = document.getElementById('loginOut');
+        if (user) {
+            link.innerHTML = '<span class="icon">🚪</span><span>退出</span>';
+            link.onclick = () => {
+                localStorage.removeItem('user');
+                localStorage.removeItem('is_admin');
+                location.reload();
+            };
+        } else {
+            link.innerHTML = '<span class="icon">🔑</span><span>登录</span>';
+            link.onclick = null;
+        }
+    }
+
+    async function updateLevelDisplay() {
+        const user = localStorage.getItem('user') || '';
+        let level = 0;
+        let fish = 0;
+
+        if (user) {
+            const userData = getUserData(user);
+            if (userData) {
+                level = userData.level || 0;
+                fish = userData.fish || 0;
+            }
+            
+            const apiData = await fetchUserDataFromAPI(user);
+            if (apiData && apiData.level !== undefined && apiData.fish !== undefined) {
+                if (apiData.level !== level || apiData.fish !== fish) {
+                    level = apiData.level;
+                    fish = apiData.fish;
+                    saveUserData(user, { level, exp: apiData.exp || 0, fish });
+                }
+            }
+            
+            const levelIcon = getLevelIcon(level);
+            const levelName = getLevelName(level);
+            document.getElementById('levelBox').innerText =
+                `${user} ${levelIcon}${levelName} Lv${level} 🐟${fish}`;
+        } else {
+            document.getElementById('levelBox').innerText = `游客`;
+        }
+    }
+
+    function checkAdminLink() {
+        const isAdmin = localStorage.getItem('is_admin') === 'true';
+        const adminLink = document.getElementById('adminLink');
+        if (isAdmin) {
+            adminLink.style.display = 'flex';
+        }
+    }
+    
+    // ======================
+    // 事件委托处理动态元素
+    // ======================
+    document.addEventListener('click', function(e) {
+        const target = e.target;
+        const action = target.dataset.action;
+        
+        // 点赞评论（事件委托）
+        if (action === 'like-comment') {
+            const commentId = parseInt(target.dataset.likeId);
+            if (commentId) {
+                e.preventDefault();
+                likeComment(commentId);
+            }
+            return;
+        }
+        
+        // 切换回复输入框（事件委托）
+        if (action === 'toggle-reply') {
+            const commentId = target.dataset.commentId;
+            if (commentId) {
+                e.preventDefault();
+                toggleReplyInputById(commentId);
+            }
+            return;
+        }
+        
+        // 提交回复（事件委托）
+        if (action === 'submit-reply') {
+            e.preventDefault();
+            const messageId = parseInt(target.dataset.messageId);
+            const parentId = parseInt(target.dataset.parentId);
+            console.log('提交回复:', { messageId, parentId, dataset: target.dataset });
+            if (messageId && parentId) {
+                submitReply(messageId, parentId);
+            } else {
+                showSuccessToast('❌ 参数错误：messageId=' + messageId + ', parentId=' + parentId);
+            }
+            return;
+        }
+        
+        // 点赞留言（事件委托）
+        const likeBtn = target.closest('.like-btn[data-action="like-message"]');
+        if (likeBtn) {
+            e.preventDefault();
+            const messageId = parseInt(likeBtn.dataset.likeId);
+            if (messageId) {
+                likeMessage(messageId);
+            }
+            return;
+        }
+        
+        // 切换评论区域（事件委托）
+        const commentToggle = target.closest('.comment-toggle[data-action="toggle-comment"]');
+        if (commentToggle) {
+            e.preventDefault();
+            const messageId = parseInt(commentToggle.dataset.messageId);
+            if (messageId) {
+                toggleComment(messageId);
+            }
+            return;
+        }
+        
+        // 提交评论（事件委托）
+        const commentSubmit = target.closest('.comment-submit-btn[data-action="submit-comment"]');
+        if (commentSubmit) {
+            e.preventDefault();
+            const messageId = parseInt(commentSubmit.dataset.messageId);
+            if (messageId) {
+                submitComment(messageId);
+            }
+            return;
+        }
+    });
+    
+    // 根据ID切换回复输入框
+    function toggleReplyInputById(commentId) {
+        const replyInput = document.getElementById(`reply-input-${commentId}`);
+        const textInput = document.getElementById(`reply-text-${commentId}`);
+        
+        if (replyInput) {
+            if (replyInput.style.display === 'none') {
+                replyInput.style.display = 'flex';
+                if (textInput) textInput.focus();
+            } else {
+                replyInput.style.display = 'none';
+                if (textInput) textInput.value = '';
+            }
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', async () => {
+        // 初始化日夜模式
+        const isDark = localStorage.getItem('darkTheme') === 'true';
+        if (isDark) {
+            document.body.classList.add('dark');
+        }
+        
+        // 监听其他页面的状态变化
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'darkTheme') {
+                const isDark = localStorage.getItem('darkTheme') === 'true';
+                document.body.classList.toggle('dark', isDark);
+                document.getElementById('themeToggle').innerText = isDark ? '☀️' : '🌙';
+            }
+            if (e.key === 'user' || e.key === 'userStats' || e.key === 'is_admin') {
+                updateLevelDisplay();
+                checkAdminLink();
+            }
+        });
+        
+        await updateLevelDisplay();
+        updateTopNav();
+        checkAdminLink();
+        
+        // 加载通知
+        loadNotifications();
+        
+        // 定时检查新通知（每30秒）
+        setInterval(() => {
+            loadNotifications();
+        }, 30000);
+    });
+</script>
+
+</body>
+</html>

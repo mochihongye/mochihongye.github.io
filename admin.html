@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>哈基米后台管理系统</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Microsoft YaHei', Arial, sans-serif; 
+            background: #f0f2f5;
+            min-height: 100vh;
+        }
+        
+        /* 侧边栏 */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 240px;
+            height: 100vh;
+            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            z-index: 1000;
+        }
+        .sidebar-header {
+            padding: 30px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+        }
+        .sidebar-header h1 {
+            font-size: 22px;
+            margin-bottom: 5px;
+        }
+        .sidebar-header p {
+            color: #bdc3c7;
+            font-size: 14px;
+        }
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+        .menu-item {
+            padding: 15px 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .menu-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .menu-item.active {
+            background: #3498db;
+            border-left: 4px solid #2980b9;
+        }
+        
+        /* 主内容区 */
+        .main-content {
+            margin-left: 240px;
+            padding: 30px;
+        }
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .page-header h2 {
+            color: #2c3e50;
+            font-size: 28px;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .logout-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .logout-btn:hover {
+            background: #c0392b;
+        }
+        
+        /* 统计卡片 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        /* 图表卡片 */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .chart-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        .chart-card h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+        .chart-card canvas {
+            max-height: 250px;
+        }
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        .stat-card h3 {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .stat-card .number {
+            font-size: 36px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .stat-card.blue .number { color: #3498db; }
+        .stat-card.green .number { color: #27ae60; }
+        .stat-card.orange .number { color: #e67e22; }
+        .stat-card.purple .number { color: #9b59b6; }
+        
+        /* 内容区域 */
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+        .section-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+        .section-card h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+        
+        /* 表格 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        th {
+            background: #f8f9fa;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        tr:hover {
+            background: #f8f9fa;
+        }
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-right: 5px;
+        }
+        .edit-btn {
+            background: #3498db;
+            color: white;
+        }
+        .delete-btn {
+            background: #e74c3c;
+            color: white;
+        }
+        .admin-badge {
+            background: #e67e22;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        /* 编辑弹窗 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            width: 400px;
+        }
+        .modal-content h3 {
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #34495e;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+        .modal-btns {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .modal-btns button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .save-btn {
+            background: #27ae60;
+            color: white;
+        }
+        .cancel-btn {
+            background: #95a5a6;
+            color: white;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 992px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 60px;
+            }
+            .sidebar-header h1,
+            .sidebar-header p,
+            .menu-item span:last-child {
+                display: none;
+            }
+            .main-content {
+                margin-left: 60px;
+                padding: 15px;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .page-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+            .table-container {
+                overflow-x: auto;
+            }
+            .data-table {
+                min-width: 600px;
+            }
+        }
+        /* 表格样式 */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        .data-table th,
+        .data-table td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        .data-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+        .data-table td {
+            color: #555;
+        }
+        
+        /* 层级徽章样式 */
+        .level-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .data-table td .level-badge {
+            min-width: 24px;
+            text-align: center;
+        }
+        .comment-text {
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .comment-text:hover {
+            white-space: normal;
+            word-break: break-all;
+        }
+        body.dark .data-table th {
+            background: #2d2d2d;
+            color: #ddd;
+        }
+        body.dark .data-table td {
+            color: #aaa;
+        }
+        body.dark .data-table tr:hover {
+            background: #363636;
+        }
+        
+        /* 评论管理树形结构样式 */
+        .comments-tree {
+            padding: 10px;
+            background: rgba(0,0,0,0.02);
+            border-radius: 8px;
+            max-height: 500px;
+            overflow-y: auto;
+            margin-left: 0 !important;
+            padding-left: 0 !important;
+        }
+        .comment-tree-item {
+            padding: 10px 12px !important;
+            margin: 8px 0 !important;
+            background: white !important;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            width: 100% !important;
+            box-sizing: border-box;
+            text-indent: 0 !important;
+            border: none !important;
+        }
+        .comment-tree-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+            font-size: 13px;
+        }
+        .comment-tree-user {
+            font-weight: bold;
+            color: #3498db;
+        }
+        .comment-tree-meta {
+            font-size: 11px;
+            color: #999;
+        }
+        .comment-tree-content {
+            color: #555;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        .comment-tree-children {
+            margin-top: 8px !important;
+            margin-left: 0 !important;
+            padding-left: 15px !important;
+            border-left: none !important;
+        }
+        
+        /* 回复箭头样式 */
+        .comment-tree-header .reply-arrow {
+            color: #818cf8;
+            margin: 0 8px;
+            font-weight: bold;
+        }
+        .comment-tree-header .reply-to {
+            color: #f472b6;
+            font-weight: 500;
+            font-size: 13px;
+        }
+        
+        body.dark .comment-tree-item {
+            background: #2d2d2d !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+        body.dark .comment-tree-content {
+            color: #ddd;
+        }
+        body.dark .comment-tree-user {
+            color: #5dade2;
+        }
+        
+        @media (max-width: 768px) {
+            /* 移动端评论树形结构 */
+            .comment-tree-children {
+                padding-left: 10px;
+            }
+        }
+        @media (max-width: 480px) {
+            .sidebar {
+                width: 50px;
+            }
+            .main-content {
+                margin-left: 50px;
+            }
+            .stat-card {
+                padding: 15px;
+            }
+            .modal-content {
+                width: 95%;
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>🐱 哈基米后台</h1>
+            <p>管理系统</p>
+        </div>
+        <div class="sidebar-menu">
+            <div class="menu-item active" onclick="showSection('dashboard')">
+                📊 仪表盘
+            </div>
+            <div class="menu-item" onclick="showSection('users')">
+                👥 用户管理
+            </div>
+            <div class="menu-item" onclick="showSection('messages')">
+                💬 留言管理
+            </div>
+            <div class="menu-item" onclick="showSection('comments')">
+                💭 评论管理
+            </div>
+            <div class="menu-item" onclick="showSection('games')">
+                🎮 游戏数据
+            </div>
+            <div class="menu-item" onclick="showSection('achievements')">
+                🏅 成就管理
+            </div>
+            <div class="menu-item" onclick="window.location.href='index-main.html'">
+                🏠 返回首页
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="page-header">
+            <h2 id="page-title">仪表盘</h2>
+            <div class="user-info">
+                <span id="admin-name">管理员</span>
+                <button class="logout-btn" onclick="logout()">退出登录</button>
+            </div>
+        </div>
+
+        <!-- 仪表盘 -->
+        <div class="content-section active" id="dashboard">
+            <div class="stats-grid">
+                <div class="stat-card blue">
+                    <h3>总用户数</h3>
+                    <div class="number" id="total-users">0</div>
+                </div>
+                <div class="stat-card green">
+                    <h3>总留言数</h3>
+                    <div class="number" id="total-messages">0</div>
+                </div>
+                <div class="stat-card orange">
+                    <h3>今日新增</h3>
+                    <div class="number" id="today-users">0</div>
+                </div>
+                <div class="stat-card purple">
+                    <h3>系统运行</h3>
+                    <div class="number">正常</div>
+                </div>
+            </div>
+            
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h3>📈 每日新增用户趋势</h3>
+                    <canvas id="newUsersChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>📊 每日活跃用户统计</h3>
+                    <canvas id="activeUsersChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>✅ 每日签到用户趋势</h3>
+                    <canvas id="signUsersChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>🏆 用户等级分布</h3>
+                    <canvas id="levelDistChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="section-card">
+                <h3>最近用户</h3>
+                <table id="recent-users-table">
+                    <thead>
+                        <tr><th>用户名</th><th>注册时间</th></tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="section-card">
+                <h3>最近留言</h3>
+                <table id="recent-messages-table">
+                    <thead>
+                        <tr><th>ID</th><th>用户名</th><th>留言内容</th><th>时间</th></tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 用户管理 -->
+        <div class="content-section" id="users">
+            <div class="section-card">
+                <h3>用户列表</h3>
+                <table id="users-table">
+                    <thead>
+                        <tr>
+                            <th>用户名</th>
+                            <th>等级</th>
+                            <th>经验</th>
+                            <th>小鱼干</th>
+                            <th>签到天数</th>
+                            <th>注册时间</th>
+                            <th>最后登录</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 留言管理 -->
+        <div class="content-section" id="messages">
+            <div class="section-card">
+                <h3>留言列表</h3>
+                <table id="messages-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>用户名</th>
+                            <th>留言内容</th>
+                            <th>点赞数</th>
+                            <th>时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 评论管理 -->
+        <div class="content-section" id="comments">
+            <div class="section-card">
+                <h3>评论列表</h3>
+                <table id="comments-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>所属留言ID</th>
+                            <th>父评论ID</th>
+                            <th>层级</th>
+                            <th>评论用户</th>
+                            <th>评论内容</th>
+                            <th>点赞数</th>
+                            <th>时间</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="section-card">
+                <h3>评论树形结构</h3>
+                <div id="comments-tree" class="comments-tree"></div>
+            </div>
+        </div>
+
+        <!-- 游戏数据 -->
+        <div class="content-section" id="games">
+            <div class="section-card">
+                <h3>游戏统计概览</h3>
+                <table id="game-stats-table">
+                    <thead>
+                        <tr>
+                            <th>游戏名称</th>
+                            <th>游玩人数</th>
+                            <th>最高分</th>
+                            <th>最低分</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="section-card">
+                <h3>用户游戏成绩详情</h3>
+                <table id="game-scores-table">
+                    <thead>
+                        <tr>
+                            <th>用户名</th>
+                            <th>等级</th>
+                            <th>游戏名称</th>
+                            <th>成绩</th>
+                            <th>成绩类型</th>
+                            <th>记录时间</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 成就管理 -->
+        <div class="content-section" id="achievements">
+            <div class="section-card">
+                <h3>用户成就统计</h3>
+                <table id="achievement-stats-table">
+                    <thead>
+                        <tr>
+                            <th>用户名</th>
+                            <th>总成就数</th>
+                            <th>已解锁数</th>
+                            <th>解锁率</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="section-card">
+                <h3>成就记录详情</h3>
+                <table id="achievements-table">
+                    <thead>
+                        <tr>
+                            <th>用户名</th>
+                            <th>等级</th>
+                            <th>成就ID</th>
+                            <th>状态</th>
+                            <th>解锁时间</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑弹窗 -->
+    <div class="modal" id="edit-modal">
+        <div class="modal-content">
+            <h3>编辑用户</h3>
+            <div class="form-group">
+                <label>用户名</label>
+                <input type="text" id="edit-username" readonly>
+            </div>
+            <div class="form-group">
+                <label>等级</label>
+                <input type="number" id="edit-level">
+            </div>
+            <div class="form-group">
+                <label>经验</label>
+                <input type="number" id="edit-exp">
+            </div>
+            <div class="form-group">
+                <label>小鱼干</label>
+                <input type="number" id="edit-fish">
+            </div>
+            <div class="modal-btns">
+                <button class="save-btn" onclick="saveUser()">保存</button>
+                <button class="cancel-btn" onclick="closeModal()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        let currentEditUser = null;
+
+        // 检查是否是管理员
+        function checkAdmin() {
+            const user = localStorage.getItem('user');
+            const isAdmin = localStorage.getItem('is_admin') === 'true';
+            
+            if (!isAdmin) {
+                alert('请先以管理员身份登录！');
+                window.location.href = 'index.html';
+                return false;
+            }
+            
+            document.getElementById('admin-name').textContent = user;
+            return true;
+        }
+
+        // 显示区域
+        function showSection(section) {
+            document.querySelectorAll('.content-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(section).classList.add('active');
+            
+            document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            const titles = {
+                'dashboard': '仪表盘',
+                'users': '用户管理',
+                'messages': '留言管理',
+                'comments': '评论管理',
+                'games': '游戏数据',
+                'achievements': '成就管理'
+            };
+            document.getElementById('page-title').textContent = titles[section];
+            
+            if (section === 'dashboard') loadDashboard();
+            if (section === 'users') loadUsers();
+            if (section === 'messages') loadMessages();
+            if (section === 'comments') loadComments();
+            if (section === 'games') loadGameScores();
+            if (section === 'achievements') loadAchievements();
+        }
+
+        // 加载仪表盘数据
+        async function loadDashboard() {
+            try {
+                const res = await fetch(`${API_BASE}/admin/stats`);
+                const data = await res.json();
+                
+                if (data.success) {
+                    document.getElementById('total-users').textContent = data.user_count;
+                    document.getElementById('total-messages').textContent = data.message_count;
+                    document.getElementById('today-users').textContent = data.new_users_today;
+                    
+                    // 最近用户
+                    const usersTable = document.getElementById('recent-users-table').querySelector('tbody');
+                    usersTable.innerHTML = data.recent_users.map(u => 
+                        `<tr><td>${u.username}</td><td>${new Date(u.created_at).toLocaleString()}</td></tr>`
+                    ).join('');
+                    
+                    // 最近留言
+                    const msgTable = document.getElementById('recent-messages-table').querySelector('tbody');
+                    msgTable.innerHTML = data.recent_messages.map(m => 
+                        `<tr><td>${m.id}</td><td>${m.username}</td><td>${m.message}</td><td>${new Date(m.created_at).toLocaleString()}</td></tr>`
+                    ).join('');
+                }
+            } catch (e) {
+                console.error(e);
+            }
+            
+            // 加载图表数据
+            await loadCharts();
+        }
+        
+        // 加载图表
+        async function loadCharts() {
+            await loadNewUsersChart();
+            await loadActiveUsersChart();
+            await loadSignUsersChart();
+            await loadLevelDistChart();
+        }
+        
+        // 每日新增用户趋势图
+        async function loadNewUsersChart() {
+            try {
+                const res = await fetch(`${API_BASE}/admin/charts/new_users`);
+                const data = await res.json();
+                
+                if (data.success) {
+                    const ctx = document.getElementById('newUsersChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: data.dates,
+                            datasets: [{
+                                label: '新增用户数',
+                                data: data.counts,
+                                borderColor: '#3498db',
+                                backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                                fill: true,
+                                tension: 0.4,
+                                pointBackgroundColor: '#3498db',
+                                pointBorderColor: '#fff',
+                                pointBorderWidth: 2,
+                                pointRadius: 5,
+                                pointHoverRadius: 7
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        stepSize: 1
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error('加载新增用户图表失败:', e);
+            }
+        }
+        
+        // 每日活跃用户柱状图
+        async function loadActiveUsersChart() {
+            try {
+                const res = await fetch(`${API_BASE}/admin/charts/active_users`);
+                const data = await res.json();
+                
+                if (data.success) {
+                    const ctx = document.getElementById('activeUsersChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: data.dates,
+                            datasets: [{
+                                label: '活跃用户数',
+                                data: data.counts,
+                                backgroundColor: [
+                                    'rgba(46, 204, 113, 0.8)',
+                                    'rgba(52, 152, 219, 0.8)',
+                                    'rgba(155, 89, 182, 0.8)',
+                                    'rgba(241, 196, 15, 0.8)',
+                                    'rgba(231, 76, 60, 0.8)',
+                                    'rgba(52, 73, 94, 0.8)',
+                                    'rgba(149, 165, 166, 0.8)'
+                                ],
+                                borderRadius: 8,
+                                borderSkipped: false
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        stepSize: 1
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error('加载活跃用户图表失败:', e);
+            }
+        }
+        
+        // 每日签到用户趋势图
+        async function loadSignUsersChart() {
+            try {
+                const res = await fetch(`${API_BASE}/admin/charts/sign_users`);
+                const data = await res.json();
+                
+                if (data.success) {
+                    const ctx = document.getElementById('signUsersChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: data.dates,
+                            datasets: [{
+                                label: '签到用户数',
+                                data: data.counts,
+                                borderColor: '#27ae60',
+                                backgroundColor: 'rgba(39, 174, 96, 0.1)',
+                                fill: true,
+                                tension: 0.4,
+                                yAxisID: 'y',
+                                pointBackgroundColor: '#27ae60',
+                                pointBorderColor: '#fff',
+                                pointBorderWidth: 2,
+                                pointRadius: 5,
+                                pointHoverRadius: 7
+                            }, {
+                                label: '累计签到天数',
+                                data: data.totals,
+                                borderColor: '#f39c12',
+                                backgroundColor: 'rgba(243, 156, 18, 0.1)',
+                                fill: true,
+                                tension: 0.4,
+                                yAxisID: 'y1',
+                                pointBackgroundColor: '#f39c12',
+                                pointBorderColor: '#fff',
+                                pointBorderWidth: 2,
+                                pointRadius: 5,
+                                pointHoverRadius: 7
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom'
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    type: 'linear',
+                                    display: true,
+                                    position: 'left',
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: '签到用户数'
+                                    }
+                                },
+                                y1: {
+                                    type: 'linear',
+                                    display: true,
+                                    position: 'right',
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: '累计天数'
+                                    },
+                                    grid: {
+                                        drawOnChartArea: false
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error('加载签到用户图表失败:', e);
+            }
+        }
+        
+        // 用户等级分布图
+        async function loadLevelDistChart() {
+            try {
+                const res = await fetch(`${API_BASE}/admin/charts/level_dist`);
+                const data = await res.json();
+                
+                if (data.success) {
+                    const ctx = document.getElementById('levelDistChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: data.levels,
+                            datasets: [{
+                                label: '用户数量',
+                                data: data.counts,
+                                backgroundColor: data.counts.map((_, i) => 
+                                    `hsl(${200 + i * 30}, 70%, 60%)`
+                                ),
+                                borderRadius: 6,
+                                borderSkipped: false
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            indexAxis: 'y',
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        stepSize: 1
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error('加载等级分布图失败:', e);
+            }
+        }
+
+        // 加载用户列表
+        async function loadUsers() {
+            try {
+                const res = await fetch(`${API_BASE}/admin/users`);
+                const data = await res.json();
+                
+                if (data.success) {
+                    const table = document.getElementById('users-table').querySelector('tbody');
+                    table.innerHTML = data.users.map(u => `
+                        <tr>
+                            <td>
+                                ${u.username}
+                                ${u.is_admin ? '<span class="admin-badge">管理员</span>' : ''}
+                            </td>
+                            <td>${u.level || 0}</td>
+                            <td>${u.exp || 0}</td>
+                            <td>${u.fish || 0}</td>
+                            <td>${u.sign_days || 0}</td>
+                            <td>${new Date(u.created_at).toLocaleString()}</td>
+                            <td>${u.last_login ? new Date(u.last_login).toLocaleString() : '未登录'}</td>
+                            <td>
+                                ${!u.is_admin ? `
+                                    <button class="action-btn edit-btn" onclick="editUser('${u.username}', ${u.level}, ${u.exp}, ${u.fish})">编辑</button>
+                                    <button class="action-btn delete-btn" onclick="deleteUser('${u.username}')">删除</button>
+                                ` : '-'}
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // 加载留言列表
+        async function loadMessages() {
+            try {
+                const res = await fetch(`${API_BASE}/messages`);
+                const data = await res.json();
+                
+                if (data.success) {
+                    const table = document.getElementById('messages-table').querySelector('tbody');
+                    table.innerHTML = data.messages.map(m => `
+                        <tr>
+                            <td>${m.id}</td>
+                            <td>${m.username}</td>
+                            <td>${m.message}</td>
+                            <td>👍 ${m.likes || 0}</td>
+                            <td>${new Date(m.created_at).toLocaleString()}</td>
+                            <td>
+                                <button class="action-btn delete-btn" onclick="deleteMessage(${m.id})">删除</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // 加载评论列表
+        async function loadComments() {
+            try {
+                const res = await fetch(`${API_BASE}/admin/comments`);
+                const data = await res.json();
+                
+                if (data.success) {
+                    const table = document.getElementById('comments-table').querySelector('tbody');
+                    if (data.comments && data.comments.length > 0) {
+                        // 计算评论层级
+                        const commentsWithLevel = buildCommentTree(data.comments);
+                        
+                        table.innerHTML = commentsWithLevel.map(c => `
+                            <tr id="comment-row-${c.id}">
+                                <td>${c.id}</td>
+                                <td>${c.message_id}</td>
+                                <td>${c.parent_id || '-'}</td>
+                                <td><span class="level-badge">${c.level}</span></td>
+                                <td>${c.username}</td>
+                                <td class="comment-text">${c.comment}</td>
+                                <td>${c.likes || 0}</td>
+                                <td>${new Date(c.created_at).toLocaleString()}</td>
+                                <td>
+                                    <button class="action-btn delete-btn" onclick="deleteComment(${c.id})">删除</button>
+                                </td>
+                            </tr>
+                        `).join('');
+                        
+                        // 渲染树形结构
+                        renderCommentsTree(data.comments);
+                    } else {
+                        table.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#999;">暂无评论数据</td></tr>';
+                        document.getElementById('comments-tree').innerHTML = '<p style="text-align:center;color:#999;">暂无评论数据</p>';
+                    }
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+        
+        // 删除评论
+        async function deleteComment(id) {
+            if (!confirm('确定要删除这条评论吗？')) return;
+            
+            try {
+                const res = await fetch(`${API_BASE}/admin/comment/${id}`, { method: 'DELETE' });
+                const data = await res.json();
+                
+                if (data.success) {
+                    alert('删除成功！');
+                    loadComments();
+                    loadDashboard();
+                } else {
+                    alert('删除失败：' + (data.message || '未知错误'));
+                }
+            } catch (e) {
+                console.error(e);
+                alert('删除失败');
+            }
+        }
+        
+        // 构建评论树并计算层级
+        function buildCommentTree(comments) {
+            const commentMap = {};
+            const rootComments = [];
+            
+            comments.forEach(c => {
+                commentMap[c.id] = { ...c, level: 1 };
+            });
+            
+            comments.forEach(c => {
+                if (c.parent_id && commentMap[c.parent_id]) {
+                    commentMap[c.parent_id].children = commentMap[c.parent_id].children || [];
+                    commentMap[c.parent_id].children.push(commentMap[c.id]);
+                    commentMap[c.id].level = commentMap[c.parent_id].level + 1;
+                } else {
+                    rootComments.push(commentMap[c.id]);
+                }
+            });
+            
+            return flattenWithLevel(rootComments);
+        }
+        
+        // 扁平化树结构（保持层级顺序）
+        function flattenWithLevel(comments) {
+            let result = [];
+            comments.forEach(c => {
+                result.push(c);
+                if (c.children && c.children.length > 0) {
+                    result = result.concat(flattenWithLevel(c.children));
+                }
+            });
+            return result;
+        }
+        
+        // 渲染评论树形结构
+        function renderCommentsTree(comments) {
+            const container = document.getElementById('comments-tree');
+            
+            function buildTree(parentId = null) {
+                return comments
+                    .filter(c => c.parent_id === parentId)
+                    .map(c => {
+                        const children = buildTree(c.id);
+                        
+                        // 获取被回复者的用户名
+                        let replyToHtml = '';
+                        if (c.parent_id) {
+                            const parentComment = comments.find(p => p.id === c.parent_id);
+                            if (parentComment) {
+                                replyToHtml = `<span class="reply-arrow">→</span><span class="reply-to">${parentComment.username}</span>`;
+                            }
+                        }
+                        
+                        return `
+                            <div class="comment-tree-item" data-comment-id="${c.id}">
+                                <div class="comment-tree-header">
+                                    <span class="comment-tree-user">${c.username}</span>
+                                    ${replyToHtml}
+                                    <span class="comment-tree-meta">
+                                        ID:${c.id} | 点赞:${c.likes || 0}
+                                    </span>
+                                </div>
+                                <div class="comment-tree-content">${c.comment}</div>
+                                ${children.length > 0 ? `<div class="comment-tree-children">${children.join('')}</div>` : ''}
+                            </div>
+                        `;
+                    }).join('');
+            }
+            
+            container.innerHTML = buildTree() || '<p style="text-align:center;color:#999;">暂无评论数据</p>';
+        }
+
+        // 加载成就数据
+        async function loadAchievements() {
+            try {
+                const res = await fetch(`${API_BASE}/admin/achievements`);
+                const data = await res.json();
+                
+                if (data.success) {
+                    // 成就统计
+                    const statsTable = document.getElementById('achievement-stats-table').querySelector('tbody');
+                    if (data.user_stats && data.user_stats.length > 0) {
+                        statsTable.innerHTML = data.user_stats.map(s => {
+                            const rate = s.total > 0 ? ((s.unlocked_count / s.total) * 100).toFixed(1) : 0;
+                            return `
+                                <tr>
+                                    <td>${s.username}</td>
+                                    <td>${s.total}</td>
+                                    <td>${s.unlocked_count}</td>
+                                    <td>${rate}%</td>
+                                </tr>
+                            `;
+                        }).join('');
+                    } else {
+                        statsTable.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#999;">暂无成就统计</td></tr>';
+                    }
+                    
+                    // 成就详情
+                    const achievementsTable = document.getElementById('achievements-table').querySelector('tbody');
+                    if (data.achievements && data.achievements.length > 0) {
+                        achievementsTable.innerHTML = data.achievements.map(a => `
+                            <tr>
+                                <td>${a.username}</td>
+                                <td>Lv.${a.level || 0}</td>
+                                <td>${a.achievement_id}</td>
+                                <td>${a.unlocked ? '✅ 已解锁' : '🔒 未解锁'}</td>
+                                <td>${a.unlocked_at ? new Date(a.unlocked_at).toLocaleString() : '-'}</td>
+                            </tr>
+                        `).join('');
+                    } else {
+                        achievementsTable.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#999;">暂无成就记录</td></tr>';
+                    }
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // 加载游戏数据
+        async function loadGameScores() {
+            try {
+                const res = await fetch(`${API_BASE}/admin/game-scores`);
+                const data = await res.json();
+                
+                if (data.success) {
+                    // 游戏统计概览
+                    const statsTable = document.getElementById('game-stats-table').querySelector('tbody');
+                    if (data.game_stats && data.game_stats.length > 0) {
+                        statsTable.innerHTML = data.game_stats.map(s => `
+                            <tr>
+                                <td>${s.game_name}</td>
+                                <td>${s.player_count}</td>
+                                <td>${s.max_score}</td>
+                                <td>${s.min_score}</td>
+                            </tr>
+                        `).join('');
+                    } else {
+                        statsTable.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#999;">暂无游戏数据</td></tr>';
+                    }
+                    
+                    // 用户游戏成绩详情
+                    const scoresTable = document.getElementById('game-scores-table').querySelector('tbody');
+                    if (data.scores && data.scores.length > 0) {
+                        scoresTable.innerHTML = data.scores.map(s => `
+                            <tr>
+                                <td>${s.username}</td>
+                                <td>Lv.${s.level || 0}</td>
+                                <td>${s.game_name}</td>
+                                <td>${s.score}</td>
+                                <td>${s.score_type || '分数'}</td>
+                                <td>${new Date(s.created_at).toLocaleString()}</td>
+                            </tr>
+                        `).join('');
+                    } else {
+                        scoresTable.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;">暂无游戏成绩</td></tr>';
+                    }
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // 编辑用户
+        function editUser(username, level, exp, fish) {
+            currentEditUser = username;
+            document.getElementById('edit-username').value = username;
+            document.getElementById('edit-level').value = level;
+            document.getElementById('edit-exp').value = exp;
+            document.getElementById('edit-fish').value = fish;
+            document.getElementById('edit-modal').classList.add('active');
+        }
+
+        // 保存用户
+        async function saveUser() {
+            try {
+                const res = await fetch(`${API_BASE}/admin/user/${currentEditUser}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        level: parseInt(document.getElementById('edit-level').value),
+                        exp: parseInt(document.getElementById('edit-exp').value),
+                        fish: parseInt(document.getElementById('edit-fish').value)
+                    })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    alert('保存成功！');
+                    closeModal();
+                    loadUsers();
+                }
+            } catch (e) {
+                console.error(e);
+                alert('保存失败');
+            }
+        }
+
+        // 删除用户
+        async function deleteUser(username) {
+            if (!confirm(`确定要删除用户 ${username} 吗？`)) return;
+            
+            try {
+                const res = await fetch(`${API_BASE}/admin/user/${username}`, { method: 'DELETE' });
+                const data = await res.json();
+                
+                if (data.success) {
+                    alert('删除成功！');
+                    loadUsers();
+                    loadDashboard();
+                }
+            } catch (e) {
+                console.error(e);
+                alert('删除失败');
+            }
+        }
+
+        // 删除留言
+        async function deleteMessage(id) {
+            if (!confirm('确定要删除这条留言吗？')) return;
+            
+            try {
+                const res = await fetch(`${API_BASE}/admin/message/${id}`, { method: 'DELETE' });
+                const data = await res.json();
+                
+                if (data.success) {
+                    alert('删除成功！');
+                    loadMessages();
+                    loadDashboard();
+                }
+            } catch (e) {
+                console.error(e);
+                alert('删除失败');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('edit-modal').classList.remove('active');
+        }
+
+        function logout() {
+            localStorage.removeItem('user');
+            localStorage.removeItem('is_admin');
+            window.location.href = 'index.html';
+        }
+
+        // 初始化
+        if (checkAdmin()) {
+            loadDashboard();
+        }
+    </script>
+</body>
+</html>

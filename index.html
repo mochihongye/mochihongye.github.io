@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>登录 - 哈基米小窝</title>
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --primary-light: #818cf8;
+            --primary-dark: #4f46e5;
+            --secondary-color: #ec4899;
+            --accent-green: #22c55e;
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            width:100vw; height:100vh;
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            background: var(--bg-gradient);
+            position:relative; overflow:hidden;
+        }
+        body::after {
+            content:""; position:absolute;
+            top:0; left:0; width:100%; height:100%;
+            background: radial-gradient(circle at 30% 20%, rgba(255,255,255,0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 80%, rgba(255,255,255,0.1) 0%, transparent 40%);
+            z-index:1;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: rgba(0,0,0,0.2);
+            backdrop-filter: blur(20px);
+            color: white;
+            padding: 30px 25px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar .logo {
+            font-size: 26px;
+            font-weight: bold;
+            margin-bottom: 40px;
+            text-align: center;
+            padding-bottom: 25px;
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+        }
+        .sidebar .nav-links {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .sidebar .nav-links a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px 20px;
+            border-radius: 14px;
+            text-decoration: none;
+            color: rgba(255,255,255,0.9);
+            font-size: 16px;
+            transition: all 0.35s;
+            background: rgba(255,255,255,0.08);
+        }
+        .sidebar .nav-links a:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateX(8px);
+        }
+        .sidebar .nav-links a.active {
+            background: rgba(255,255,255,0.25);
+            font-weight: 600;
+        }
+        .sidebar .nav-links a .icon {
+            font-size: 18px;
+        }
+
+        .auth-card {
+            position:absolute; 
+            top: 50%; 
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width:420px; 
+            background:rgba(255,255,255,0.98);
+            border-radius:24px; 
+            padding:50px 45px;
+            box-shadow:0 20px 60px rgba(99, 102, 241, 0.3);
+            z-index:10; 
+            backdrop-filter:blur(20px);
+            margin-left: 130px;
+        }
+
+        .auth-card .logo {
+            text-align: center;
+            font-size: 50px;
+            margin-bottom: 20px;
+        }
+        .auth-card h1 {
+            text-align: center;
+            color: var(--primary-color);
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        .auth-card .subtitle {
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 35px;
+        }
+
+        .form-group {
+            margin-bottom: 22px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: #374151;
+            font-weight: 600;
+            font-size: 15px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid rgba(99, 102, 241, 0.2);
+            border-radius: 14px;
+            font-size: 15px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            color: white;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+        }
+        .btn-secondary {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary-color);
+            margin-top: 15px;
+        }
+        .btn-secondary:hover {
+            background: rgba(99, 102, 241, 0.2);
+        }
+
+        .msg {
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 14px;
+            display: none;
+        }
+        .msg.success {
+            display: block;
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--accent-green);
+        }
+        .msg.error {
+            display: block;
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
+        .tips {
+            text-align: center;
+            margin-top: 20px;
+            color: #9ca3af;
+            font-size: 13px;
+        }
+        .tips code {
+            background: rgba(99, 102, 241, 0.1);
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="logo">🐱 哈基米小窝</div>
+    <div class="nav-links">
+        <a href="index-main.html">
+            <span class="icon">🏠</span>
+            <span>首页</span>
+        </a>
+        <a href="哈基米介绍.html">
+            <span class="icon">📋</span>
+            <span>年糕档案</span>
+        </a>
+        <a href="哈基米子网站.html">
+            <span class="icon">📸</span>
+            <span>年糕相册</span>
+        </a>
+        <a href="哈基米互动.html">
+            <span class="icon">🎮</span>
+            <span>互动专区</span>
+        </a>
+        <a href="game.html">
+            <span class="icon">🎯</span>
+            <span>小游戏中心</span>
+        </a>
+        <a href="index.html" class="active">
+            <span class="icon">🔑</span>
+            <span>登录</span>
+        </a>
+    </div>
+</div>
+
+<div class="auth-card">
+    <div class="logo">🐱</div>
+    <h1>欢迎回来</h1>
+    <div class="subtitle">登录您的账号，和年糕一起玩耍吧～</div>
+    
+    <div class="msg" id="loginMsg"></div>
+    
+    <div class="form-group">
+        <label>用户名</label>
+        <input type="text" id="username" placeholder="请输入用户名">
+    </div>
+    
+    <div class="form-group">
+        <label>密码</label>
+        <input type="password" id="password" placeholder="请输入密码">
+    </div>
+    
+    <button class="btn btn-primary" onclick="login()">登录</button>
+    <button class="btn btn-secondary" onclick="register()">注册新账号</button>
+</div>
+
+<script>
+    const API_BASE = '/api';
+
+    async function login() {
+        const u = document.getElementById('username').value.trim();
+        const p = document.getElementById('password').value.trim();
+        
+        if (!u || !p) {
+            document.getElementById('loginMsg').className = 'msg error';
+            document.getElementById('loginMsg').textContent = '请填写用户名和密码！';
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_BASE}/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: u, password: p })
+            });
+            const data = await res.json();
+            
+            if(data.success){
+                localStorage.setItem('user', u);
+                localStorage.setItem('is_admin', data.user.is_admin);
+                
+                // 统一使用userStats存储用户数据
+                localStorage.setItem('userStats', JSON.stringify({
+                    username: u,
+                    level: data.user.level,
+                    exp: data.user.exp,
+                    fish: data.user.fish
+                }));
+                
+                // 同时保存旧格式以兼容其他页面
+                saveUserData(u, {
+                    username: u,
+                    level: data.user.level,
+                    exp: data.user.exp,
+                    fish: data.user.fish
+                });
+                
+                document.getElementById('loginMsg').className='msg success';
+                if(data.user.is_admin){
+                    document.getElementById('loginMsg').textContent='管理员登录成功！即将进入后台...';
+                } else {
+                    document.getElementById('loginMsg').textContent='登录成功！';
+                }
+                
+                // 播放登录音效，等待播放完成后再跳转
+                const loginAudio = new Audio('音乐/登录音.mp3');
+                loginAudio.volume = 0.5;
+                
+                loginAudio.onended = function() {
+                    if(data.user.is_admin){
+                        location.href = 'admin.html';
+                    } else {
+                        location.href = 'index-main.html';
+                    }
+                };
+                
+                loginAudio.onerror = function() {
+                    // 音频加载失败，直接跳转
+                    if(data.user.is_admin){
+                        location.href = 'admin.html';
+                    } else {
+                        location.href = 'index-main.html';
+                    }
+                };
+                
+                loginAudio.play().catch(e => {
+                    console.log('音频播放失败:', e);
+                    // 播放失败，直接跳转
+                    if(data.user.is_admin){
+                        location.href = 'admin.html';
+                    } else {
+                        location.href = 'index-main.html';
+                    }
+                });
+            } else {
+                document.getElementById('loginMsg').className='msg error';
+                document.getElementById('loginMsg').textContent=data.message || '登录失败！';
+            }
+        } catch(e) {
+            console.error('登录失败:', e);
+            document.getElementById('loginMsg').className='msg error';
+            document.getElementById('loginMsg').textContent='登录失败，请检查网络连接！';
+        }
+    }
+
+    async function register() {
+        const u = document.getElementById('username').value.trim();
+        const p = document.getElementById('password').value.trim();
+        
+        if (!u || !p) {
+            document.getElementById('loginMsg').className = 'msg error';
+            document.getElementById('loginMsg').textContent = '请填写用户名和密码！';
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_BASE}/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: u, password: p })
+            });
+            const data = await res.json();
+            
+            if(data.success){
+                document.getElementById('loginMsg').className='msg success';
+                document.getElementById('loginMsg').textContent='注册成功！请登录';
+            } else {
+                document.getElementById('loginMsg').className='msg error';
+                document.getElementById('loginMsg').textContent=data.message || '注册失败！';
+            }
+        } catch(e) {
+            console.error('注册失败:', e);
+            document.getElementById('loginMsg').className='msg error';
+            document.getElementById('loginMsg').textContent='注册失败，请检查网络连接！';
+        }
+    }
+
+    function saveUserData(username, obj) {
+        const key = 'userData_' + username;
+        localStorage.setItem(key, JSON.stringify(obj));
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            login();
+        }
+    });
+</script>
+</body>
+</html>

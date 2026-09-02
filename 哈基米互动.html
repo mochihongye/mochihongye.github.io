@@ -1,0 +1,2283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>互动专区 - 哈基米小窝</title>
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --primary-light: #818cf8;
+            --primary-dark: #4f46e5;
+            --secondary-color: #ec4899;
+            --accent-green: #22c55e;
+            --accent-yellow: #f59e0b;
+            --bg-gradient: linear-gradient(135deg, #f0f4ff 0%, #fdf4ff 100%);
+            --card-shadow: 0 4px 20px rgba(99, 102, 241, 0.1);
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { 
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; 
+            background: var(--bg-gradient);
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: linear-gradient(180deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 30px 25px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 4px 0 30px rgba(99, 102, 241, 0.3);
+        }
+        .sidebar .logo {
+            font-size: 26px;
+            font-weight: bold;
+            margin-bottom: 40px;
+            text-align: center;
+            padding-bottom: 25px;
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+        }
+        .sidebar .nav-links {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .sidebar .nav-links a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px 20px;
+            border-radius: 14px;
+            text-decoration: none;
+            color: rgba(255,255,255,0.9);
+            font-size: 16px;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(255,255,255,0.08);
+        }
+        .sidebar .nav-links a:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateX(8px);
+        }
+        .sidebar .nav-links a.active {
+            background: rgba(255,255,255,0.25);
+            font-weight: 600;
+            transform: translateX(12px);
+            box-shadow: 4px 4px 15px rgba(0,0,0,0.2);
+            border-radius: 14px 20px 20px 14px;
+        }
+        .sidebar .nav-links a .icon {
+            font-size: 18px;
+        }
+        .sidebar .level-box {
+            padding: 18px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 14px;
+            margin-top: auto;
+            text-align: center;
+            font-size: 14px;
+            line-height: 1.6;
+            position: relative;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.15);
+            word-break: break-word;
+            overflow-wrap: break-word;
+            white-space: normal;
+        }
+        .rank-badge {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, rgba(255,215,0,0.9) 0%, rgba(255,165,0,0.9) 100%);
+            padding: 8px 16px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(255,215,0,0.4), 0 0 30px rgba(255,215,0,0.3);
+            animation: badgePop 0.5s ease-out;
+        }
+        @keyframes badgePop {
+            0% { transform: translateX(-50%) scale(0); opacity: 0; }
+            50% { transform: translateX(-50%) scale(1.2); }
+            100% { transform: translateX(-50%) scale(1); opacity: 1; }
+        }
+        @keyframes glow {
+            0%, 100% { text-shadow: 0 0 5px currentColor, 0 0 10px currentColor; }
+            50% { text-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor; }
+        }
+        .top-nav { display: none; }
+
+        .banner {
+            width: calc(100% - 260px);
+            height: 380px;
+            background: linear-gradient(135deg, #26D0C4 0%, #FF9800 50%, #9C27B0 100%);
+            display: flex;
+            align-items: center;
+            margin-left: 260px;
+            justify-content: center;
+            color: white;
+            font-size: 48px;
+            font-weight: bold;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        .banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 50%);
+            animation: pulse 8s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: rotate(0deg); opacity: 0.5; }
+            50% { transform: rotate(180deg); opacity: 1; }
+        }
+
+        /* 每日签到区域 */
+        .daily-sign-area {
+            padding: 20px 30px;
+            margin-bottom: 25px;
+            position: relative;
+            overflow: hidden;
+            margin-left: 280px;
+            margin-right: 40px;
+        }
+        .daily-sign-area::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(236, 72, 153, 0.1) 50%, rgba(168, 85, 247, 0.1) 100%);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        .sign-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            position: relative;
+            z-index: 1;
+            flex-wrap: wrap;
+        }
+        .sign-icon {
+            font-size: 48px;
+        }
+        .sign-icon.shake {
+            animation: shake 0.5s ease-in-out;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translate(0, 0); }
+            10% { transform: translate(-10px, -5px); }
+            20% { transform: translate(10px, 5px); }
+            30% { transform: translate(-8px, -3px); }
+            40% { transform: translate(8px, 3px); }
+            50% { transform: translate(-6px, -2px); }
+            60% { transform: translate(6px, 2px); }
+            70% { transform: translate(-4px, -1px); }
+            80% { transform: translate(4px, 1px); }
+            90% { transform: translate(-2px, -0.5px); }
+        }
+        .sign-info {
+            flex: 1;
+        }
+        .sign-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #374151;
+            margin-bottom: 4px;
+        }
+        .sign-desc {
+            font-size: 14px;
+            color: #6b7280;
+        }
+        .sign-action {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+        }
+        .sign-btn {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border: none;
+            border-radius: 25px;
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+        }
+        .sign-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.5);
+        }
+        .sign-btn:disabled {
+            background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .sign-streak {
+            font-size: 13px;
+            color: #f59e0b;
+            font-weight: 600;
+            background: rgba(245, 158, 11, 0.15);
+            padding: 4px 12px;
+            border-radius: 15px;
+        }
+        
+        body.dark .sign-title {
+            color: #f3f4f6;
+        }
+        body.dark .sign-desc {
+            color: #9ca3af;
+        }
+        body.dark .daily-sign-area::before {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(236, 72, 153, 0.15) 50%, rgba(168, 85, 247, 0.15) 100%);
+        }
+        body.dark .sign-streak {
+            background: rgba(245, 158, 11, 0.25);
+        }
+
+        .container {
+            width: calc(100% - 280px);
+            margin-left: 280px;
+            padding: 0 40px 110px;
+            min-height: calc(100vh - 380px);
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 35px;
+            margin-bottom: 30px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid rgba(99, 102, 241, 0.08);
+        }
+        .card h2 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-size: 24px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(99, 102, 241, 0.15);
+            position: relative;
+        }
+        .card h2::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 60px;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+        }
+
+        .game-section {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+        }
+        .game-card {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(236, 72, 153, 0.05) 100%);
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .game-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 30px rgba(99, 102, 241, 0.15);
+        }
+        .game-card .icon {
+            font-size: 50px;
+            margin-bottom: 15px;
+        }
+        .game-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+        .game-card p {
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .game-card.green {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, rgba(99, 102, 241, 0.08) 100%);
+        }
+        .game-card.orange {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(236, 72, 153, 0.08) 100%);
+        }
+
+        .pet-area {
+            text-align: center;
+            padding: 40px;
+            background: linear-gradient(135deg, #fef3c7 0%, #fce7f3 100%);
+            border-radius: 20px;
+        }
+        .card-title {
+            color: var(--primary-color);
+            margin-bottom: 25px;
+            font-size: 24px;
+        }
+        .cat-image-container {
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        .cat-image-container:hover {
+            transform: scale(1.05);
+        }
+        .cat-image {
+            width: 350px;
+            height: 350px;
+            object-fit: cover;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        .pet-reaction {
+            font-size: 18px;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            min-height: 30px;
+            font-weight: 600;
+        }
+        .pet-count {
+            font-size: 16px;
+            color: #6b7280;
+        }
+        .cat-display {
+            font-size: 120px;
+            margin-bottom: 20px;
+            animation: bounce 2s ease-in-out infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+        .pet-actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        .action-btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .action-btn.pet {
+            background: linear-gradient(135deg, var(--secondary-color), #f472b6);
+            color: white;
+            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3);
+        }
+        .action-btn.feed {
+            background: linear-gradient(135deg, var(--accent-yellow), #fbbf24);
+            color: #374151;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+        .action-btn.play {
+            background: linear-gradient(135deg, var(--accent-green), #4ade80);
+            color: white;
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+        }
+        .action-btn.rest {
+            background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+            color: white;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+        }
+        .action-btn:hover {
+            transform: translateY(-3px);
+        }
+        .cat-mood {
+            font-size: 18px;
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-top: 20px;
+        }
+
+        /* 深色模式样式 */
+        body.dark {
+            background: linear-gradient(135deg, #0f0d24 0%, #1a163a 50%, #0f0d24 100%);
+            color: #e0e0e0;
+        }
+        body.dark .card {
+            background: rgba(20, 18, 45, 0.95);
+            border-color: rgba(255,255,255,0.15);
+        }
+        body.dark .card h2 {
+            color: #ffffff;
+        }
+        body.dark .pet-area {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%);
+        }
+        body.dark .cat-mood {
+            color: #ffffff;
+        }
+        body.dark .action-btn {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        body.dark .action-btn.pet {
+            background: linear-gradient(135deg, #d946a0 0%, #f472b6 100%);
+            color: white;
+        }
+        body.dark .action-btn.feed {
+            background: linear-gradient(135deg, #d97706 0%, #fbbf24 100%);
+            color: #1a163a;
+        }
+        body.dark .action-btn.play {
+            background: linear-gradient(135deg, #16a34a 0%, #4ade80 100%);
+            color: white;
+        }
+        body.dark .action-btn.rest {
+            background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
+            color: white;
+        }
+        body.dark .sidebar {
+            background: linear-gradient(180deg, #312e81 0%, #1e1b4b 100%);
+        }
+        body.dark .sidebar .nav-links a {
+            background: rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.9);
+        }
+        body.dark .sidebar .nav-links a:hover {
+            background: rgba(255,255,255,0.15);
+        }
+        body.dark .sidebar .nav-links a.active {
+            background: rgba(255,255,255,0.2);
+        }
+        body.dark .sidebar .level-box {
+            color: #ffffff;
+        }
+        body.dark .game-card {
+            background: rgba(255,255,255,0.05);
+        }
+        body.dark .game-card h3 {
+            color: #ffffff;
+        }
+        body.dark .game-card p {
+            color: #b0b0b0;
+        }
+        body.dark .leaderboard th {
+            color: #ffffff;
+        }
+        body.dark .leaderboard td {
+            color: #e0e0e0;
+            border-bottom-color: rgba(255,255,255,0.1);
+        }
+        body.dark .leaderboard tr:hover td {
+            background: rgba(255,255,255,0.05);
+        }
+
+        /* 主题切换 + 音乐播放器 */
+        .control-bar {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 30px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .control-bar .theme-btn {
+            background: none;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            padding: 8px 14px;
+            border-radius: 25px;
+            transition: all 0.3s;
+        }
+        .control-bar .theme-btn:hover {
+            background: rgba(99, 102, 241, 0.1);
+        }
+        body.dark .control-bar {
+            background: rgba(20, 18, 45, 0.95);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        }
+        body.dark .control-bar .divider {
+            background: rgba(255,255,255,0.15);
+        }
+        body.dark .control-bar .music-info {
+            color: #ffffff;
+        }
+        body.dark .control-bar .theme-btn:hover {
+            background: rgba(255,255,255,0.15);
+        }
+        .control-bar .divider {
+            width: 1px;
+            height: 30px;
+            background: rgba(0,0,0,0.1);
+        }
+        .control-bar .music-info {
+            font-size: 14px;
+            max-width: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #374151;
+        }
+        .control-bar .music-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+        .control-bar .music-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .leaderboard {
+            margin-top: 20px;
+        }
+        .leaderboard table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .leaderboard th {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            color: white;
+            padding: 15px 20px;
+            text-align: left;
+            border-radius: 10px 10px 0 0;
+        }
+        .leaderboard td {
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+        }
+        .leaderboard tr:hover td {
+            background: rgba(99, 102, 241, 0.05);
+        }
+        .rank-1 { color: #f59e0b; font-weight: bold; }
+        .rank-2 { color: #9ca3af; font-weight: bold; }
+        .rank-3 { color: #d97706; font-weight: bold; }
+
+        .reward-card {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%);
+            border-radius: 16px;
+            padding: 25px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .reward-icon {
+            font-size: 40px;
+        }
+        .reward-content h4 {
+            color: var(--accent-yellow);
+            margin-bottom: 5px;
+        }
+        .reward-content p {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        /* 新功能样式 */
+        .cat-status {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .status-item {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(236, 72, 153, 0.08) 100%);
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+        }
+        .status-item .icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        .status-item .label {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 5px;
+        }
+        .status-item .value {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        .status-bar {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        .status-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s;
+        }
+        .status-fill.happy { background: linear-gradient(90deg, #22c55e, #4ade80); }
+        .status-fill.hungry { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+        .status-fill.energy { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+        .status-fill.love { background: linear-gradient(90deg, #ec4899, #f472b6); }
+
+        .daily-reward {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .daily-reward .title {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--accent-yellow);
+            margin-bottom: 10px;
+        }
+        .daily-reward .desc {
+            color: #6b7280;
+            margin-bottom: 20px;
+        }
+        .daily-reward .btn {
+            background: linear-gradient(135deg, var(--accent-yellow), #fbbf24);
+            color: #374151;
+            border: none;
+            padding: 14px 40px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+        .daily-reward .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+        }
+        .daily-reward .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .streak-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #ec4899, #f472b6);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin-top: 15px;
+        }
+
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .achievement-card {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(236, 72, 153, 0.05) 100%);
+            border-radius: 16px;
+            padding: 18px 15px;
+            text-align: center;
+            transition: all 0.3s;
+            border: 1px solid rgba(99, 102, 241, 0.1);
+        }
+        .achievement-card.unlocked {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(34, 197, 94, 0.12) 100%);
+            border: 2px solid rgba(34, 197, 94, 0.4);
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.15);
+        }
+        .achievement-card.locked {
+            opacity: 0.6;
+            filter: grayscale(40%);
+        }
+        .achievement-card .icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+        .achievement-card .name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 4px;
+        }
+        .achievement-card .desc {
+            font-size: 11px;
+            color: #9ca3af;
+        }
+        .achievement-card.unlocked .name {
+            color: #22c55e;
+        }
+        .achievement-card.unlocked .icon {
+            animation: glow 2s ease-in-out infinite;
+        }
+        @keyframes glow {
+            0%, 100% { filter: drop-shadow(0 0 5px rgba(34, 197, 94, 0.5)); }
+            50% { filter: drop-shadow(0 0 15px rgba(34, 197, 94, 0.8)); }
+        }
+
+        .mini-games {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .mini-game-card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.08);
+            border: 1px solid rgba(99, 102, 241, 0.1);
+        }
+        .mini-game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.15);
+        }
+        .mini-game-card .icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+        .mini-game-card .title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+        }
+        .mini-game-card .desc {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 15px;
+        }
+        .mini-game-card .cost {
+            display: inline-block;
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary-color);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        /* 深色模式新增样式 */
+        body.dark .cat-status .status-item {
+            background: rgba(255,255,255,0.05);
+        }
+        body.dark .cat-status .status-item .value {
+            color: #a5b4fc;
+        }
+        body.dark .daily-reward {
+            background: rgba(245, 158, 11, 0.1);
+        }
+        body.dark .daily-reward .desc {
+            color: #9ca3af;
+        }
+        body.dark .achievements-grid .achievement-card {
+            background: rgba(255,255,255,0.03);
+            border-color: rgba(255,255,255,0.1);
+        }
+        body.dark .achievements-grid .achievement-card.unlocked {
+            background: rgba(34, 197, 94, 0.15);
+            border-color: rgba(34, 197, 94, 0.5);
+        }
+        body.dark .achievements-grid .achievement-card .name {
+            color: #ffffff;
+        }
+        body.dark .achievements-grid .achievement-card.unlocked .name {
+            color: #4ade80;
+        }
+        body.dark .mini-game-card {
+            background: rgba(255,255,255,0.03);
+            border-color: rgba(255,255,255,0.1);
+        }
+        body.dark .mini-game-card .title {
+            color: #a5b4fc;
+        }
+        body.dark .mini-game-card .desc {
+            color: #9ca3af;
+        }
+
+        /* 猜猫咪品种游戏样式 */
+        .guess-intro {
+            text-align: center;
+            padding: 30px 20px;
+        }
+        .intro-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+            animation: bounce 2s ease-in-out infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .guess-question {
+            text-align: center;
+            padding: 20px;
+        }
+        .question-type {
+            font-size: 16px;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-weight: 700;
+            padding: 8px 20px;
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 20px;
+            display: inline-block;
+        }
+        .question-content {
+            margin-bottom: 30px;
+        }
+        .question-content img {
+            max-width: 350px;
+            max-height: 280px;
+            border-radius: 20px;
+            box-shadow: 0 12px 35px rgba(0,0,0,0.2);
+            margin-bottom: 15px;
+            transition: transform 0.3s;
+        }
+        .question-content img:hover {
+            transform: scale(1.02);
+        }
+        .question-content .description {
+            font-size: 17px;
+            color: #374151;
+            line-height: 2;
+            padding: 25px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(236, 72, 153, 0.08) 100%);
+            border-radius: 16px;
+            max-width: 550px;
+            margin: 0 auto;
+            border: 1px solid rgba(99, 102, 241, 0.1);
+        }
+        .guess-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            max-width: 550px;
+            margin: 0 auto;
+        }
+        .guess-option {
+            padding: 18px 25px;
+            background: linear-gradient(145deg, #ffffff, #f8fafc);
+            border: 2px solid rgba(99, 102, 241, 0.15);
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            color: #374151;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.08);
+        }
+        .guess-option:hover {
+            border-color: var(--primary-color);
+            background: linear-gradient(145deg, #f0f4ff, #fdf4ff);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.2);
+        }
+        .guess-option.correct {
+            background: linear-gradient(145deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.1));
+            border-color: #22c55e;
+            color: #16a34a;
+            box-shadow: 0 4px 20px rgba(34, 197, 94, 0.3);
+        }
+        .guess-option.wrong {
+            background: linear-gradient(145deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.1));
+            border-color: #ef4444;
+            color: #dc2626;
+            box-shadow: 0 4px 20px rgba(239, 68, 68, 0.3);
+        }
+        .guess-result {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        .result-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: pop 0.5s ease-out;
+        }
+        @keyframes pop {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        .result-text {
+            font-size: 26px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .result-text.correct { color: #22c55e; }
+        .result-text.wrong { color: #ef4444; }
+        .result-info {
+            font-size: 15px;
+            color: #6b7280;
+            line-height: 2;
+            padding: 20px;
+            background: rgba(99, 102, 241, 0.05);
+            border-radius: 12px;
+            max-width: 450px;
+            margin: 0 auto;
+        }
+        .start-game-area {
+            text-align: center;
+            padding: 20px;
+        }
+        .start-guess-btn {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 25px 60px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+        .start-guess-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+        .start-guess-btn:hover::before {
+            left: 100%;
+        }
+        .start-guess-btn:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 45px rgba(99, 102, 241, 0.5);
+        }
+        .start-guess-btn .btn-icon {
+            font-size: 36px;
+        }
+        .start-guess-btn .btn-text {
+            font-size: 22px;
+            font-weight: 700;
+            color: white;
+        }
+        .start-guess-btn .btn-cost {
+            font-size: 14px;
+            color: rgba(255,255,255,0.85);
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 15px;
+        }
+        body.dark .intro-icon {
+            filter: drop-shadow(0 0 20px rgba(255,255,255,0.3));
+        }
+        body.dark .question-content .description {
+            background: rgba(255,255,255,0.05);
+            color: #e5e7eb;
+            border-color: rgba(255,255,255,0.1);
+        }
+        body.dark .guess-option {
+            background: rgba(255,255,255,0.05);
+            border-color: rgba(255,255,255,0.15);
+            color: #e5e7eb;
+        }
+        body.dark .guess-option:hover {
+            background: rgba(99, 102, 241, 0.15);
+            border-color: var(--primary-light);
+        }
+        body.dark .result-info {
+            background: rgba(255,255,255,0.05);
+        }
+        body.dark h3 {
+            color: #e5e7eb !important;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 992px) {
+            .status-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .action-buttons {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 60px;
+            }
+            .sidebar .nav-links a span:last-child,
+            .sidebar .logo {
+                display: none;
+            }
+            .main-content {
+                margin-left: 60px;
+            }
+            .status-grid {
+                grid-template-columns: 1fr;
+            }
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+            .cat-interaction {
+                padding: 15px;
+            }
+        }
+        @media (max-width: 480px) {
+            .sidebar {
+                width: 50px;
+            }
+            .main-content {
+                margin-left: 50px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="logo">🐱 哈基米小窝</div>
+    <div class="nav-links">
+        <a href="index-main.html">
+            <span class="icon">🏠</span>
+            <span>首页</span>
+        </a>
+        <a href="哈基米介绍.html">
+            <span class="icon">📋</span>
+            <span>年糕档案</span>
+        </a>
+        <a href="哈基米子网站.html">
+            <span class="icon">📸</span>
+            <span>年糕相册</span>
+        </a>
+        <a href="哈基米互动.html" class="active">
+            <span class="icon">🎮</span>
+            <span>互动专区</span>
+        </a>
+        <a href="game.html">
+            <span class="icon">🎯</span>
+            <span>小游戏中心</span>
+        </a>
+        <a href="admin.html" id="adminLink" style="display:none;">
+            <span class="icon">⚙️</span>
+            <span>后台管理</span>
+        </a>
+        <a href="index.html" id="loginOut">
+            <span class="icon">🔑</span>
+            <span>登录</span>
+        </a>
+    </div>
+    <div class="level-box" id="levelBox"></div>
+</div>
+
+<div class="banner">🎮 互动专区</div>
+
+<div class="daily-sign-area" id="dailySignArea">
+    <div class="sign-content">
+        <div class="sign-icon">🎁</div>
+        <div class="sign-info">
+            <div class="sign-title">📅 每日签到</div>
+            <div class="sign-desc">签到获得小鱼干和经验奖励</div>
+        </div>
+        <div class="sign-action">
+            <button class="sign-btn" id="signBtn" onclick="dailySign()">🎯 立即签到</button>
+            <div class="sign-streak" id="streakBadge">🔥 连续签到 0 天</div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="card">
+        <h2 class="card-title">🐱 在线撸年糕（点击摸头）</h2>
+        <div class="pet-area" id="petArea">
+            <div class="cat-image-container">
+                <img src="摸头动图/摸头1.jpg" class="cat-image" id="catImage" alt="年糕">
+            </div>
+            <div class="pet-reaction" id="petReaction">点击年糕开始撸猫～</div>
+            <div class="pet-count" id="petCount">今日已撸：0 次</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>🐾 年糕状态</h2>
+        <div class="cat-status">
+            <div class="status-item">
+                <div class="icon">😊</div>
+                <div class="label">心情值</div>
+                <div class="value" id="statusHappy">85%</div>
+                <div class="status-bar"><div class="status-fill happy" style="width:85%"></div></div>
+            </div>
+            <div class="status-item">
+                <div class="icon">🍖</div>
+                <div class="label">饱食度</div>
+                <div class="value" id="statusHungry">70%</div>
+                <div class="status-bar"><div class="status-fill hungry" style="width:70%"></div></div>
+            </div>
+            <div class="status-item">
+                <div class="icon">⚡</div>
+                <div class="label">精力值</div>
+                <div class="value" id="statusEnergy">90%</div>
+                <div class="status-bar"><div class="status-fill energy" style="width:90%"></div></div>
+            </div>
+            <div class="status-item">
+                <div class="icon">💕</div>
+                <div class="label">亲密度</div>
+                <div class="value" id="statusLove">80%</div>
+                <div class="status-bar"><div class="status-fill love" style="width:80%"></div></div>
+            </div>
+        </div>
+        <div class="pet-actions">
+            <button class="action-btn feed" onclick="feedCat()">🍖 喂食</button>
+            <button class="action-btn play" onclick="playCat()">🎾 玩耍</button>
+            <button class="action-btn rest" onclick="restCat()">💤 休息</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>🏅 成就系统</h2>
+        <p style="color:#6b7280;margin-bottom:20px;font-size:14px;">完成隐藏成就获得丰厚奖励，探索发现所有成就吧！</p>
+        <div class="achievements-grid" id="achievementsGrid">
+            <div class="achievement-card" data-id="first_game">
+                <div class="icon">🎮</div>
+                <div class="name">初次游戏</div>
+                <div class="desc">???</div>
+            </div>
+            <div class="achievement-card" data-id="love_cat">
+                <div class="icon">❤️</div>
+                <div class="name">爱心满满</div>
+                <div class="desc">???</div>
+            </div>
+            <div class="achievement-card" data-id="fish_collector">
+                <div class="icon">🐟</div>
+                <div class="name">小鱼干收藏家</div>
+                <div class="desc">???</div>
+            </div>
+            <div class="achievement-card" data-id="star_master">
+                <div class="icon">🌟</div>
+                <div class="name">星级铲屎官</div>
+                <div class="desc">???</div>
+            </div>
+            <div class="achievement-card" data-id="sign_master">
+                <div class="icon">🔥</div>
+                <div class="name">签到达人</div>
+                <div class="desc">???</div>
+            </div>
+            <div class="achievement-card" data-id="game_master">
+                <div class="icon">🏆</div>
+                <div class="name">游戏大师</div>
+                <div class="desc">???</div>
+            </div>
+            <div class="achievement-card" data-id="guess_master">
+                <div class="icon">🎯</div>
+                <div class="name">猜谜高手</div>
+                <div class="desc">???</div>
+            </div>
+            <div class="achievement-card" data-id="mystery">
+                <div class="icon">💎</div>
+                <div class="name">神秘成就</div>
+                <div class="desc">???</div>
+            </div>
+            <div class="achievement-card" data-id="hidden">
+                <div class="icon">🌈</div>
+                <div class="name">隐藏成就</div>
+                <div class="desc">???</div>
+            </div>
+            <div class="achievement-card" data-id="ultimate">
+                <div class="icon">👑</div>
+                <div class="name">终极成就</div>
+                <div class="desc">???</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>🐱 猜猫咪品种</h2>
+        <div id="catGuessGame">
+            <div class="guess-intro">
+                <div class="intro-icon">🐾</div>
+                <h3 style="color:#374151;font-size:22px;margin-bottom:12px;">猫咪品种大挑战</h3>
+                <p style="color:#6b7280;margin-bottom:25px;line-height:1.8;">根据图片或描述猜出猫咪品种<br>答对获得丰厚小鱼干奖励！</p>
+            </div>
+            <div class="guess-question" id="guessQuestion" style="display:none;">
+                <div class="question-type" id="questionType"></div>
+                <div class="question-content" id="questionContent"></div>
+                <div class="guess-options" id="guessOptions"></div>
+            </div>
+            <div class="guess-result" id="guessResult" style="display:none;">
+                <div class="result-icon" id="resultIcon"></div>
+                <div class="result-text" id="resultText"></div>
+                <div class="result-info" id="resultInfo"></div>
+            </div>
+            <div class="start-game-area">
+                <button class="start-guess-btn" id="startGuessBtn" onclick="startCatGuess()">
+                    <span class="btn-icon">🎮</span>
+                    <span class="btn-text">开始猜谜</span>
+                    <span class="btn-cost">消耗 2 🐟</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>🏆 排行榜</h2>
+        <div class="leaderboard">
+            <table>
+                <thead>
+                    <tr><th>排名</th><th>玩家</th><th>等级</th><th>小鱼干</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="rank-1">🥇 1</td><td>admin</td><td>Lv.10</td><td>🐟 1000</td></tr>
+                    <tr><td class="rank-2">🥈 2</td><td>小猫咪爱好者</td><td>Lv.8</td><td>🐟 850</td></tr>
+                    <tr><td class="rank-3">🥉 3</td><td>喵星人</td><td>Lv.7</td><td>🐟 720</td></tr>
+                    <tr><td>4</td><td>爱猫人士</td><td>Lv.6</td><td>🐟 600</td></tr>
+                    <tr><td>5</td><td>铲屎官</td><td>Lv.5</td><td>🐟 450</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="control-bar" id="controlBar">
+    <button class="theme-btn" id="themeToggle">🌙</button>
+    <div class="divider"></div>
+    <button class="music-btn" id="prevMusic">⏮</button>
+    <button class="music-btn" id="toggleMusic">▶️</button>
+    <button class="music-btn" id="nextMusic">⏭</button>
+    <div class="music-info" id="musicInfo">歌曲 1</div>
+    <audio id="bgmAudio" preload="auto"></audio>
+</div>
+
+<script>
+    // ======================
+    // 主题切换
+    // ======================
+    const isDark = localStorage.getItem('darkTheme') === 'true';
+    if (isDark) {
+        document.body.classList.add('dark');
+        document.getElementById('themeToggle').innerText = '☀️';
+    }
+
+    document.getElementById('themeToggle').onclick = () => {
+        document.body.classList.toggle('dark');
+        const isDarkNow = document.body.classList.contains('dark');
+        localStorage.setItem('darkTheme', isDarkNow);
+        document.getElementById('themeToggle').innerText = isDarkNow ? '☀️' : '🌙';
+    };
+
+    // ======================
+    // 音乐播放器
+    // ======================
+    const musicList = [
+        { name: '歌曲 1', src: '音乐/song1.mp3' },
+        { name: '歌曲 2', src: '音乐/song2.mp3' }
+    ];
+    
+    let currentMusicIndex = 0;
+    let isMusicPlaying = false;  // 修复变量名冲突
+    const bgmAudio = document.getElementById('bgmAudio');
+
+    function loadMusic(index) {
+        bgmAudio.src = musicList[index].src;
+        document.getElementById('musicInfo').innerText = musicList[index].name;
+    }
+
+    loadMusic(0);
+
+    document.getElementById('toggleMusic').onclick = () => {
+        const btn = document.getElementById('toggleMusic');
+        if (isMusicPlaying) {
+            btn.innerText = '▶️';
+            isMusicPlaying = false;
+            bgmAudio.pause();
+        } else {
+            btn.innerText = '⏸️';
+            isMusicPlaying = true;
+            bgmAudio.play();
+        }
+    };
+
+    document.getElementById('prevMusic').onclick = () => {
+        currentMusicIndex = (currentMusicIndex - 1 + musicList.length) % musicList.length;
+        loadMusic(currentMusicIndex);
+        if (isMusicPlaying) bgmAudio.play();
+    };
+
+    document.getElementById('nextMusic').onclick = () => {
+        currentMusicIndex = (currentMusicIndex + 1) % musicList.length;
+        loadMusic(currentMusicIndex);
+        if (isMusicPlaying) bgmAudio.play();
+    };
+
+    const API_BASE = '/api';
+
+    const reactions = [
+        '喵~(=^・ω・^=)', '呼噜呼噜～', '好舒服呀～', '再来再来！',
+        '♡(*´∀｀*)人(*´∀｀*)♡', '蹭蹭你的手～', '眯眼享受中...',
+        '尾巴甩甩～', '踩奶踩奶～', '喵呜～爱你！'
+    ];
+    
+    const today = new Date().toDateString();
+    let petCount = parseInt(localStorage.getItem('petCount_' + today)) || 0;
+    document.getElementById('petCount').innerText = `今日已撸：${petCount} 次`;
+
+    // 当前摸头图序号（1~5循环）
+    let currentPetIndex = parseInt(localStorage.getItem('currentPetIndex')) || 1;
+
+    document.getElementById('catImage').onclick = () => {
+        const catImage = document.getElementById('catImage');
+        const reaction = document.getElementById('petReaction');
+        
+        // 随机显示反应
+        const randomReaction = reactions[Math.floor(Math.random() * reactions.length)];
+        reaction.innerText = randomReaction;
+        
+        // 切换到摸头动图（带两位数编号）
+        const gifNum = String(currentPetIndex).padStart(2, '0');
+        catImage.src = '摸头动图/摸头' + gifNum + '.gif';
+        clearTimeout(window.petGifTimer);
+        window.petGifTimer = setTimeout(() => {
+            catImage.src = '摸头动图/摸头' + currentPetIndex + '.jpg';
+        }, 1000);
+        
+        // 切到下一张（1~5循环）
+        currentPetIndex = currentPetIndex % 5 + 1;
+        localStorage.setItem('currentPetIndex', currentPetIndex);
+        
+        // 更新计数
+        petCount++;
+        localStorage.setItem('petCount_' + today, petCount);
+        document.getElementById('petCount').innerText = `今日已撸：${petCount} 次`;
+    };
+
+    function getLevelIcon(lv) {
+        if(lv>=8) return '👑皇冠';
+        if(lv>=4) return '🌙月亮';
+        return '⭐星星';
+    }
+    function getLevelName(lv) {
+        if(lv>=8) return '铲屎官之神';
+        if(lv>=6) return '资深铲屎官';
+        if(lv>=4) return '资深铲屎官';
+        if(lv>=2) return '新手铲屎官';
+        return '见习铲屎官';
+    }
+
+    function getUserData(username) {
+        const key = 'userData_' + username;
+        const data = localStorage.getItem(key);
+        if (!data) return null;
+        try {
+            return JSON.parse(data);
+        } catch (e) {
+            return null;
+        }
+    }
+
+    async function updateLevelDisplay() {
+        const user = localStorage.getItem('user') || '';
+        let level = 0;
+        let fish = 0;
+
+        if (user) {
+            const userData = getUserData(user);
+            if (userData) {
+                level = userData.level || 0;
+                fish = userData.fish || 0;
+            }
+            
+            try {
+                const res = await fetch(`${API_BASE}/user/${user}`);
+                if (res.ok) {
+                    const apiData = await res.json();
+                    if (apiData.level !== undefined && apiData.fish !== undefined) {
+                        if (apiData.level !== level || apiData.fish !== fish) {
+                            level = apiData.level;
+                            fish = apiData.fish;
+                            const userData = { level, exp: apiData.exp || 0, fish };
+                            localStorage.setItem('userData_' + user, JSON.stringify(userData));
+                            localStorage.setItem('userStats', JSON.stringify(userData));
+                        }
+                    }
+                }
+            } catch (e) {}
+            
+            const levelIcon = getLevelIcon(level);
+            const levelName = getLevelName(level);
+            document.getElementById('levelBox').innerText =
+                `${user} ${levelIcon}${levelName} Lv${level} 🐟${fish}`;
+        } else {
+            document.getElementById('levelBox').innerText = `游客`;
+        }
+    }
+
+    function updateTopNav() {
+        const user = localStorage.getItem('user');
+        const link = document.getElementById('loginOut');
+        if (user) {
+            link.innerHTML = '<span class="icon">🚪</span><span>退出</span>';
+            link.onclick = () => {
+                localStorage.removeItem('user');
+                localStorage.removeItem('is_admin');
+                location.reload();
+            };
+        } else {
+            link.innerHTML = '<span class="icon">🔑</span><span>登录</span>';
+            link.onclick = null;
+        }
+    }
+
+    function checkAdminLink() {
+        const isAdmin = localStorage.getItem('is_admin') === 'true';
+        const adminLink = document.getElementById('adminLink');
+        if (isAdmin) {
+            adminLink.style.display = 'flex';
+        }
+    }
+
+    async function loadLeaderboard() {
+        try {
+            const res = await fetch(`${API_BASE}/leaderboard`);
+            if (res.ok) {
+                const data = await res.json();
+                if (data.success && data.data) {
+                    const tbody = document.querySelector('.leaderboard tbody');
+                    tbody.innerHTML = '';
+                    
+                    const user = localStorage.getItem('user');
+                    let userRank = null;
+                    
+                    data.data.forEach((userData, index) => {
+                        const rank = index + 1;
+                        let rankClass = '';
+                        let rankEmoji = '';
+                        if (rank === 1) { rankClass = 'rank-1'; rankEmoji = '🥇'; }
+                        else if (rank === 2) { rankClass = 'rank-2'; rankEmoji = '🥈'; }
+                        else if (rank === 3) { rankClass = 'rank-3'; rankEmoji = '🥉'; }
+                        
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td class="${rankClass}">${rankEmoji} ${rank}</td>
+                            <td>${userData.username}</td>
+                            <td>Lv.${userData.level || 1}</td>
+                            <td>🐟 ${userData.fish || 0}</td>
+                        `;
+                        tbody.appendChild(row);
+                        
+                        if (user && userData.username === user) {
+                            userRank = rank;
+                        }
+                    });
+                    
+                    if (user && userRank && userRank <= 3) {
+                        updateRankDisplay(userRank);
+                    }
+                }
+            }
+        } catch (e) {
+            console.error('加载排行榜失败:', e);
+        }
+    }
+    
+    function updateRankDisplay(rank) {
+        const levelBox = document.getElementById('levelBox');
+        const rankInfo = document.createElement('div');
+        rankInfo.className = 'rank-badge';
+        
+        let rankEmoji = '';
+        let rankColor = '';
+        let rankTitle = '';
+        
+        if (rank === 1) {
+            rankEmoji = '👑';
+            rankColor = '#f59e0b';
+            rankTitle = '第一名';
+        } else if (rank === 2) {
+            rankEmoji = '🥈';
+            rankColor = '#9ca3af';
+            rankTitle = '第二名';
+        } else if (rank === 3) {
+            rankEmoji = '🥉';
+            rankColor = '#d97706';
+            rankTitle = '第三名';
+        }
+        
+        rankInfo.innerHTML = `
+            <div style="font-size: 24px; animation: bounce 1s ease-in-out infinite;">${rankEmoji}</div>
+            <div style="font-size: 12px; color: ${rankColor}; font-weight: bold; margin-top: 4px; animation: glow 2s ease-in-out infinite;">
+                排行榜第${rank}名
+            </div>
+        `;
+        
+        levelBox.appendChild(rankInfo);
+    }
+
+    // ======================
+    // 年糕状态系统 - 养成系统
+    // ======================
+    function getCatStatus() {
+        const user = localStorage.getItem('user');
+        const isAdmin = localStorage.getItem('is_admin') === 'true';
+        
+        // 管理员永远是满状态
+        if (isAdmin) {
+            return {
+                happy: 100,
+                hungry: 100,
+                energy: 100,
+                love: 100,
+                feedCountToday: 0,
+                lastUpdate: new Date().toISOString(),
+                lastFeed: null,
+                lastPlay: null,
+                lastRest: null,
+                isAdmin: true
+            };
+        }
+        
+        if (!user) {
+            return {
+                happy: 50,
+                hungry: 50,
+                energy: 80,
+                love: 0,
+                feedCountToday: 0,
+                lastUpdate: new Date().toISOString(),
+                lastFeed: null,
+                lastPlay: null,
+                lastRest: null,
+                isAdmin: false
+            };
+        }
+        
+        const saved = localStorage.getItem('catStatus_' + user);
+        if (saved) {
+            return JSON.parse(saved);
+        }
+        
+        return {
+            happy: 50,
+            hungry: 50,
+            energy: 80,
+            love: 0,
+            feedCountToday: 0,
+            lastUpdate: new Date().toISOString(),
+            lastFeed: null,
+            lastPlay: null,
+            lastRest: null
+        };
+    }
+    
+    function saveCatStatus(status) {
+        const user = localStorage.getItem('user');
+        const isAdmin = localStorage.getItem('is_admin') === 'true';
+        // 管理员不保存状态，始终保持100%
+        if (user && !isAdmin) {
+            status.lastUpdate = new Date().toISOString();
+            localStorage.setItem('catStatus_' + user, JSON.stringify(status));
+        }
+    }
+    
+    function calculateOfflineTime() {
+        const status = getCatStatus();
+        // 管理员不计算离线时间
+        if (status.isAdmin) {
+            return 0;
+        }
+        const lastUpdate = new Date(status.lastUpdate);
+        const now = new Date();
+        const hoursOffline = (now - lastUpdate) / (1000 * 60 * 60);
+        return hoursOffline;
+    }
+    
+    function updateCatStatusByTime() {
+        const status = getCatStatus();
+        
+        // 管理员永远是满状态
+        if (status.isAdmin) {
+            return {
+                happy: 100,
+                hungry: 100,
+                energy: 100,
+                love: 100,
+                feedCountToday: 0,
+                lastUpdate: new Date().toISOString(),
+                isAdmin: true
+            };
+        }
+        
+        const hoursOffline = calculateOfflineTime();
+        const lastUpdate = new Date(status.lastUpdate);
+        const now = new Date();
+        
+        // 检查是否是新的一天
+        if (lastUpdate.toDateString() !== now.toDateString()) {
+            // 新的一天，重置喂食次数和心情加成
+            status.feedCountToday = 0;
+            todayLoveBonus = false;
+            
+            // 精力值恢复到100
+            status.energy = 100;
+            
+            // 心情值重置：如果在50以上就掉到50%，在50及以下继续减少
+            if (status.happy > 50) {
+                status.happy = 50;
+            } else {
+                // 继续减少20%
+                status.happy = clamp(status.happy - 20, 10, 100);
+            }
+        }
+        
+        // 饱食度根据离线时间减少（每小时减少3%，最低0%）
+        status.hungry = clamp(status.hungry - hoursOffline * 3, 0, 100);
+        
+        // 心情值根据离线时间减少，饱食度过低时加速下降
+        let happyDecrease = hoursOffline * 2; // 正常速度：每小时减少2%
+        if (status.hungry < 30) {
+            happyDecrease = hoursOffline * 4; // 饱食度低于30%时，心情下降速度翻倍
+        } else if (status.hungry < 50) {
+            happyDecrease = hoursOffline * 3; // 饱食度低于50%时，心情下降速度加快50%
+        }
+        status.happy = clamp(status.happy - happyDecrease, 10, 100);
+        
+        saveCatStatus(status);
+        return status;
+    }
+    
+    let catStatus = updateCatStatusByTime();
+
+    function updateStatusDisplay() {
+        // 如果是管理员，始终显示100%
+        if (catStatus.isAdmin) {
+            document.getElementById('statusHappy').innerText = '100%';
+            document.querySelector('.status-fill.happy').style.width = '100%';
+            document.getElementById('statusHungry').innerText = '100%';
+            document.querySelector('.status-fill.hungry').style.width = '100%';
+            document.getElementById('statusEnergy').innerText = '100%';
+            document.querySelector('.status-fill.energy').style.width = '100%';
+            document.getElementById('statusLove').innerText = '100%';
+            document.querySelector('.status-fill.love').style.width = '100%';
+            return;
+        }
+        
+        document.getElementById('statusHappy').innerText = Math.round(catStatus.happy) + '%';
+        document.querySelector('.status-fill.happy').style.width = catStatus.happy + '%';
+        document.getElementById('statusHungry').innerText = Math.round(catStatus.hungry) + '%';
+        document.querySelector('.status-fill.hungry').style.width = catStatus.hungry + '%';
+        document.getElementById('statusEnergy').innerText = Math.round(catStatus.energy) + '%';
+        document.querySelector('.status-fill.energy').style.width = catStatus.energy + '%';
+        document.getElementById('statusLove').innerText = Math.round(catStatus.love) + '%';
+        document.querySelector('.status-fill.love').style.width = catStatus.love + '%';
+    }
+
+    function clamp(value, min, max) {
+        return Math.min(Math.max(value, min), max);
+    }
+
+    function feedCat() {
+        const user = localStorage.getItem('user');
+        const isAdmin = localStorage.getItem('is_admin') === 'true';
+        if (isAdmin) {
+            showActionResult('👑 管理员无需喂食，年糕状态永远满值！');
+            return;
+        }
+        if (!user) {
+            alert('请先登录！');
+            return;
+        }
+        
+        // 如果正在休息或玩耍，先停止
+        if (isResting) {
+            stopResting();
+        }
+        if (isPlaying) {
+            stopPlaying();
+        }
+        
+        const userData = getUserData(user);
+        
+        // 每日最多喂食5次
+        const maxFeedPerDay = 5;
+        const feedCount = catStatus.feedCountToday || 0;
+        
+        if (feedCount >= maxFeedPerDay) {
+            alert(`今天已经喂过${maxFeedPerDay}次了！明天再来吧~`);
+            return;
+        }
+        
+        // 小鱼干消耗倍增：第1次10个，第2次20个，第3次40个，第4次80个，第5次160个
+        const fishCost = 10 * Math.pow(2, feedCount);
+        const hungerGain = 30;
+        
+        if (!userData || userData.fish < fishCost) {
+            alert(`小鱼干不够了！需要${fishCost}个小鱼干`);
+            return;
+        }
+        
+        catStatus.hungry = clamp(catStatus.hungry + hungerGain, 0, 100);
+        catStatus.happy = clamp(catStatus.happy + 8, 0, 100);
+        catStatus.feedCountToday = feedCount + 1;
+        catStatus.lastFeed = new Date().toISOString();
+        updateStatusDisplay();
+        updateFeedButton();
+        
+        userData.fish -= fishCost;
+        localStorage.setItem('userData_' + user, JSON.stringify(userData));
+        localStorage.setItem('userStats', JSON.stringify(userData));
+        updateLevelDisplay();
+        saveCatStatus(catStatus);
+        showActionResult(`🍖 年糕开心地吃完了小鱼干！饱食度+${hungerGain}，心情+8`);
+    }
+    
+    function updateFeedButton() {
+        const feedBtn = document.querySelector('.action-btn.feed');
+        const feedCount = catStatus.feedCountToday || 0;
+        const maxFeed = 5;
+        
+        if (feedCount >= maxFeed) {
+            feedBtn.innerHTML = '🍖 今日已喂满';
+            feedBtn.disabled = true;
+            feedBtn.style.opacity = '0.6';
+            feedBtn.style.cursor = 'not-allowed';
+        } else {
+            const fishCost = 10 * Math.pow(2, feedCount);
+            feedBtn.innerHTML = `🍖 喂食<br><span style="font-size:12px;opacity:0.8;">${fishCost} 🐟</span>`;
+            feedBtn.disabled = false;
+            feedBtn.style.opacity = '1';
+            feedBtn.style.cursor = 'pointer';
+        }
+    }
+
+    // 玩耍状态
+    let isPlaying = false;
+    let playInterval = null;
+    let todayLoveBonus = false;  // 今日是否获得过心情满值亲密度加成
+    
+    function playCat() {
+        const user = localStorage.getItem('user');
+        if (!user) {
+            alert('请先登录！');
+            return;
+        }
+        
+        // 如果正在休息，先停止休息
+        if (isResting) {
+            stopResting();
+        }
+        
+        if (isPlaying) {
+            // 结束玩耍
+            stopPlaying();
+        } else {
+            // 开始玩耍
+            startPlaying();
+        }
+    }
+    
+    function startPlaying() {
+        const isAdmin = localStorage.getItem('is_admin') === 'true';
+        if (isAdmin) {
+            showActionResult('👑 管理员无需玩耍，年糕状态永远满值！');
+            return;
+        }
+        
+        if (catStatus.energy < 15) {
+            alert('年糕太累了，让它休息一下吧！');
+            return;
+        }
+        
+        isPlaying = true;
+        const playBtn = document.querySelector('.action-btn.play');
+        playBtn.innerHTML = '⏹️ 结束玩耍';
+        playBtn.style.background = 'linear-gradient(135deg, #ef4444, #f87171)';
+        
+        showActionResult('🎾 年糕开始玩耍了！');
+        
+        // 每30秒更新一次状态（更慢的变化速度）
+        playInterval = setInterval(() => {
+            // 精力值逐渐减少，饱食度过低时加速消耗
+            let energyDecrease = 1; // 正常速度：每30秒减少1%
+            if (catStatus.hungry < 30) {
+                energyDecrease = 2; // 饱食度低于30%时，精力消耗翻倍
+            } else if (catStatus.hungry < 50) {
+                energyDecrease = 1.5; // 饱食度低于50%时，精力消耗加快50%
+            }
+            catStatus.energy = clamp(catStatus.energy - energyDecrease, 0, 100);
+            
+            // 饱食度逐渐减少（每30秒减少0.5%）
+            catStatus.hungry = clamp(catStatus.hungry - 0.5, 0, 100);
+            // 心情值逐渐增加（每30秒增加1%）
+            catStatus.happy = clamp(catStatus.happy + 1, 0, 100);
+            
+            // 检查心情值满时的亲密度加成
+            if (catStatus.happy >= 100 && !todayLoveBonus) {
+                catStatus.love = clamp(catStatus.love + 0.5, 0, 100);
+                todayLoveBonus = true;
+                showActionResult('💕 年糕超开心！亲密度+0.5%');
+            }
+            
+            updateStatusDisplay();
+            saveCatStatus(catStatus);
+            
+            // 如果精力值太低，自动结束玩耍
+            if (catStatus.energy <= 5) {
+                stopPlaying();
+                showActionResult('😴 年糕累了，不想玩了...');
+            }
+            
+            // 如果饱食度太低，提示喂食
+            if (catStatus.hungry <= 10) {
+                showActionResult('⚠️ 年糕饿了，快喂点小鱼干吧！');
+            }
+        }, 30000); // 30秒更新一次
+    }
+    
+    function stopPlaying() {
+        isPlaying = false;
+        if (playInterval) {
+            clearInterval(playInterval);
+            playInterval = null;
+        }
+        
+        const playBtn = document.querySelector('.action-btn.play');
+        playBtn.innerHTML = '🎾 玩耍';
+        playBtn.style.background = 'linear-gradient(135deg, var(--accent-green), #4ade80)';
+    }
+    
+    // 休息状态
+    let isResting = false;
+    let restInterval = null;
+    
+    function restCat() {
+        const user = localStorage.getItem('user');
+        if (!user) {
+            alert('请先登录！');
+            return;
+        }
+        
+        // 如果正在玩耍，先停止玩耍
+        if (isPlaying) {
+            stopPlaying();
+        }
+        
+        if (isResting) {
+            // 结束休息
+            stopResting();
+        } else {
+            // 开始休息
+            startResting();
+        }
+    }
+    
+    function startResting() {
+        isResting = true;
+        const restBtn = document.querySelector('.action-btn.rest');
+        restBtn.innerHTML = '☀️ 结束休息';
+        restBtn.style.background = 'linear-gradient(135deg, #f59e0b, #fbbf24)';
+        
+        showActionResult('💤 年糕开始休息了...');
+        
+        // 管理员不执行休息逻辑
+        if (catStatus.isAdmin) {
+            showActionResult('👑 管理员无需休息，年糕状态永远满值！');
+            return;
+        }
+        
+        // 每30秒更新一次状态（更慢的变化速度）
+        restInterval = setInterval(() => {
+            // 精力值逐渐增加，饱食度过低时恢复减慢
+            let energyIncrease = 1; // 正常速度：每30秒增加1%
+            if (catStatus.hungry < 30) {
+                energyIncrease = 0.3; // 饱食度低于30%时，精力恢复大幅减慢
+            } else if (catStatus.hungry < 50) {
+                energyIncrease = 0.6; // 饱食度低于50%时，精力恢复减慢
+            }
+            catStatus.energy = clamp(catStatus.energy + energyIncrease, 0, 100);
+            
+            // 饱食度逐渐减少（每30秒减少0.5%）
+            catStatus.hungry = clamp(catStatus.hungry - 0.5, 0, 100);
+            
+            // 心情值下降：饱食度过低时加速下降
+            let happyDecrease = 0.3; // 正常下降速度
+            if (catStatus.hungry < 30) {
+                happyDecrease = 1; // 饱食度低于30%时，心情下降更快
+            } else if (catStatus.hungry < 50) {
+                happyDecrease = 0.6; // 饱食度低于50%时，心情下降加快
+            }
+            catStatus.happy = clamp(catStatus.happy - happyDecrease, 10, 100);
+            
+            updateStatusDisplay();
+            saveCatStatus(catStatus);
+            
+            // 如果精力值满了，自动结束休息
+            if (catStatus.energy >= 100) {
+                stopResting();
+                showActionResult('💤 年糕休息好了，精力满满！');
+            }
+            
+            // 如果饱食度太低，提示喂食
+            if (catStatus.hungry <= 10) {
+                showActionResult('⚠️ 年糕饿了，快喂点小鱼干吧！');
+            }
+        }, 30000); // 30秒更新一次
+    }
+    
+    function stopResting() {
+        isResting = false;
+        if (restInterval) {
+            clearInterval(restInterval);
+            restInterval = null;
+        }
+        
+        const restBtn = document.querySelector('.action-btn.rest');
+        restBtn.innerHTML = '💤 休息';
+        restBtn.style.background = 'linear-gradient(135deg, #8b5cf6, #a78bfa)';
+        
+        catStatus.lastRest = new Date().toISOString();
+        saveCatStatus(catStatus);
+    }
+
+    function showActionResult(msg) {
+        const reaction = document.getElementById('petReaction');
+        reaction.innerText = msg;
+        setTimeout(() => {
+            reaction.innerText = '点击年糕开始撸猫～';
+        }, 2000);
+    }
+
+    // ======================
+    // 每日签到系统
+    // ======================
+    function checkSignStatus() {
+        const lastSign = localStorage.getItem('lastSignDate');
+        const streak = parseInt(localStorage.getItem('signStreak')) || 0;
+        const today = new Date().toDateString();
+        
+        if (lastSign === today) {
+            document.getElementById('signBtn').innerText = '✅ 已签到';
+            document.getElementById('signBtn').disabled = true;
+        }
+        
+        document.getElementById('streakBadge').innerText = '🔥 连续签到 ' + streak + ' 天';
+    }
+
+    function dailySign() {
+        const user = localStorage.getItem('user');
+        if (!user) {
+            alert('请先登录！');
+            return;
+        }
+
+        const today = new Date().toDateString();
+        const lastSign = localStorage.getItem('lastSignDate');
+        
+        if (lastSign === today) {
+            alert('今日已签到！');
+            return;
+        }
+
+        let streak = parseInt(localStorage.getItem('signStreak')) || 0;
+        streak++;
+        localStorage.setItem('signStreak', streak);
+        localStorage.setItem('lastSignDate', today);
+
+        const rewards = [10, 15, 20, 30, 50, 80, 100];
+        const rewardIndex = Math.min(streak - 1, rewards.length - 1);
+        const fishReward = rewards[rewardIndex];
+        const expReward = streak * 5;
+
+        const userData = getUserData(user) || { level: 0, exp: 0, fish: 0 };
+        userData.fish += fishReward;
+        userData.exp += expReward;
+        localStorage.setItem('userData_' + user, JSON.stringify(userData));
+        localStorage.setItem('userStats', JSON.stringify(userData));
+
+        const signIcon = document.querySelector('.sign-icon');
+        signIcon.classList.add('shake');
+        
+        setTimeout(() => {
+            signIcon.classList.remove('shake');
+        }, 500);
+        
+        updateLevelDisplay();
+        checkSignStatus();
+        
+        alert(`🎉 签到成功！\n获得 🐟 ${fishReward} 小鱼干\n获得 ⭐ ${expReward} 经验\n连续签到 ${streak} 天`);
+    }
+
+    // ======================
+    // 猜猫咪品种游戏
+    // ======================
+    const catBreeds = [
+        { name: '英国短毛猫', origin: '英国', type: '短毛', img1: '首页猫咪品种科普图片/1.1.jpeg', img2: '首页猫咪品种科普图片/1.2.jpeg', desc: '头大脸圆，短毛密，蓝猫、银渐层为主' },
+        { name: '美国短毛猫', origin: '美国', type: '短毛', img1: '首页猫咪品种科普图片/2.1.jpeg', img2: '首页猫咪品种科普图片/2.2.jpeg', desc: '体格健壮，虎斑纹路明显' },
+        { name: '布偶猫', origin: '美国', type: '长毛', img1: '首页猫咪品种科普图片/3.1.jpeg', img2: '首页猫咪品种科普图片/3.2.jpeg', desc: '长毛，蓝眼睛，体型大' },
+        { name: '暹罗猫', origin: '泰国', type: '短毛', img1: '首页猫咪品种科普图片/4.1.jpeg', img2: '首页猫咪品种科普图片/4.2.jpeg', desc: '重点色，身材纤细，蓝眼睛' },
+        { name: '异国短毛猫（加菲）', origin: '美国', type: '短毛', img1: '首页猫咪品种科普图片/5.1.jpeg', img2: '首页猫咪品种科普图片/5.2.jpeg', desc: '扁脸短鼻，毛短密' },
+        { name: '缅因猫', origin: '美国', type: '长毛', img1: '首页猫咪品种科普图片/6.1.jpeg', img2: '首页猫咪品种科普图片/6.2.jpeg', desc: '巨型长毛，耳尖有毛簇' },
+        { name: '斯芬克斯无毛猫', origin: '加拿大', type: '无毛', img1: '首页猫咪品种科普图片/7.1.jpeg', img2: '首页猫咪品种科普图片/7.2.jpeg', desc: '无毛，皮肤褶皱' },
+        { name: '德文卷毛猫', origin: '英国', type: '短毛', img1: '首页猫咪品种科普图片/8.1.jpeg', img2: '首页猫咪品种科普图片/8.2.jpeg', desc: '卷毛，大耳朵，精灵脸' },
+        { name: '狸花猫', origin: '中国', type: '短毛', img1: '首页猫咪品种科普图片/9.1.jpeg', img2: '首页猫咪品种科普图片/9.2.jpeg', desc: '短毛虎斑，体格结实' },
+        { name: '橘猫', origin: '世界各地', type: '短毛', img1: '首页猫咪品种科普图片/10.1.jpeg', img2: '首页猫咪品种科普图片/10.2.jpeg', desc: '橘白相间，易发胖' },
+        { name: '波斯猫', origin: '伊朗', type: '长毛', img1: '首页猫咪品种科普图片/11.1.jpeg', img2: '首页猫咪品种科普图片/11.2.jpeg', desc: '长毛扁脸，气质优雅' },
+        { name: '金吉拉', origin: '英国', type: '长毛', img1: '首页猫咪品种科普图片/12.1.jpeg', img2: '首页猫咪品种科普图片/12.2.jpeg', desc: '长毛，扁脸，浅色毛' },
+        { name: '苏格兰折耳', origin: '英国', type: '短毛', img1: '首页猫咪品种科普图片/13.1.jpeg', img2: '首页猫咪品种科普图片/13.2.jpeg', desc: '耳朵向前折，圆脸' },
+        { name: '曼基康矮脚猫', origin: '美国', type: '短毛', img1: '首页猫咪品种科普图片/14.1.jpeg', img2: '首页猫咪品种科普图片/14.2.jpeg', desc: '腿极短，身体长' },
+        { name: '山东狮子猫', origin: '中国', type: '长毛', img1: '首页猫咪品种科普图片/15.1.jpeg', img2: '首页猫咪品种科普图片/15.2.jpeg', desc: '长毛纯白，常见鸳鸯眼' },
+        { name: '孟加拉豹猫', origin: '美国', type: '短毛', img1: '首页猫咪品种科普图片/16.1.jpeg', img2: '首页猫咪品种科普图片/16.2.jpeg', desc: '豹纹皮毛，肌肉感强' },
+        { name: '俄罗斯蓝猫', origin: '俄罗斯', type: '短毛', img1: '首页猫咪品种科普图片/17.1.jpeg', img2: '首页猫咪品种科普图片/17.2.jpeg', desc: '短毛灰蓝，绿眼，身材修长' },
+        { name: '柯尼斯卷毛猫', origin: '英国', type: '短毛', img1: '首页猫咪品种科普图片/18.1.jpeg', img2: '首页猫咪品种科普图片/18.2.jpeg', desc: '卷毛，身材纤细' },
+        { name: '塞尔凯克卷毛猫', origin: '美国', type: '长毛', img1: '首页猫咪品种科普图片/19.1.jpeg', img2: '首页猫咪品种科普图片/19.2.jpeg', desc: '羊毛卷，大脸' },
+        { name: '挪威森林猫', origin: '挪威', type: '长毛', img1: '首页猫咪品种科普图片/20.1.jpeg', img2: '首页猫咪品种科普图片/20.2.jpeg', desc: '长毛，体型大，像小狮子' },
+        { name: '新加坡猫', origin: '新加坡', type: '短毛', img1: '首页猫咪品种科普图片/21.1.jpeg', img2: '首页猫咪品种科普图片/21.2.jpeg', desc: '体型最小的猫' },
+        { name: '东短猫', origin: '泰国', type: '短毛', img1: '首页猫咪品种科普图片/22.1.jpeg', img2: '首页猫咪品种科普图片/22.2.jpeg', desc: '大耳朵，长脸' },
+        { name: '阿比西尼亚猫', origin: '埃塞俄比亚', type: '短毛', img1: '首页猫咪品种科普图片/23.1.jpeg', img2: '首页猫咪品种科普图片/23.2.jpeg', desc: '短毛，红褐色' },
+        { name: '土耳其安哥拉猫', origin: '土耳其', type: '长毛', img1: '首页猫咪品种科普图片/24.1.jpeg', img2: '首页猫咪品种科普图片/24.2.jpeg', desc: '长毛，纤细优雅' },
+        { name: '土耳其梵猫', origin: '土耳其', type: '长毛', img1: '首页猫咪品种科普图片/25.1.jpeg', img2: '首页猫咪品种科普图片/25.2.jpeg', desc: '长毛，头尾有色，身体白' },
+        { name: '伯曼猫', origin: '缅甸', type: '长毛', img1: '首页猫咪品种科普图片/26.1.jpeg', img2: '首页猫咪品种科普图片/26.2.jpeg', desc: '长毛重点色，白手套' },
+        { name: '雪鞋猫', origin: '美国', type: '短毛', img1: '首页猫咪品种科普图片/27.1.jpeg', img2: '首页猫咪品种科普图片/27.2.jpeg', desc: '白爪子，重点色' },
+        { name: '日本短尾猫', origin: '日本', type: '短毛', img1: '首页猫咪品种科普图片/28.1.jpeg', img2: '首页猫咪品种科普图片/28.2.jpeg', desc: '兔子尾，短尾' },
+        { name: '索马里猫', origin: '美国', type: '长毛', img1: '首页猫咪品种科普图片/29.1.jpeg', img2: '首页猫咪品种科普图片/29.2.jpeg', desc: '长毛版阿比' },
+        { name: '彼得秃猫', origin: '俄罗斯', type: '无毛', img1: '首页猫咪品种科普图片/30.1.jpeg', img2: '首页猫咪品种科普图片/30.2.jpeg', desc: '细长，无毛' },
+        { name: '重点色布偶', origin: '美国', type: '长毛', img1: '首页猫咪品种科普图片/31.1.jpeg', img2: '首页猫咪品种科普图片/31.2.jpeg', desc: '重点色，长毛，蓝眼' },
+        { name: '美短加白', origin: '美国', type: '短毛', img1: '首页猫咪品种科普图片/32.1.jpeg', img2: '首页猫咪品种科普图片/32.2.jpeg', desc: '虎斑加白，健壮' },
+        { name: '英短银渐层', origin: '英国', type: '短毛', img1: '首页猫咪品种科普图片/33.1.jpeg', img2: '首页猫咪品种科普图片/33.2.jpeg', desc: '银色渐层，圆脸' },
+        { name: '英短金渐层', origin: '英国', type: '短毛', img1: '首页猫咪品种科普图片/34.1.jpeg', img2: '首页猫咪品种科普图片/34.2.jpeg', desc: '金色渐层，圆脸' },
+        { name: '纯白田园猫', origin: '中国', type: '短毛', img1: '首页猫咪品种科普图片/35.1.jpeg', img2: '首页猫咪品种科普图片/35.2.jpeg', desc: '纯白短毛，匀称' },
+        { name: '三花猫', origin: '中国', type: '短毛', img1: '首页猫咪品种科普图片/36.1.jpeg', img2: '首页猫咪品种科普图片/36.2.jpeg', desc: '黑橘白三色' },
+        { name: '蓝白英短', origin: '英国', type: '短毛', img1: '首页猫咪品种科普图片/37.1.jpeg', img2: '首页猫咪品种科普图片/37.2.jpeg', desc: '蓝白花色，圆胖' },
+        { name: '蓝重点伯曼猫', origin: '缅甸', type: '长毛', img1: '首页猫咪品种科普图片/38.1.jpeg', img2: '首页猫咪品种科普图片/38.2.jpeg', desc: '蓝重点色，白手套' },
+        { name: '红阿比猫', origin: '埃塞俄比亚', type: '短毛', img1: '首页猫咪品种科普图片/39.1.jpeg', img2: '首页猫咪品种科普图片/39.2.jpeg', desc: '红棕色，光泽' },
+        { name: '黑白奶牛猫', origin: '中国', type: '短毛', img1: '首页猫咪品种科普图片/40.1.jpeg', img2: '首页猫咪品种科普图片/40.2.jpeg', desc: '黑白奶牛色' }
+    ];
+
+    let currentQuestion = null;
+    let gameActive = false;
+
+    function shuffleArray(arr) {
+        const newArr = [...arr];
+        for (let i = newArr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+        }
+        return newArr;
+    }
+
+    function startCatGuess() {
+        const user = localStorage.getItem('user');
+        if (!user) {
+            alert('请先登录！');
+            return;
+        }
+        
+        const userData = getUserData(user);
+        if (!userData || userData.fish < 2) {
+            alert('小鱼干不够！需要2小鱼干');
+            return;
+        }
+
+        userData.fish -= 2;
+        localStorage.setItem('userData_' + user, JSON.stringify(userData));
+        localStorage.setItem('userStats', JSON.stringify(userData));
+        updateLevelDisplay();
+
+        gameActive = true;
+        document.getElementById('startGuessBtn').style.display = 'none';
+        document.getElementById('guessResult').style.display = 'none';
+        document.getElementById('guessQuestion').style.display = 'block';
+
+        generateQuestion();
+    }
+
+    function generateQuestion() {
+        const questionType = Math.random() > 0.5 ? 'image' : 'description';
+        const correctBreed = catBreeds[Math.floor(Math.random() * catBreeds.length)];
+        
+        let wrongBreeds = catBreeds.filter(b => b.name !== correctBreed.name);
+        wrongBreeds = shuffleArray(wrongBreeds).slice(0, 3);
+        
+        const options = shuffleArray([correctBreed, ...wrongBreeds]);
+        
+        currentQuestion = {
+            type: questionType,
+            correct: correctBreed,
+            options: options
+        };
+
+        const typeText = questionType === 'image' ? '📷 图片猜品种' : '📝 描述猜品种';
+        document.getElementById('questionType').innerText = typeText;
+
+        const contentEl = document.getElementById('questionContent');
+        if (questionType === 'image') {
+            // 随机选择两张图片中的一张
+            const randomImg = Math.random() > 0.5 ? correctBreed.img1 : correctBreed.img2;
+            contentEl.innerHTML = `<img src="${randomImg}" alt="猜猜这是什么猫" onerror="this.src='https://via.placeholder.com/300x200?text=猫咪图片'">`;
+        } else {
+            const hints = [
+                `这是一只来自${correctBreed.origin}的猫咪`,
+                `它的毛发类型是：${correctBreed.type}`,
+                `特征：${correctBreed.desc}`
+            ];
+            contentEl.innerHTML = `<div class="description">${hints.join('<br><br>')}</div>`;
+        }
+
+        const optionsEl = document.getElementById('guessOptions');
+        optionsEl.innerHTML = options.map((breed, index) => 
+            `<div class="guess-option" onclick="checkAnswer('${breed.name}')">${breed.name}</div>`
+        ).join('');
+    }
+
+    function checkAnswer(selectedName) {
+        if (!gameActive) return;
+        gameActive = false;
+
+        const isCorrect = selectedName === currentQuestion.correct.name;
+        const options = document.querySelectorAll('.guess-option');
+        
+        options.forEach(opt => {
+            if (opt.innerText === currentQuestion.correct.name) {
+                opt.classList.add('correct');
+            } else if (opt.innerText === selectedName && !isCorrect) {
+                opt.classList.add('wrong');
+            }
+        });
+
+        setTimeout(() => {
+            showResult(isCorrect);
+        }, 1000);
+    }
+
+    function showResult(isCorrect) {
+        document.getElementById('guessQuestion').style.display = 'none';
+        document.getElementById('guessResult').style.display = 'block';
+
+        const iconEl = document.getElementById('resultIcon');
+        const textEl = document.getElementById('resultText');
+        const infoEl = document.getElementById('resultInfo');
+
+        if (isCorrect) {
+            const user = localStorage.getItem('user');
+            const userData = getUserData(user);
+            const reward = Math.floor(Math.random() * 5) + 3;
+            userData.fish += reward;
+            localStorage.setItem('userData_' + user, JSON.stringify(userData));
+            localStorage.setItem('userStats', JSON.stringify(userData));
+            updateLevelDisplay();
+
+            iconEl.innerText = '🎉';
+            textEl.innerText = '回答正确！';
+            textEl.className = 'result-text correct';
+            infoEl.innerHTML = `获得 <strong style="color:#22c55e">${reward}</strong> 小鱼干奖励！<br><br>这是 <strong>${currentQuestion.correct.name}</strong><br>来自 ${currentQuestion.correct.origin}，${currentQuestion.correct.type}`;
+        } else {
+            iconEl.innerText = '😢';
+            textEl.innerText = '回答错误';
+            textEl.className = 'result-text wrong';
+            infoEl.innerHTML = `正确答案是：<strong style="color:#6366f1">${currentQuestion.correct.name}</strong><br>来自 ${currentQuestion.correct.origin}，${currentQuestion.correct.type}<br><br>再接再厉！`;
+        }
+
+        document.getElementById('startGuessBtn').style.display = 'inline-flex';
+        document.getElementById('startGuessBtn').innerHTML = `
+            <span class="btn-icon">🎮</span>
+            <span class="btn-text">再玩一次</span>
+            <span class="btn-cost">消耗 2 🐟</span>
+        `;
+    }
+
+    function initAchievements() {
+        const user = localStorage.getItem('user');
+        const cards = document.querySelectorAll('.achievement-card');
+        
+        if (!user) {
+            cards.forEach(card => {
+                card.classList.add('locked');
+            });
+            return;
+        }
+        
+        const unlockedAchievements = localStorage.getItem('unlocked_achievements');
+        const unlockedList = unlockedAchievements ? JSON.parse(unlockedAchievements) : [];
+        
+        cards.forEach(card => {
+            const id = card.getAttribute('data-id');
+            if (unlockedList.includes(id)) {
+                card.classList.add('unlocked');
+            } else {
+                card.classList.add('locked');
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        // 初始化日夜模式
+        const isDark = localStorage.getItem('darkTheme') === 'true';
+        if (isDark) {
+            document.body.classList.add('dark');
+        }
+        
+        // 监听其他页面的状态变化
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'darkTheme') {
+                const isDark = localStorage.getItem('darkTheme') === 'true';
+                document.body.classList.toggle('dark', isDark);
+                document.getElementById('themeToggle').innerText = isDark ? '☀️' : '🌙';
+            }
+            if (e.key === 'user' || e.key === 'userStats' || e.key === 'is_admin') {
+                updateLevelDisplay();
+                checkAdminLink();
+            }
+        });
+        
+        await updateLevelDisplay();
+        updateTopNav();
+        checkAdminLink();
+        await loadLeaderboard();
+        checkSignStatus();
+        updateStatusDisplay();
+        initAchievements();
+        updateFeedButton();  // 初始化喂食按钮显示
+        
+        // 页面离开时停止所有状态
+        window.addEventListener('beforeunload', () => {
+            if (isResting) {
+                stopResting();
+            }
+            if (isPlaying) {
+                stopPlaying();
+            }
+        });
+    });
+</script>
+</body>
+</html>
